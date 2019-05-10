@@ -1,0 +1,89 @@
+.content{
+
+
+    font-size:0.7rem;
+    float: left;
+    width:100%;
+    background: #f0f0f0;
+    color:#666;
+}
+
+.content table{
+
+    margin-top: 30px;
+    background: #fff;
+
+    font-size: 0.7rem;
+    font-weight: 100;
+    width:100%;
+    color:#666;
+
+}
+.content table tr{
+    width:100%;
+    border-bottom: 1px #f0f0f0 solid;
+    height:2rem;
+
+}
+.content table tr td{
+    padding:0 2%;
+    width:50%;
+
+}
+
+select{
+    appearance:none;
+    -moz-appearance:none; /* Firefox */
+    -webkit-appearance:none;
+    height:1rem;
+    font-size: 0.7rem;
+    font-family: Arial, "Microsoft YaHei", sans-serif;
+    border:none;
+
+}
+
+.content input[type="text"]{
+    border:none;
+    height:1rem;
+    line-height: 1rem;
+    font-size: 0.7rem;
+    width:4.5rem;
+}
+
+.content .submit_fb{
+    width: 100%;
+    height: 2rem;
+    float: left;
+    padding-bottom: 1rem;
+    background: #fff;
+    overflow: hidden;
+    margin-top: 30px;
+}
+
+.content .submit_fb input{
+    height: 90%;
+    width: 100%;
+    font-size: 0.7rem;
+    margin: 0 auto;
+    display: block;
+    border: none;
+    background:#36BC9B;
+    color: #fff;
+}
+
+.content .submit_fb input:hover{
+
+    background:#FB6E52;
+
+}
+
+.success{
+
+    height:2rem;
+    width:100%;
+    background: #94c840;
+    color:#fff;
+    line-height: 2rem;
+    text-align: center;
+    font-size:1rem;
+}

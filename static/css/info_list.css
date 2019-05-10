@@ -1,0 +1,72 @@
+.info_list {
+    width: 100%;
+    background: #f0f0f0;
+    float: left;
+
+}
+.info_list p {
+
+    color:#666;
+}
+
+.info_list dl{
+
+    margin: 0.3rem;
+}
+
+.info_list dl dd {
+    font-size: 0.7rem;
+    padding:0.2rem;
+    background: #fff;
+}
+
+.contact{
+
+    display: block;
+    color:#fff;
+    background: #FB6E52;
+    float:right;
+    padding: 0.2rem;
+    border-radius: 0.2rem;
+    font-size: 0.5rem;
+}
+
+#hide_container{
+
+
+
+    width:80%;
+    position:absolute;
+    left:50%;
+    top:50%;
+    margin-left: -40%;
+    display: none;
+    border:1px solid #ccc;
+    -webkit-border-radius: 1rem;
+    border-radius: 1rem;
+    font-size: 0.7rem;
+}
+#hide_container .x{
+    position: absolute;
+    top:0;
+    right:-0.5rem;
+}
+#hide_container table{
+
+    margin: 0rem auto;
+    width:100%;
+    -webkit-border-radius: 1rem;
+    border-radius: 1rem;
+    background: #fff;
+
+}
+
+#hide_container table tr{
+
+    height:2rem;
+    border-bottom: 1px solid #ccc;
+    text-align: center;
+}
+#hide_container table tr td{
+    width:50%;
+}

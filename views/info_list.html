@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="generator"
+          content="HTML Tidy for HTML5 (experimental) for Windows https://github.com/w3c/tidy-html5/tree/c63cc39"/>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0"/>
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <title>Title</title>
+    <link rel="stylesheet" href="./css/base.css"/>
+    <link rel="stylesheet" href="./css/index.css"/>
+    <link rel="stylesheet" href="./css/info_list.css"/>
+    <script type="text/javascript" src="js/jquery.min.js"></script>
+
+</head>
+
+<body>
+<div class="home-top">
+    <a style="float:left;" href="javascript:history.go(-1);">返回</a>
+    <a href="login.html">登录</a></div>
+<div class="info_list" id="info_list">
+
+    <dl>
+        <dd>
+            <h2><a href="#">北京市 → 承德市</a></h2>
+
+            <p>车主：马先生<a href="#" data="0" class="contact">立即联系</a><br>车型：轿车<br>
+                时间：2015-11-01 14:20:00<br>描述：全程高速</p>
+        </dd>
+    </dl>
+    <!-- <dl>-->
+    <!--<dd>-->
+    <!--<h2><a href="#">承德市 → 唐山市</a></h2>-->
+
+    <!--<p>车主：马先生<a href="#" class="contact">立即联系</a><br>车型：轿车<br>-->
+    <!--时间：2015-11-01 14:20:00<br>描述：全程高速</p>-->
+    <!--</dd>-->
+    <!--</dl>    <dl>-->
+    <!--<dd>-->
+    <!--<h2><a href="#">承德市 → 张家口市</a></h2>-->
+
+    <!--<p>车主：马先生<a href="#" class="contact">立即联系</a><br>车型：轿车<br>-->
+    <!--时间：2015-11-01 14:20:00<br>描述：全程高速</p>-->
+    <!--</dd>-->
+    <!--</dl>-->
+</div>
+
+<!--弹框模板的地方-->
+<div id="hide_container">
+    <div class="x">X</div>
+    <table>
+
+        <tr>
+            <td>车主姓名</td><td id="name">1</td>
+        </tr>
+        <tr>
+            <td>联系电话</td><td id="phone">2</td>
+        </tr>
+        <tr>
+            <td>车主姓名</td><td id="dpt">1</td>
+        </tr>
+        <tr>
+            <td>车主姓名</td><td id="arr">2</td>
+        </tr>
+        <tr>
+            <td>车主姓名</td> <td id="route">1</td>
+        </tr>
+        <tr>
+            <td>车主姓名</td><td id="date">2</td>
+        </tr>
+        <tr>
+            <td>车主姓名</td><td id="time">1</td>
+        </tr>
+        <tr>
+            <td>车主姓名</td><td id="carType">2</td>
+        </tr>
+        <tr>
+            <td>车主姓名</td><td id="emptySeat">1</td>
+        </tr>
+        <tr>
+            <td>车主姓名</td><td id="price">2</td>
+
+        </tr>
+        <tr style="border-bottom: none;">
+            <td>车主姓名</td><td colspan="2" id="contentl">1</td>
+        </tr>
+
+    </table>
+
+</div>
+</body>
+<script>
+
+    var listData_all;//声明全局数组
+
+    window.onload = function () {
+
+        var url = "/ride/carowner/searchCar.do" + location.search;
+        var body1 = '<dl><dd> <h2><a href="#">BJS → CHD</a></h2> <p>车主：马先生<a href="#" class="contact">立即联系</a><br>车型：轿车<br>时间：2015-11-01 14:20:00<br>描述：全程高速</p> </dd> </dl> <dl> <dd> <h2><a href="#">承德市 → 唐山市</a></h2> <p>车主：马先生<a href="#" class="contact">立即联系</a><br>车型：轿车<br>时间：2015-11-01 14:20:00<br>描述：全程高速</p> </dd> </dl>    <dl> <dd> <h2><a href="#">承德市 → 张家口市</a></h2> <p>车主：马先生<a href="#" class="contact">立即联系</a><br>车型：轿车<br>时间：2015-11-01 14:20:00<br>描述：全程高速</p> </dd> </dl>';
+        //alert(url);
+        ///2->设置全局的数据
+        //listData_all['0']={'name':'zhaojingchao','sex':'nan','age':'16'};
+
+        $.ajax({
+            url: url,
+            type: 'get',
+            dataType: 'json',
+            contentType: 'application/json',
+            success: function (msg) {
+                if (msg.ret == true) {
+
+                    var listData = msg.data;
+                    listData_all = listData;
+                    for (var i = 0; i < listData.length; i++) {
+                        var body = '<dl><dd> <h2><a href="#">' + listData[i].dpt + '→' + listData[i].arr
+                                + '</a></h2> <p>车主：' + listData[i].name
+                                + '<a href="#" data="' + i + '" class="contact">立即联系</a><br>车型：' + listData[i].carType
+                                + '<br>时间：' + listData[i].date + ' ';
+                        if (listData[i].time == 0) {
+                            body += "00:00-24:00";
+                        }
+                        if (listData[i].time == 1) {
+                            body += "00:00-06:00";
+                        }
+                        if (listData[i].time == 2) {
+                            body += "06:00-12:00";
+                        }
+                        if (listData[i].time == 3) {
+                            body += "12:00-18:00";
+                        }
+                        if (listData[i].time == 4) {
+                            body += "18:00-24:00";
+                        }
+
+                        body += '<br>描述：' + listData[i].content + '</p> </dd> </dl>';
+                        $("#info_list").append(body);
+                    }
+                }
+
+            }
+
+        });
+    }
+</script>
+<script>
+
+    //触发弹框的点击事件___读取全局数据
+    $(".contact").bind('click', function () {
+
+        var i = $(this).attr('data');
+        if (i != 0) {
+            $('#dpt').html(listData_all[i].dpt);
+            $('#arr').html(listData_all[i].arr);
+            $('#route').html(listData_all[i].route);
+            $('#date').html(listData_all[i].date);
+            $('#time').html(listData_all[i].time);
+            $('#carType').html(listData_all[i].carType);
+            $('#emptySeat').html(listData_all[i].emptySeat);
+            $('#price').html(listData_all[i].price);
+            $('#content').html(listData_all[i].content);
+        }
+        $("#hide_container").show();
+
+    });
+    $(document).bind("click", function (e) {   //点击空白处关闭弹框
+        var target = $(e.target);
+        if (target.closest(".contact").length == 0) {
+            $("#hide_container").hide();
+        }
+    })
+    $(".x").bind("click",function(){
+
+        $("#hide_container").hide();
+    });
+    $("#hide_container").click(function (event) {  //点击弹框不隐藏弹框
+        event.stopPropagation();
+
+    });
+
+</script>
+</html>

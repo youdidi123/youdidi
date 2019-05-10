@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="generator"
+          content="HTML Tidy for HTML5 (experimental) for Windows https://github.com/w3c/tidy-html5/tree/c63cc39"/>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0"/>
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <meta charset="UTF-8">
+    <title>车主发布</title>
+    <link rel="stylesheet" href="./css/base.css"/>
+    <link rel="stylesheet" href="./css/index.css"/>
+    <link rel="stylesheet" href="./css/car_owner.css"/>
+    <link rel="stylesheet" href="./css/mobiscroll.css"/>
+    <link rel="stylesheet" href="./css/mobiscroll_date.css"/>
+    <link rel="stylesheet" type="text/css" href="./css/mobiscroll.core-2.6.2.css"/>
+</head>
+<body>
+<div class="home-top">
+    <a style="float:left;" href="javascript:history.go(-1);">返回</a>
+    <a href="login.html">登录</a></div>
+<form id="form_info" action="info_list.html">
+<div class="content">
+    <table>
+        <tr>
+            <td>始发地</td>
+            <td><select name="from" id="select_sfd">
+                <option value="188">请选择</option>
+                <option value="190">天津市</option>
+                <option value="189">承德市</option>
+                <option value="191">石家庄市</option>
+                <option value="192">唐山市</option>
+                <option value="193">廊坊市</option>
+                <option value="194">秦皇岛市</option>
+                <option value="195">保定市</option>
+                <option value="196">张家口市</option>
+                <option value="197">沧州市</option>
+                <option value="198">衡水市</option>
+                <option value="199">邢台市</option>
+                <option value="200">邯郸市</option>
+            </select></td>
+        </tr>
+        <tr>
+            <td>目的地</td>
+            <td>
+                <select name="to" id="select_mdd">
+                    <option value="188">请选择</option>
+                    <option value="190">天津市</option>
+                    <option value="189">承德市</option>
+                    <option value="191">石家庄市</option>
+                    <option value="192">唐山市</option>
+                    <option value="193">廊坊市</option>
+                    <option value="194">秦皇岛市</option>
+                    <option value="195">保定市</option>
+                    <option value="196">张家口市</option>
+                    <option value="197">沧州市</option>
+                    <option value="198">衡水市</option>
+                    <option value="199">邢台市</option>
+                    <option value="200">邯郸市</option>
+                </select></td>
+        </tr>
+        <tr>
+            <td>出发日期</td>
+            <td><input type="text" name="date" placeholder="选择日期" readonly/></td>
+        </tr>
+        <tr>
+            <td>出发时间</td>
+            <td>
+                <select id="select_sj" name="time" class="demos" data-role="none">
+                    <option value="0">00:00-24:00</option>
+                    <option value="1">00:00-06:00</option>
+                    <option value="2">06:00-12:00</option>
+                    <option value="3">12:00-18:00</option>
+                    <option value="4">18:00-24:00</option>
+                </select></td>
+        </tr>
+
+    </table>
+    <table>
+        <tr>
+            <td>乘客姓名</td><td><input id="name" name="name" type="text" placeholder="乘客姓名"></td>
+        </tr>
+        <tr>
+            <td>乘客数量</td><td><input id="count" name="count" type="text" placeholder="乘客数量"> </td>
+        </tr>
+        <tr>
+            <td>联系电话</td><td><input id="phone" name="phone" type="text" placeholder="联系电话"> </td>
+        </tr>
+        <tr><td>备注信息</td><td><input type="text" placeholder="备注信息"></td></tr>
+    </table>
+
+    <div class="submit_fb">
+        <input type="submit" value="确认发布"/>
+    </div>
+
+</div>
+    </form>
+
+<script type="text/javascript" src="./js/zepto.min.js"></script>
+<script type="text/javascript" src="./js/swipe.js"></script>
+<script src="./js/jquery.min.js"></script>
+<script src="./js/mobiscroll.core-2.6.2.js" type="text/javascript"></script>
+<script src="./js/mobiscroll_date.js" charset="gb2312"></script>
+<script src="./js/mobiscroll.select-2.6.2.js" type="text/javascript"></script>
+<script src="./js/mobiscroll.js"></script>
+<script>
+    $(function () {
+        var currYear = (new Date()).getFullYear();
+        var opt = {};
+        opt.date = {preset: 'date'};
+        opt.datetime = {preset: 'datetime'};
+        opt.time = {preset: 'time'};
+        opt.select = {preset: 'select'};
+        opt.default = {
+            theme: 'android-ics light', //皮肤样式
+            display: 'modal', //显示方式
+            mode: 'scroller', //日期选择模式
+            dateFormat: 'yyyy-mm-dd',
+            lang: 'zh',
+            startYear: currYear - 50, //开始年份
+            endYear: currYear + 10 //结束年份
+        };
+
+        $("input[name='date']").mobiscroll($.extend(opt['date'], opt['default']));
+        $('#select_mdd').val('').scroller('destroy').scroller($.extend(opt['select'], opt['default']));
+        $('#select_sfd').val('').scroller('destroy').scroller($.extend(opt['select'], opt['default']));
+        $('#select_sj').val('').scroller('destroy').scroller($.extend(opt['select'], opt['default']));
+
+    });
+</script>
+</body>
+</html>
