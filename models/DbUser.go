@@ -1,6 +1,9 @@
 package models
 
-import "github.com/astaxie/beego/orm"
+import (
+	"github.com/astaxie/beego/logs"
+	"github.com/astaxie/beego/orm"
+)
 
 type User struct {
 	Id    int64   `orm:"auto;pk;column(id);" json:"id"`
@@ -36,4 +39,13 @@ func (u *User) Update(fields ...string) error {
 		return err
 	}
 	return nil
+}
+
+func (u *User) GetUserInfo(name string, list *[]*User) (success string , num int64){
+	num, error := orm.NewOrm().Raw("SELECT * from User where name = ?" , name).QueryRows(list)
+	if (error != nil) {
+		logs.Error("can not get user info from db name=%s ,error=%s" , name , error)
+		return "false" , 0
+	}
+	return "true" , num
 }

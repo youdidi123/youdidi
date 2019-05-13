@@ -278,22 +278,26 @@
 <body onload="init()">
 
 <div class="home-top">
-    登陆{{.msg}}
+    <a style="float:left;" href="javascript:history.go(-1);">返回</a>
+    <a href="#">注册</a></div>
 <div class="container">
 
-    <form method="POST" class="form" action="/Dologin">
-        <div class="line-wrap" style="width: 100%;">
+    <form method="POST" class="form" action="/ride/login">
+        <div class="line-wrap" style="width: 70%; ">
             <p class="line-last">
-                <input class="placeholder" id="name"
-                       name="name" placeholder="用户名" required
-                       type="text" value="{{.userName}}">
+                <input type="text" value="" required="" oninput="clicker2();" onpropertychange="clicker2();"
+                       name="email" maxlength="40" id="phone" class="placeholder"
+                       placeholder="手机号">
+
             </p>
         </div>
+        <input class="getyanzhengma" id="getyanzhengma" type="button" value="获取验证"/>
+
         <div class="line-wrap" style="width: 100%;">
             <p class="line-last">
-                <input class="placeholder" id="passwd"
-                       name="passwd" placeholder="密码" required
-                       type="password" value="">
+                <input class="placeholder" id="captcha" oninput="clicker();" onpropertychange="clicker();" maxlength="4"
+                       name="captcha" placeholder="验证码" required
+                       type="text" value="">
             </p>
         </div>
         <p class="line-agree">
@@ -304,7 +308,7 @@
 
         </p>
 
-        <p class="form-do"><input id="btn-submit" type="submit" value="登陆"></p>
+        <p class="form-do"><input id="btn-submit" type="submit" value="验证"></p>
     </form>
 
 </div>
@@ -313,11 +317,43 @@
 <script>
 
     function init() {
-        if ("1" == {{.isMsg}}) {
-            alert({{.msg}})
-        }
+
+        agree.addEventListener('click', clicker);
+        clicker();
+        clicker2();
     }
 
 
 </script>
+<script>
+    var phone = document.getElementById('phone');
+    var btn_getyanzhengma = document.getElementById('getyanzhengma');
+    var agree = document.getElementById('agree');
+    var captcha = document.getElementById('captcha');
+    var btn_submit = document.getElementById('btn-submit');
+
+    var clicker = function (e) {
+        if (!agree.checked || !captcha.value || !phone.value) {
+            btn_submit.disabled = true;
+        } else {
+            btn_submit.disabled = false;
+        }
+    }
+
+    var clicker2 = function (e) {
+        var myreg = /^(((13[0-9]{1})|(15[0-9]{1})|(18[0-9]{1}))+\d{8})$/;
+        if (!myreg.test(phone.value)) {
+            btn_getyanzhengma.disabled = true;
+        }
+        else {
+            btn_getyanzhengma.disabled = false;
+        }
+    }
+
+    var fun1 = function (e) {
+
+        alert(e);
+    }
+</script>
+
 </html>

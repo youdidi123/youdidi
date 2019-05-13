@@ -1,8 +1,10 @@
 package controllers
 
 import (
+	"fmt"
 	"github.com/astaxie/beego"
 	"youdidi/models"
+	"youdidi/redisClient"
 )
 
 type MainController struct {
@@ -15,8 +17,15 @@ func (c *MainController) Get() {
 
 	dbUser.Query().All(&list)
 
+	var cacheClient redisClient.CacheClient
+	cacheClient.GetConnet()
+	cacheClient.SetKey("abc","123")
+
+	test := cacheClient.GetKey("abc")
+
+	fmt.Printf("key value is",test)
+
+
 	c.Data["list"] = list
-	c.Data["Website"] = "beego.me"
-	c.Data["Email"] = "astaxie@gmail.com"
 	c.TplName = "index.html"
 }
