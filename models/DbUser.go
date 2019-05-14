@@ -33,13 +33,6 @@ func (u *User) Insert() (int64, error) {
 	return orm.NewOrm().Insert(u)
 }
 
-func (u *User) Update(fields ...string) error {
-	_, err := orm.NewOrm().Update(u, fields...)
-	if err != nil {
-		return err
-	}
-	return nil
-}
 
 func (u *User) GetUserInfo(name string, list *[]*User) (success string , num int64){
 	num, error := orm.NewOrm().Raw("SELECT * from User where name = ?" , name).QueryRows(list)
@@ -48,4 +41,12 @@ func (u *User) GetUserInfo(name string, list *[]*User) (success string , num int
 		return "false" , 0
 	}
 	return "true" , num
+}
+
+func (u *User) UpdateInfo (id int64, key string , value string)  {
+	o := orm.NewOrm()
+	o.QueryTable(u).Filter("id", id).Update(orm.Params{
+		key: value,
+	})
+
 }

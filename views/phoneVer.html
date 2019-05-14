@@ -281,21 +281,21 @@
 <div class="home-top">
     手机绑定
 <div class="container">
-    <form method="POST" class="form" action="/ride/login">
+    <form method="POST" class="form" action="/Ver/verPhone">
         <div class="line-wrap" style="width: 70%; ">
             <p class="line-last">
                 <input type="text" value="" required="" oninput="clicker2();" onpropertychange="clicker2();"
-                       name="phone" maxlength="40" id="phone" class="placeholder"
+                       name="phoneNum" maxlength="40" id="phone" class="placeholder"
                        placeholder="手机号">
 
             </p>
         </div>
-        <input class="getyanzhengma" id="getyanzhengma" type="button" value="获取验证" onclick="getCode()"/>
+        <input class="getyanzhengma" id="getyanzhengma" type="button" value="获取验证码" onclick="getCode()"/>
 
         <div class="line-wrap" style="width: 100%;">
             <p class="line-last">
-                <input class="placeholder" id="captcha" oninput="clicker();" onpropertychange="clicker();" maxlength="4"
-                       name="captcha" placeholder="验证码" required
+                <input class="placeholder" id="captcha" oninput="clicker();" onpropertychange="clicker();" maxlength="6"
+                       name="verCode" placeholder="验证码" required
                        type="text" value="">
             </p>
         </div>
@@ -359,7 +359,32 @@
 
     function getCode() {
         var phoneNum = document.getElementById('phone')
-        alert(phoneNum.value);
+        var userId = document.getElementById('userId')
+
+        $.ajax({
+            type:"POST",
+            url:"/Ver/getvercode",
+            data:{"phoneNum":phoneNum.value,"userId":userId.value},
+            dataType:"json",
+            success : function(result) {
+                alert("验证码已发送至\"" + phoneNum.value + "\",请及时查看验证")
+                btn_getyanzhengma.disabled = true
+                var leftTime = 60;
+                var timer = setInterval(function(){  //倒计时
+                    btn_getyanzhengma.value = leftTime+"秒"
+                    leftTime--;
+                    if(leftTime==0){ //重新发送
+                        clearInterval(timer);
+                        btn_getyanzhengma.value = "重新获取";
+                        btn_getyanzhengma.disabled = false;
+                    }
+                },1000);
+            },
+            error : function(result) {
+                alert("网络繁忙，请重试");
+            }
+        });
+
     }
 </script>
 
