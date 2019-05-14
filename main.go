@@ -1,12 +1,15 @@
 package main
 
 import (
-	_ "youdidi/routers"
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
+	_ "youdidi/routers"
 )
 
+
+
 func main() {
+
 	beego.SetStaticPath("/js", "static/js")
 	beego.SetStaticPath("/css", "static/css")
 	beego.SetStaticPath("/img", "static/img")

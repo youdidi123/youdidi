@@ -10,7 +10,7 @@ import (
 type MainController struct {
 	beego.Controller
 }
-
+// @router /Portal/home [GET]
 func (c *MainController) Get() {
 	var list []*models.User
 	var dbUser models.User

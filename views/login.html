@@ -45,7 +45,7 @@
         .line, .line-first, .line-last, .line-agree {
             float: left;
             display: block;
-            margin: 2px 1em;
+            margin: 1px 1em;
             line-height: 40px;
             overflow: hidden;
         }
@@ -98,6 +98,7 @@
             text-decoration: none;
             color: #369ce8;
             line-height: 35px;
+            font-size: 15px;
             vertical-align: middle;
         }
 
@@ -278,7 +279,7 @@
 <body onload="init()">
 
 <div class="home-top">
-    登陆{{.msg}}
+    登陆
 <div class="container">
 
     <form method="POST" class="form" action="/Dologin">
@@ -299,7 +300,7 @@
         <p class="line-agree">
 
             <input type="checkbox" id="agree" checked></input><label for="agree">我已阅读并同意<a
-                href="http://m.guokr.com/help/policy/">《用户服务协议》</a>及<a
+                href="http://m.guokr.com/help/policy/">《用户服务协议》</a><a
                 href="http://m.guokr.com/help/privacy/">《隐私条款》</a></label>
 
         </p>

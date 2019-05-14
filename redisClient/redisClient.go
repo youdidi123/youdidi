@@ -6,6 +6,7 @@ import (
 	"github.com/astaxie/beego"
 	"log"
 	"time"
+	"github.com/astaxie/beego/logs"
 )
 
 type CacheClient struct {
@@ -42,6 +43,7 @@ func (c *CacheClient)SetKey (key string , value string ) {
 	if err != nil {
 		fmt.Println(err)
 	}
+	logs.Debug("set key: %v value %v err %v", key , value , err)
 }
 
 func (c *CacheClient)GetKey (key string) (re string) {
@@ -53,4 +55,10 @@ func (c *CacheClient)GetKey (key string) (re string) {
 		return "nil"
 	}
 	return value
+}
+
+func (c *CacheClient)Setexpire (key string, period int){
+	rc := c.redisCli.Get()
+	n, _ := rc.Do("EXPIRE", key, period)
+	logs.Debug("set exporpe key %s period %v return %v",key ,period, n)
 }
