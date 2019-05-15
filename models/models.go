@@ -6,6 +6,21 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
+type User struct {
+	Id    int64   `orm:"auto;pk;column(id);" json:"id"`
+	WechatId  string  `orm:"size(256);column(wechatId)" json:"wechatId"`
+	Name string `orm:"size(255);column(name)" json:"name"`
+	Passwd string `orm:"size(255);column(passwd)" json:"passwd"`
+	Phone string `orm:"size(255);column(phone)" json:"phone"`
+	IsPhoneVer bool `orm:"size(4);column(isPhoneVer)" json:"isPhoneVer"`
+	IsDriver bool `orm:"size(4);column(isDriver)" json:"isDriver"`
+	IsDriverVer bool `orm:"size(4);column(isDriverVer)" json:"isDriverVer"`
+	IsOnRoad bool `orm:"size(4);column(isOnRoad)" json:"isOnRoad"`
+	Star int64 `orm:"size(11);column(star)" json:"star"`
+	IsInternal bool `orm:"size(4);column(isInternal)" json:"isInternal"`
+	Charge float64 `column(charge)" json:"charge"`
+}
+
 func init () {
 	mysqluser := beego.AppConfig.String("mysqluser")
 	mysqlpass := beego.AppConfig.String("mysqlpass")

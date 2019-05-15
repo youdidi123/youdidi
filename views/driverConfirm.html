@@ -1,15 +1,22 @@
-<!doctype html>
-
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN""http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html style="height: 100%;" xmlns="http://www.w3.org/1999/xhtml">
 <head>
-    <meta charset="utf-8">
-    <title>登录</title>
-    <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
-    <link rel="stylesheet" href="css/base.css"/>
-    <link rel="stylesheet" href="css/index.css"/>
+    <meta name="generator"
+          content="HTML Tidy for HTML5 (experimental) for Windows https://github.com/w3c/tidy-html5/tree/c63cc39"/>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+
+    <title>全油通</title>
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0"/>
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <link rel="stylesheet" href="/css/base.css"/>
+    <link rel="stylesheet" href="/css/index.css"/>
+    <link rel="stylesheet" href="/css/mobiscroll.css"/>
+    <link rel="stylesheet" href="/css/mobiscroll_date.css"/>
+    <link rel="stylesheet" type="text/css" href="/css/mobiscroll.core-2.6.2.css"/>
     <link href="http://g.alicdn.com/sj/dpl/1.5.1/css/sui.min.css" rel="stylesheet">
-    <script type="text/javascript" src="js/jquery.min.js"></script>
-    <!--<script type="text/javascript" src="http://g.alicdn.com/sj/lib/jquery/dist/jquery.min.js"></script>-->
     <script type="text/javascript" src="http://g.alicdn.com/sj/dpl/1.5.1/js/sui.min.js"></script>
+    <script type="text/javascript" src="/js/jquery.min.js"></script>
+
     <style>
         * {
             margin: 0;
@@ -35,7 +42,7 @@
 
         /* line */
         .line-wrap {
-            margin-top: 20px;
+            margin-top: 10px;
             float: left;
             border: 1px solid #c5c5c5;
             -webkit-border-radius: 5px;
@@ -71,8 +78,8 @@
         .form .line input, .form .line-first input, .form .line-last input {
             float: left;
             width: 100%;
-            height: 39px;
-            font-size: 18px;
+            height: 30px;
+            font-size: 10px;
             border: none;
             background: #fff;
             outline: none;
@@ -126,7 +133,7 @@
         .form .form-do input {
             font-size: 18px;
             margin: 6px auto 30px auto;
-            height: 50px;
+            height: 35px;
             width: 100%;
             display: block;
             border-radius: 5px;
@@ -277,52 +284,98 @@
             border-radius: 5px;
         }
 
-    </style>
-</head>
-<body onload="init()">
+        #portrait {
+            width: 79px;  //限制所选图片的大小 以防图片过大手机显示不下
+        height: auto;
+        }
+        .submitImg {
+            margin: 50px auto;
+            display: block;
+        }
 
+        .child {
+            position: relative;
+            display: inline-block;
+        }
+
+        #file {
+            position: absolute;
+            left: 0px;
+            top: 0px;
+            opacity: 0;
+            height: 100%;
+            width: 100%;
+        }
+
+    </style>
+
+</head>
+
+<body>
 <div class="home-top">
-    登陆
+    司机实名认证
 </div>
 <div class="container">
 
-    <form method="POST" class="form" action="/Dologin">
+    <form method="POST" class="form" action="/#">
         <div class="line-wrap" style="width: 100%;">
             <p class="line-last">
-                <input class="placeholder" id="name"
-                       name="name" placeholder="用户名" required
-                       type="text" value="{{.userName}}">
+                <input class="placeholder" id="driverName"
+                       name="driverName" placeholder="驾驶员姓名" required
+                       type="text" value="">
             </p>
         </div>
         <div class="line-wrap" style="width: 100%;">
             <p class="line-last">
-                <input class="placeholder" id="passwd"
-                       name="passwd" placeholder="密码" required
-                       type="password" value="">
+                <input class="placeholder" id="sfzId"
+                       name="sfzId" placeholder="身份证号" required
+                       type="text" value="">
             </p>
         </div>
-        <p class="line-agree">
+        <div class="line-wrap" style="width: 100%;">
+            <p class="line-last">
+                <input class="placeholder" id="carNum"
+                       name="carNum" placeholder="车牌号 如：陕A2F5Z7" required
+                       type="text" value="">
+            </p>
+        </div>
+        <div class="line-wrap" style="width: 100%;">
+            <p class="line-last">
+                <input class="placeholder" id="carType"
+                       name="carType" placeholder="品牌型号 如：大众 迈腾" required
+                       type="text" value="" maxlength="200">
+            </p>
+        </div>
+        <label><font size="1px">需上传4张照片用以验证驾驶员信息：驾驶证、行驶证、手持行驶证正面照、汽车带牌正面照</font></label>
 
-            <input type="checkbox" id="agree" checked></input><label for="agree">我已阅读并同意<a
-                href="http://m.guokr.com/help/policy/">《用户服务协议》</a><a
-                href="http://m.guokr.com/help/privacy/">《隐私条款》</a></label>
+        <div class="parent">
+            <img src="" id="portrait" />
+            <div class="child">
+                <svg class="icon" aria-hidden="true">
+                    <use xlink:href="#icon-shangchuantupiananniu_moren"></use>
+                </svg>
+                <input type="file" id="file" accept="image/*"  multiple="multiple"/><br/>
+            </div>
+        </div>
+        <input type="hidden" value="" id="baseImg" />
 
-        </p>
 
-        <p class="form-do"><input id="btn-submit" type="submit" value="登陆"></p>
+        <p class="form-do"><input id="btn-submit" type="submit" value="提交认证"></p>
     </form>
 
 </div>
-
-</body>
+    
 <script>
+    $('#wrap').on('change', '#file', function() {
+    var obj = this.files[0];
+    var fr = new FileReader();
+    fr.onload = function() {
+    mui("#portrait")[0].setAttribute('src', this.result);
+    mui('#baseImg')[0].value = this.result;
+    };
+    fr.readAsDataURL(obj);
 
-    function init() {
-        if ("1" == {{.isMsg}}) {
-            alert({{.msg}})
-        }
-    }
-
-
+})
 </script>
+</body>
 </html>

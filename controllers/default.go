@@ -29,3 +29,8 @@ func (c *MainController) Get() {
 	c.Data["list"] = list
 	c.TplName = "index.html"
 }
+
+// @router /Test [GET]
+func (c *MainController) Test() {
+	c.TplName = "driverConfirm.html"
+}
