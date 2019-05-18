@@ -14,43 +14,139 @@
     <script>
         $(function(){
 
-            $('#bottom').tab({
-                defaultIndex: 0,
-                activeClass: 'weui-bar__item_on',
-            })
-        })
-
-        $(function(){
-
-            var tmpl = '<li class="weui-uploader__file" style="background-image:url(#url#)"></li>';
+            var tmpl = '<li class="weui-uploader__file" id="#ImgID#" style="background-image:url(#url#)"><div class="weui_uploader_status_content">0%</div></li>'
+            //var tmpll = '<li  onclick="removeimg(this)" class="weui-uploader__file" style="background-image:url(\'+evt.target.result+\')"><input value="\'+rs.src+\'"  type="hidden"  name="files" /></li>'
             var      $uploaderInput = $("#uploaderInput"); //上传按钮+
             var       $uploaderFiles = $("#uploaderFiles");    //图片列表
             var $galleryImg = $(".weui-gallery__img");//相册图片地址
             var $gallery = $(".weui-gallery");
+            var maxWidth = 1900
+            var maxCount = 3
+            var maxSize = 1024 * 1024*10; // 10240KB，也就是 10MB
+            var allowTypes = ['image/jpg', 'image/jpeg', 'image/png'];
+
             $uploaderInput.on("change", function(e){
+
                 var src, url = window.URL || window.webkitURL || window.mozURL, files = e.target.files;
                 for (var i = 0, len = files.length; i < len; ++i) {
                     var file = files[i];
+                    var imgID = genGUID();
+                    var reader = new FileReader();
+                    var fileType = file.type;
 
-                    if (url) {
-                        src = url.createObjectURL(file);
-                    } else {
-                        src = e.target.result;
+                    if ($('.weui-uploader__file').length >= maxCount) {
+                        $.toast('最多只能上传' + maxCount + '张图片', "forbidden");
+                        return;
                     }
 
-                    $uploaderFiles.append($(tmpl.replace('#url#', src)));
+                    if (allowTypes.indexOf(file.type) === -1) {
+
+                        $.toast('该类型不允许上传' + fileType + ' 仅允许png/jpg/jpeg' , "forbidden");
+                        continue;
+                    }
+
+                    if (file.size > maxSize) {
+                        $.toast("图片太大，不允许上传", "forbidden");
+                        continue;
+                    }
+
+
+                    reader.onload = function (e) {
+                        var img = new Image();
+                        img.onload = function () {
+                            // 不要超出最大宽度
+                            var w = Math.min(maxWidth, img.width);
+                            // 高度按比例计算
+                            var h = img.height * (w / img.width);
+                            var canvas = document.createElement('canvas');
+                            var ctx = canvas.getContext('2d');
+                            // 设置 canvas 的宽度和高度
+                            canvas.width = w;
+                            canvas.height = h;
+                            ctx.drawImage(img, 0, 0, w, h);
+                            var base64 = canvas.toDataURL(fileType,0.8); //0.8指的是压缩80%
+
+                            // 插入到预览区
+                            $uploaderFiles.append($(tmpl.replace('#url#', base64).replace('#ImgID#', imgID)));
+
+                            var num = $('.weui-uploader__file').length;
+                            $('#uploadCount').text(num);
+
+                            // 模拟上传进度
+                            var progress = 0;
+                            function uploading() {
+                                $uploaderFiles.find('.weui_uploader_status_content').text(++progress + '%');
+                                if (progress < 100) {
+                                    setTimeout(uploading, 30);
+                                } else {
+                                    $uploaderFiles.removeClass('weui_uploader_status').find('.weui_uploader_status_content').remove();//清除上传进度图标
+                                }
+                            }
+                            setTimeout(uploading, 30);
+                        };
+
+                        img.src = e.target.result;
+
+                        //alert(img.src)
+
+                        //上传
+                        $.ajax({
+                            type:"POST",
+                            url:"/Imgloader",
+                            data:{"imgId":imgID,"base64":img.src},
+                            dataType:"json",
+                            success : function(result) {
+
+                            },
+                            error : function(result) {
+                                alert("网络繁忙，请重试");
+                            }
+                        });
+
+
+
+                    };
+                    reader.readAsDataURL(file);
+
                 }
             });
-            $uploaderFiles.on("click", "li", function(){
+            var index; //第几张图片
+            $uploaderFiles.on("click", "li", function () {
+                index = $(this).index();
                 $galleryImg.attr("style", this.getAttribute("style"));
-                console.log(this)
                 $gallery.fadeIn(100);
             });
-            $gallery.on("click", function(){
+            $gallery.on("click", function () {
                 $gallery.fadeOut(100);
             });
 
+            $(".weui-gallery__del").click(function () {
+                $uploaderFiles.find("li").eq(index).remove();
+                var num = $('.weui-uploader__file').length;
+                $('#uploadCount').text(num);
+            });
+
         });
+
+        function removeimg(obj){
+            $.confirm('您确定要删除吗?', '确认删除?', function() {$(obj).remove();});
+            return false;
+        }
+
+        function doConfirm() {
+            var maxSize = 1024 * 1024*10;
+
+            var form = document.getElementById('confirmForm');
+            var files = document.getElementById('confirmForm');
+            form.submit();
+        }
+
+        function genGUID() {
+            var G1 = (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1) + (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1);
+            var G2 = (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1) + (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1);
+            return (G1 + G2);
+        }
+
 
     </script>
 </head>
@@ -59,39 +155,49 @@
 
 {{template "bottomNav.html" .}}
 
-<div class="weui-cells__title">驾驶员身份审核</div>
+<form id="confirmForm" method="POST" action="/Portal/driverConfirm" enctype="multipart/form-data">
 
-<div class="weui-cells weui-cells_form">
-    <div class="weui-cell">
-        <div class="weui-cell__hd"><label class="weui-label">姓名：</label></div>
-        <div class="weui-cell__bd">
-            <input class="weui-input" id="driverName" name="driverName" placeholder="如：张三" type="text">
-        </div>
-    </div>
-    <div class="weui-cell">
-        <div class="weui-cell__hd"><label class="weui-label">身份证号：</label></div>
-        <div class="weui-cell__bd">
-            <input class="weui-input" id="idNum" name="idNum" placeholder="" type="text">
-        </div>
-    </div>
-    <div class="weui-cell">
-        <div class="weui-cell__hd"><label class="weui-label">车辆品牌：</label></div>
-        <div class="weui-cell__bd">
-            <input class="weui-input" id="carType" name="carType" placeholder="如：大众迈腾" type="text">
-        </div>
-    </div>
-    <div class="weui-cell">
-        <div class="weui-cell__hd"><label class="weui-label">车牌号：</label></div>
-        <div class="weui-cell__bd">
-            <input class="weui-input" id="carNum" name="carNum" placeholder="如：陕A258FZ" type="text">
-        </div>
-    </div>
-</div>
+    <div class="weui-cells__title">驾驶员身份审核</div>
 
-<div class="weui-cells__title">需上传4张照片：驾驶证、行驶证、手持行驶证、汽车带牌正面照</div>
+    <div class="weui-cells weui-cells_form">
+        <div class="weui-cell">
+            <div class="weui-cell__hd"><label class="weui-label">姓名：</label></div>
+            <div class="weui-cell__bd">
+                <input class="weui-input" id="driverName" name="driverName" placeholder="如：张三" type="text">
+            </div>
+        </div>
+        <div class="weui-cell">
+            <div class="weui-cell__hd"><label class="weui-label">身份证号：</label></div>
+            <div class="weui-cell__bd">
+                <input class="weui-input" id="idNum" name="idNum" placeholder="" type="text">
+            </div>
+        </div>
+        <div class="weui-cell">
+            <div class="weui-cell__hd"><label class="weui-label">车辆品牌：</label></div>
+            <div class="weui-cell__bd">
+                <input class="weui-input" id="carType" name="carType" placeholder="如：大众迈腾" type="text">
+            </div>
+        </div>
+        <div class="weui-cell">
+            <div class="weui-cell__hd"><label class="weui-label">车牌号：</label></div>
+            <div class="weui-cell__bd">
+                <input class="weui-input" id="carNum" name="carNum" placeholder="如：陕A258FZ" type="text">
+            </div>
+        </div>
+    </div>
 
-<div class="page-bd-15">
-    <div class="weui-uploader">
+    <div class="weui-cells__title">需上传4张照片：驾驶证、行驶证、手持行驶证、汽车带牌正面照</div>
+
+    <div class="weui-gallery" id="gallery">
+        <span class="weui-gallery__img" id="galleryImg"></span>
+        <div class="weui-gallery__opr">
+            <a href="javascript:" class="weui-gallery__del">
+                <i class="weui-icon-delete weui-icon_gallery-delete"></i>
+            </a>
+        </div>
+    </div>
+
+    <div class="page-bd-15">
         <div class="weui-uploader__bd">
             <ul class="weui-uploader__files" id="uploaderFiles">
             </ul>
@@ -100,17 +206,16 @@
             </div>
         </div>
     </div>
-</div>
-<label for="weuiAgree" class="weui-agree">
-    <input id="weuiAgree" class="weui-agree__checkbox" type="checkbox" checked>
-    <span class="weui-agree__text">
+    <label for="weuiAgree" class="weui-agree">
+        <input id="weuiAgree" class="weui-agree__checkbox" type="checkbox" checked >
+        <span class="weui-agree__text">
                 阅读并同意<a href="http://m.guokr.com/help/privacy/">《隐私条款》</a>
             </span>
-</label>
+    </label>
 
-<div class="weui-btn-area">
-    <a class="weui-btn weui-btn_primary" href="javascript:" id="btn">提交验证</a>
-</div>
-
+    <div class="weui-btn-area">
+        <a class="weui-btn weui-btn_primary" href="javascript:" id="btn" onclick="doConfirm()">提交验证</a>
+    </div>
+</form>
 </body>
 </html>

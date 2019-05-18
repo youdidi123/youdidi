@@ -86,6 +86,7 @@ func init() {
 	beego.Router("/", &controllers.MainController{}, "GET:Get")
 	beego.Include(&controllers.UserCenterController{})
 	beego.Include(&controllers.MainController{})
+	beego.Include(&controllers.ImgConfirmController{})
 
 
 }
