@@ -87,6 +87,7 @@ func (this *UserCenterController) Dologin () {
 
 				this.Ctx.SetSecureCookie("qyt","qyt_id" , idStr)
 				this.Ctx.SetSecureCookie("qyt","qyt_token" , token)
+				this.SetSession("qyt_id" , idStr)
 
 				this.Ctx.Redirect(302, "/Portal/home")
 
@@ -113,7 +114,8 @@ func getToken(name string , passwd string) string{
 
 // @router /Ver/phonever [GET]
 func (this *UserCenterController) PhoneVer() {
-	id, _ := this.Ctx.GetSecureCookie("qyt","qyt_id")
+	//id, _ := this.Ctx.GetSecureCookie("qyt","qyt_id")
+	id := this.GetSession("qyt_id")
 	this.Data["userId"] = id
 	this.TplName = "phoneVer.html"
 }
@@ -133,7 +135,7 @@ func (this *UserCenterController) GetVerCode() {
 	appId := "8aaf07086ab0c082016ab465928a01a9"
 
 	sig, auth := getSig(accountSid, token)
-	randomCode := getRandomCode()
+	randomCode := GetRandomCode()
 
 	var cacheClient redisClient.CacheClient
 	cacheClient.GetConnet()
@@ -175,7 +177,7 @@ func getSig (id string , token string) (string , string){
 	return strings.ToUpper(hex.EncodeToString(sig.Sum(nil))),auth
 }
 
-func getRandomCode () string{
+func GetRandomCode () string{
 	s1 := rand.NewSource(time.Now().Unix())
 	r1 := rand.New(s1)
 	min := 100000

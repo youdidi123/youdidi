@@ -82,11 +82,15 @@ func init() {
 	beego.InsertFilter("/Portal/*", beego.BeforeExec, LoginFilter)
 	beego.InsertFilter("/Portal/*", beego.BeforeExec, PhoneVerFilter)
 	beego.InsertFilter("/Portal/*", beego.AfterExec, ResetInfoFilter)
+	beego.InsertFilter("/", beego.BeforeExec, LoginFilter)
+	beego.InsertFilter("/", beego.BeforeExec, PhoneVerFilter)
+
 
 	beego.Router("/", &controllers.MainController{}, "GET:Get")
 	beego.Include(&controllers.UserCenterController{})
 	beego.Include(&controllers.MainController{})
 	beego.Include(&controllers.ImgConfirmController{})
+	beego.Include(&controllers.OrderController{})
 
 
 }

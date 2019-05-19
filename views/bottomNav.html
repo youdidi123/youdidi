@@ -2,29 +2,31 @@
     $(function(){
 
         $('#bottom').tab({
-            defaultIndex: 0,
+            defaultIndex: {{ .tabIndex}},
             activeClass: 'weui-bar__item_on',
         })
     })
 </script>
 
-<div class="weui-tab tab-bottom " style="height:44px;" id="bottom">
-    <div class="weui-tabbar" >
-        <a href="javascript:;" class="weui-tabbar__item">
-            <i class="icon icon-69 f27 weui-tabbar__icon"></i>
-            <p class="weui-tabbar__label">找拼车</p>
-        </a>
-        <a href="javascript:;" class="weui-tabbar__item">
-            <i class="icon icon-43 f27 weui-tabbar__icon"></i>
-            <p class="weui-tabbar__label">乘客订单</p>
-        </a>
-        <a href="javascript:;" class="weui-tabbar__item">
-            <i class="icon icon-103 f27 weui-tabbar__icon"></i>
-            <p class="weui-tabbar__label">车主行程</p>
-        </a>
-        <a href="javascript:;" class="weui-tabbar__item ">
-            <i class="icon icon-85 f27 weui-tabbar__icon" ></i>
-            <p class="weui-tabbar__label">我</p>
-        </a>
+<div class="container">
+    <div class="weui-tab tab-bottom " style="height:44px;" id="bottom">
+        <div class="weui-tabbar" >
+            <a href="javascript:;" class="weui-tabbar__item">
+                <i class="icon icon-69 f27 weui-tabbar__icon"></i>
+                <p class="weui-tabbar__label">找拼车</p>
+            </a>
+            <a href="javascript:;" class="weui-tabbar__item">
+                <i class="icon icon-43 f27 weui-tabbar__icon"></i>
+                <p class="weui-tabbar__label">乘客订单</p>
+            </a>
+            <a href="/Portal/showDriverorder" class="weui-tabbar__item">
+                <i class="icon icon-103 f27 weui-tabbar__icon"></i>
+                <p class="weui-tabbar__label">车主行程</p>
+            </a>
+            <a href="javascript:;" class="weui-tabbar__item ">
+                <i class="icon icon-85 f27 weui-tabbar__icon" ></i>
+                <p class="weui-tabbar__label">我</p>
+            </a>
+        </div>
     </div>
 </div>
