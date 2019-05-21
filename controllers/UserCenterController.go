@@ -80,10 +80,8 @@ func (this *UserCenterController) Dologin () {
 				fmt.Println("data: %v", string(data))
 				idStr := strconv.FormatInt(list[0].Id,10)
 
-				var cacheClient redisClient.CacheClient
-				cacheClient.GetConnet()
-				cacheClient.SetKey(LoginPrefix+idStr , string(data))
-				cacheClient.Setexpire(LoginPrefix+idStr , LoginPeriod)
+				redisClient.SetKey(LoginPrefix+idStr , string(data))
+				redisClient.Setexpire(LoginPrefix+idStr , LoginPeriod)
 
 				this.Ctx.SetSecureCookie("qyt","qyt_id" , idStr)
 				this.Ctx.SetSecureCookie("qyt","qyt_token" , token)
@@ -137,10 +135,8 @@ func (this *UserCenterController) GetVerCode() {
 	sig, auth := getSig(accountSid, token)
 	randomCode := GetRandomCode()
 
-	var cacheClient redisClient.CacheClient
-	cacheClient.GetConnet()
-	cacheClient.SetKey(PhoneVerPrefix+userId , randomCode)
-	cacheClient.Setexpire(PhoneVerPrefix+userId , expireMin * 60)
+	redisClient.SetKey(PhoneVerPrefix+userId , randomCode)
+	redisClient.Setexpire(PhoneVerPrefix+userId , expireMin * 60)
 
 	baseUrl = baseUrl + "/2013-12-26/Accounts/" + accountSid + "/SMS/TemplateSMS?sig=" + sig
 
@@ -196,9 +192,7 @@ func (this *UserCenterController) VerPhone() {
 
 	userIdInt64, _ := strconv.ParseInt(userId, 10, 64)
 
-	var cacheClient redisClient.CacheClient
-	cacheClient.GetConnet()
-	content := cacheClient.GetKey(PhoneVerPrefix+userId)
+	content := redisClient.GetKey(PhoneVerPrefix+userId)
 
 	if (content != verCode) {
 		fmt.Println(verCode , content)
@@ -212,7 +206,7 @@ func (this *UserCenterController) VerPhone() {
 	dbUser.UpdateInfo(userIdInt64 , "phone" , phoneNum)
 	dbUser.UpdateInfo(userIdInt64 , "IsPhoneVer" , "1")
 
-	userinfo := cacheClient.GetKey(LoginPrefix+userId)
+	userinfo := redisClient.GetKey(LoginPrefix+userId)
 
 	info := &UserLoginInfo{}
 	err := json.Unmarshal([]byte(userinfo), &info)
@@ -226,8 +220,8 @@ func (this *UserCenterController) VerPhone() {
 
 	data, _ := json.Marshal(info)
 
-	cacheClient.SetKey(LoginPrefix+userId , string(data))
-	cacheClient.Setexpire(LoginPrefix+userId , LoginPeriod)
+	redisClient.SetKey(LoginPrefix+userId , string(data))
+	redisClient.Setexpire(LoginPrefix+userId , LoginPeriod)
 
 	this.Ctx.Redirect(302, "/Portal/home")
 }

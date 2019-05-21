@@ -9,25 +9,22 @@ import (
 	"github.com/astaxie/beego/logs"
 )
 
-type CacheClient struct {
-	redisCli   *redis.Pool
-	redis_host string
-	redis_port string
-}
+var (
+	redisC *redis.Pool
+)
 
-func (c *CacheClient)GetConnet() {
-	fmt.Println("here to connet redis")
-	// 从配置文件获取redis的ip以及db
-	c.redis_host = beego.AppConfig.String("redis.host")
-	c.redis_port = beego.AppConfig.String("redis.port")
-	// 建立连接池
-	c.redisCli = &redis.Pool{
+func init () {
+	redisHost := beego.AppConfig.String("redis.host")
+	redisPort := beego.AppConfig.String("redis.port")
+	redisPass := beego.AppConfig.String("redis.pass")
+
+	redisC = &redis.Pool{
 		// 从配置文件获取maxidle以及maxactive，取不到则用后面的默认值
-		MaxIdle:     beego.AppConfig.DefaultInt("redis.maxidle", 1),
-		MaxActive:   beego.AppConfig.DefaultInt("redis.maxactive", 10),
+		MaxIdle:     beego.AppConfig.DefaultInt("redis.maxidle", 10),
+		MaxActive:   beego.AppConfig.DefaultInt("redis.maxactive", 1000),
 		IdleTimeout: 180 * time.Second,
 		Dial: func() (redis.Conn, error) {
-			c, err := redis.Dial("tcp", c.redis_host+":"+c.redis_port)
+			c, err := redis.Dial("tcp", redisHost+":"+redisPort , redis.DialPassword(redisPass))
 			if err != nil {
 				log.Println(err)
 			}
@@ -36,8 +33,10 @@ func (c *CacheClient)GetConnet() {
 	}
 }
 
-func (c *CacheClient)SetKey (key string , value string ) {
-	rc := c.redisCli.Get()
+
+
+func SetKey (key string , value string ) {
+	rc := redisC.Get()
 	defer rc.Close()
 	_, err := rc.Do("set", key, value)
 	if err != nil {
@@ -46,8 +45,8 @@ func (c *CacheClient)SetKey (key string , value string ) {
 	logs.Debug("set key: %v value %v err %v", key , value , err)
 }
 
-func (c *CacheClient)GetKey (key string) (re string) {
-	rc := c.redisCli.Get()
+func GetKey (key string) (re string) {
+	rc := redisC.Get()
 	defer rc.Close()
 	value, err := redis.String(rc.Do("get", key))
 	if err != nil {
@@ -57,8 +56,19 @@ func (c *CacheClient)GetKey (key string) (re string) {
 	return value
 }
 
-func (c *CacheClient)Setexpire (key string, period int){
-	rc := c.redisCli.Get()
+//func (c *CacheClient)GetKey (key string) (re string) {
+//	rc := c.redisCli.Get()
+//	defer rc.Close()
+//	value, err := redis.String(rc.Do("get", key))
+//	if err != nil {
+//		fmt.Println(err)
+//		return "nil"
+//	}
+//	return value
+//}
+
+func Setexpire (key string, period int){
+	rc := redisC.Get()
 	n, _ := rc.Do("EXPIRE", key, period)
 	logs.Debug("set exporpe key %s period %v return %v",key ,period, n)
 }
