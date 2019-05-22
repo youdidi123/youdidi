@@ -10,7 +10,6 @@ import (
 )
 
 func init() {
-
 	var LoginFilter = func(ctx *context.Context)() {
 		id, isId := ctx.GetSecureCookie("qyt","qyt_id")
 		if (! isId) {
@@ -23,9 +22,7 @@ func init() {
 				logs.Debug("can not get token from cookie")
 				ctx.Redirect(302, "/Login")
 			} else {
-				var cacheClient redisClient.CacheClient
-				cacheClient.GetConnet()
-				content := cacheClient.GetKey(controllers.LoginPrefix+id)
+				content := redisClient.GetKey(controllers.LoginPrefix+id)
 				if (content == "nil") {
 					logs.Debug("cache is empty")
 					ctx.Redirect(302, "/Login")
@@ -40,7 +37,7 @@ func init() {
 							logs.Debug("token did not match of cookie and cache")
 							ctx.Redirect(302, "/Login")
 						} else {
-							cacheClient.Setexpire(controllers.LoginPrefix+id , controllers.LoginPeriod)
+							redisClient.Setexpire(controllers.LoginPrefix+id , controllers.LoginPeriod)
 						}
 					}
 				}
@@ -54,9 +51,8 @@ func init() {
 			ctx.Redirect(302, "/Login")
 			logs.Debug("can not get id from cookie")
 		}
-		var cacheClient redisClient.CacheClient
-		cacheClient.GetConnet()
-		content := cacheClient.GetKey(controllers.LoginPrefix+id)
+
+		content := redisClient.GetKey(controllers.LoginPrefix+id)
 		if (content == "nil") {
 			logs.Debug("cache is empty")
 			ctx.Redirect(302, "/Login")
@@ -74,9 +70,7 @@ func init() {
 
 	var ResetInfoFilter = func(ctx *context.Context)() {
 		id, _ := ctx.GetSecureCookie("qyt","qyt_id")
-		var cacheClient redisClient.CacheClient
-		cacheClient.GetConnet()
-		cacheClient.Setexpire(controllers.LoginPrefix+id , controllers.LoginPeriod)
+		redisClient.Setexpire(controllers.LoginPrefix+id , controllers.LoginPeriod)
 	}
 
 	beego.InsertFilter("/Portal/*", beego.BeforeExec, LoginFilter)
