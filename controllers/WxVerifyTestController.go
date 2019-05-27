@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"github.com/astaxie/beego"
+	"github.com/astaxie/beego/logs"
     "sort"
     "strings"
 )
@@ -21,6 +22,11 @@ func (c *WxVerifyTestController) Get() {
 
     hashcode := Sha1(strings.Join(List, ""))
 
-    c.Ctx.WriteString(hashcode+"\n")
-    c.Ctx.WriteString(signature+"\n")
+    if(hashcode == signature) {
+        c.Ctx.WriteString(nonce)
+    } else {
+        c.Ctx.WriteString("Check failed!\n")
+    }
+
+	logs.Notice("Hashcode is %s and signature is %s.", hashcode, signature)
 }
