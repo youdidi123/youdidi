@@ -80,6 +80,7 @@ func init() {
 	beego.InsertFilter("/", beego.BeforeExec, PhoneVerFilter)
 
 
+    beego.Router("/wxverifytest", &controllers.WxVerifyTestController{})
 	beego.Router("/", &controllers.MainController{}, "GET:Get")
 	beego.Include(&controllers.UserCenterController{})
 	beego.Include(&controllers.MainController{})
