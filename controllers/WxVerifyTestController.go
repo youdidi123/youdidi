@@ -14,6 +14,7 @@ type WxVerifyTestController struct {
 func (c *WxVerifyTestController) Get() {
     signature := c.GetString("signature")
     timestamp := c.GetString("timestamp")
+    echostr := c.GetString("echostr")
     nonce := c.GetString("nonce")
     token := "snow2019"
 
@@ -23,9 +24,9 @@ func (c *WxVerifyTestController) Get() {
     hashcode := Sha1(strings.Join(List, ""))
 
     if(hashcode == signature) {
-        c.Ctx.WriteString(nonce)
+        c.Ctx.WriteString(echostr)
     } else {
-        c.Ctx.WriteString("Check failed!\n")
+        c.Ctx.WriteString("")
     }
 
 	logs.Notice("Hashcode is %s and signature is %s.", hashcode, signature)
