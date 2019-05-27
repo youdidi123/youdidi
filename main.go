@@ -19,7 +19,7 @@ func main() {
 	logs.Async()
 	logs.Async(1e3)
 
-	logs.SetLogger(logs.AdapterMultiFile, `{"filename":"youdidi.log","separate":["emergency", "alert", "critical", "error", "warning", "notice", "info", "debug"]}`)
+	logs.SetLogger(logs.AdapterMultiFile, `{"filename":"logs/youdidi.log","separate":["emergency", "alert", "critical", "error", "warning", "notice", "info", "debug"]}`)
 
 	beego.Run()
 }
