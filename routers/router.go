@@ -81,7 +81,9 @@ func init() {
 
 
     beego.Router("/wxverifytest", &controllers.WxVerifyTestController{})
+    //beego.Router("/wxlogin", &controllers.WxLoginController{})
 	beego.Router("/", &controllers.MainController{}, "GET:Get")
+	beego.Include(&controllers.WxLoginController{})
 	beego.Include(&controllers.UserCenterController{})
 	beego.Include(&controllers.MainController{})
 	beego.Include(&controllers.ImgConfirmController{})
