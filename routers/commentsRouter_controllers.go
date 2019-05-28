@@ -88,4 +88,22 @@ func init() {
             Filters: nil,
             Params: nil})
 
+    beego.GlobalControllerRouter["youdidi/controllers:WxLoginController"] = append(beego.GlobalControllerRouter["youdidi/controllers:WxLoginController"],
+        beego.ControllerComments{
+            Method: "GetWechatGZAccessToken",
+            Router: `/GetWechatGZAccessToken/`,
+            AllowHTTPMethods: []string{"POST","GET"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["youdidi/controllers:WxLoginController"] = append(beego.GlobalControllerRouter["youdidi/controllers:WxLoginController"],
+        beego.ControllerComments{
+            Method: "WxLogin",
+            Router: `/WxLogin/`,
+            AllowHTTPMethods: []string{"POST","GET"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
 }
