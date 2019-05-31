@@ -30,8 +30,18 @@ func (u *User) GetUserInfo(name string, list *[]*User) (success string , num int
 
 func (u *User) UpdateInfo (id int64, key string , value string)  {
 	o := orm.NewOrm()
-	o.QueryTable(u).Filter("id", id).Update(orm.Params{
+	num , err := o.QueryTable(u).Filter("id", id).Update(orm.Params{
 		key: value,
 	})
+	if (err != nil || num == 0) {
+		logs.Error("update User fail id=%v key=%v value=%v" , id , key , value)
+	}
+}
+
+func GetUserInfoFormName (name string)([]orm.ParamsList , error) {
+	o := orm.NewOrm()
+	var lsits []orm.ParamsList
+	_ , err := o.Raw("SELECT * from User where name = ?" , name).ValuesList(&lsits)
+	return lsits , err
 
 }

@@ -14,7 +14,7 @@
     <script>
         $(function(){
 
-            var tmpl = '<li class="weui-uploader__file" id="#ImgID#" style="background-image:url(#url#)"><div class="weui_uploader_status_content">0%</div></li>'
+            var tmpl = '<li class="weui-uploader__file" id="#ImgID#" style="background-image:url(#url#)"></li>'
             //var tmpll = '<li  onclick="removeimg(this)" class="weui-uploader__file" style="background-image:url(\'+evt.target.result+\')"><input value="\'+rs.src+\'"  type="hidden"  name="files" /></li>'
             var      $uploaderInput = $("#uploaderInput"); //上传按钮+
             var       $uploaderFiles = $("#uploaderFiles");    //图片列表
@@ -26,7 +26,6 @@
             var allowTypes = ['image/jpg', 'image/jpeg', 'image/png'];
 
             $uploaderInput.on("change", function(e){
-
                 var src, url = window.URL || window.webkitURL || window.mozURL, files = e.target.files;
                 for (var i = 0, len = files.length; i < len; ++i) {
                     var file = files[i];
@@ -72,17 +71,6 @@
                             var num = $('.weui-uploader__file').length;
                             $('#uploadCount').text(num);
 
-                            // 模拟上传进度
-                            var progress = 0;
-                            function uploading() {
-                                $uploaderFiles.find('.weui_uploader_status_content').text(++progress + '%');
-                                if (progress < 100) {
-                                    setTimeout(uploading, 30);
-                                } else {
-                                    $uploaderFiles.removeClass('weui_uploader_status').find('.weui_uploader_status_content').remove();//清除上传进度图标
-                                }
-                            }
-                            setTimeout(uploading, 30);
                         };
 
                         img.src = e.target.result;
@@ -102,9 +90,6 @@
                                 alert("网络繁忙，请重试");
                             }
                         });
-
-
-
                     };
                     reader.readAsDataURL(file);
 
@@ -186,7 +171,7 @@
         </div>
     </div>
 
-    <div class="weui-cells__title">需上传4张照片：驾驶证、行驶证、手持行驶证、汽车带牌正面照</div>
+    <div class="weui-cells__title">需上传3张照片：驾驶证、行驶证、身份证</div>
 
     <div class="weui-gallery" id="gallery">
         <span class="weui-gallery__img" id="galleryImg"></span>

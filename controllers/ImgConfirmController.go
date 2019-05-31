@@ -13,8 +13,9 @@ type ImgConfirmController struct {
 	beego.Controller
 }
 
-// @router /Test [GET,POST]
+// @router /Portal/driverconfirminput [GET]
 func (c *ImgConfirmController) DriverConfirmInput() {
+	c.Data["tabIndex"] = 2
 	c.TplName = "driverConfirm.html"
 }
 
@@ -25,16 +26,18 @@ func (c *ImgConfirmController) Imgloader() {
 
 	logs.Notice("user id xxx submit driverConf id is %v" , imgId)
 
+	//获取图片数据，只能处理png，jpg，jpeg
 	re, _ := regexp.Compile("data:image/(png|jpg|jpeg);base64,");
 	imgType := re.Find([]byte(content))
 
+	//所有图片都后台存储位png的格式
 	imgFileName := "static/driverConfirm_"+imgId+".png"
 	//imgFileName := "static/driverConfirm.png"
 
 	content = strings.Replace(content , string(imgType) , "" , 1)
 	
 	ddd, _ := base64.StdEncoding.DecodeString(content) //成图片文件并把文件写入到buffer
-	ioutil.WriteFile(imgFileName, ddd, 0666)
+	ioutil.WriteFile(imgFileName, ddd, 0666) //需要给图片文件一个可读权限
 
 	c.Data["json"]=map[string]interface{}{"code":"1"};
 	c.ServeJSON();
