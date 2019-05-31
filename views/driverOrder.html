@@ -11,15 +11,20 @@
     <script src="/js/weui/zepto.weui.js"></script>
     <script src="/js/weui/iscroll-lite.js"></script>
     <script src="/js/weui/lrz.min.js"></script>
-
+    <script>
+        function createOrder() {
+            this.window.location.href="/Portal/createorder";
+        }
+    </script>
+</head>
 
 <body ontouchstart>
 {{template "sildePic.html" .}}
-{{template "bottomNav.html" .}}
+
 
 <div class="page-bd-15">
     <div class="weui-cells__title">
-        <a href="javascript:;" class="weui-btn weui-btn_primary">发布行程</a>
+        <a href="/Portal/createorder" class="weui-btn weui-btn_primary" onclick="createOrder()">发布行程</a>
     </div>
     <div class="weui-cells__title">历史行程列表</div>
 
@@ -66,6 +71,31 @@
             <button type="submit" class="weui-form-preview__btn weui-form-preview__btn_primary" href="javascript:">操作</button>
         </div>
     </div>
+    <div class="weui-form-preview">
+        <div class="weui-form-preview__hd">
+            <label class="weui-form-preview__label">2018-08-04</label>
+            <em class="weui-form-preview__value">西安 至 庆阳</em>
+        </div>
+        <div class="weui-form-preview__bd">
+            <div class="weui-form-preview__item">
+                <label class="weui-form-preview__label">商品</label>
+                <span class="weui-form-preview__value">电动打蛋机</span>
+            </div>
+            <div class="weui-form-preview__item">
+                <label class="weui-form-preview__label">标题标题</label>
+                <span class="weui-form-preview__value">名字名字名字</span>
+            </div>
+            <div class="weui-form-preview__item">
+                <label class="weui-form-preview__label">标题标题</label>
+                <span class="weui-form-preview__value">很长很长的名字很长很长的名字很长很长的名字很长很长的名字很长很长的名字</span>
+            </div>
+        </div>
+        <div class="weui-form-preview__ft">
+            <a class="weui-form-preview__btn weui-form-preview__btn_default" href="javascript:">辅助操作</a>
+            <button type="submit" class="weui-form-preview__btn weui-form-preview__btn_primary" href="javascript:">操作</button>
+        </div>
+    </div>
+    {{template "bottomNav.html" .}}
 </div>
 
 </body>

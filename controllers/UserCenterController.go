@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/astaxie/beego"
+	"github.com/astaxie/beego/httplib"
 	"github.com/astaxie/beego/logs"
 	"math/rand"
 	"strconv"
@@ -14,7 +15,6 @@ import (
 	"time"
 	"youdidi/models"
 	"youdidi/redisClient"
-	"github.com/astaxie/beego/httplib"
 )
 
 type UserCenterController struct {
@@ -23,23 +23,29 @@ type UserCenterController struct {
 
 type UserLoginInfo struct {
 	Name string
+	Nickname string
+	OpenId string
 	IsPhoneVer bool
-	IsDriver bool
+	IsDriver int
+	OrderNumWV int
+	OnRoadType int
 	Token string
 	Phone string
 }
 
 var (
 	LoginPeriod = 30*60 //用户登陆有效期
-	LoginPrefix = "LOGIN_INFO_"
-	PhoneVerPrefix = "RANDOM_CODE_"
+	LoginPrefix = "LOGIN_INFO_"  //缓存在redis中的用户数据key前缀
+	PhoneVerPrefix = "RANDOM_CODE_" //短信验证码key前缀
 )
 
+//登陆页首页，后续接入微信用户体系后废弃
 // @router /Login/ [GET]
 func (this *UserCenterController) Login (){
 	this.TplName = "login.html"
 }
 
+//执行真正的登陆操作，接入微信后需要改造
 // @router /Dologin/ [POST,GET]
 func (this *UserCenterController) Dologin () {
 	inputName := this.GetString("name")
@@ -74,18 +80,22 @@ func (this *UserCenterController) Dologin () {
 				info.IsPhoneVer = list[0].IsPhoneVer
 				info.IsDriver = list[0].IsDriver
 				info.Token = token
+				info.Nickname = list[0].Nickname
+				info.OnRoadType = list[0].OnRoadType
+				info.OpenId = list[0].OpenId
+				info.OrderNumWV = list[0].OrderNumWV
 				info.Phone = list[0].Phone
 
 				data, _ := json.Marshal(info)
 				fmt.Println("data: %v", string(data))
-				idStr := strconv.FormatInt(list[0].Id,10)
+				idStr := strconv.Itoa(list[0].Id)
 
 				redisClient.SetKey(LoginPrefix+idStr , string(data))
 				redisClient.Setexpire(LoginPrefix+idStr , LoginPeriod)
 
-				this.Ctx.SetSecureCookie("qyt","qyt_id" , idStr)
+				this.Ctx.SetSecureCookie("qyt","qyt_id" , idStr) //注入用户id，后续所有用户id都从cookie里获取
 				this.Ctx.SetSecureCookie("qyt","qyt_token" , token)
-				this.SetSession("qyt_id" , idStr)
+				//this.SetSession("qyt_id" , idStr)
 
 				this.Ctx.Redirect(302, "/Portal/home")
 
@@ -101,7 +111,8 @@ func (this *UserCenterController) Dologin () {
 	this.TplName = reUrl
 }
 
-
+//使用用户名，密码，时间戳生成用户的鉴权token
+// 用户cookie和服务redis里都需要存储
 func getToken(name string , passwd string) string{
 	t := time.Now().Unix()
 	str := string(t)+name+passwd
@@ -110,17 +121,19 @@ func getToken(name string , passwd string) string{
 	return hex.EncodeToString(h.Sum(nil))
 }
 
+//加载用户绑定手机页面
 // @router /Ver/phonever [GET]
 func (this *UserCenterController) PhoneVer() {
-	//id, _ := this.Ctx.GetSecureCookie("qyt","qyt_id")
-	id := this.GetSession("qyt_id")
+	id, _ := this.Ctx.GetSecureCookie("qyt","qyt_id")
+	//id := this.GetSession("qyt_id")
 	this.Data["userId"] = id
 	this.TplName = "phoneVer.html"
 }
 
+//获取短信验证码
 // @router /Ver/getvercode [GET,POST]
 func (this *UserCenterController) GetVerCode() {
-	expireMin := 5
+	expireMin := 5 //验证码有效时间
 	userId := this.GetString("userId")
 	phoneNum := this.GetString("phoneNum")
 
@@ -128,9 +141,11 @@ func (this *UserCenterController) GetVerCode() {
 	//connectTimeout , _ := strconv.Atoi(beego.AppConfig.String("connectTimeout"))
 	//readWriteTimeout , _ := strconv.Atoi(beego.AppConfig.String("readWriteTimeout"))
 
-	accountSid := "8aaf07086ab0c082016ab465923401a3"
-	token := "868401e59c874a87874b9d9d028c3e17"
-	appId := "8aaf07086ab0c082016ab465928a01a9"
+	//验证码发送平台需要提供的各种token
+	//https://www.yuntongxun.com/member/main
+	accountSid := beego.AppConfig.String("smsAccountSid")
+	token := beego.AppConfig.String("smsToken")
+	appId := beego.AppConfig.String("smsAppId")
 
 	sig, auth := getSig(accountSid, token)
 	randomCode := GetRandomCode()
@@ -161,6 +176,8 @@ func (this *UserCenterController) GetVerCode() {
 	this.ServeJSON()
 	}
 
+//sig:md5(所有字母必须大写) auth:base64
+//短信验证码平台鉴权使用
 func getSig (id string , token string) (string , string){
 	ltime := time.Now().Format("20060102150405")
 	fmt.Println(ltime)
@@ -173,6 +190,7 @@ func getSig (id string , token string) (string , string){
 	return strings.ToUpper(hex.EncodeToString(sig.Sum(nil))),auth
 }
 
+//公共函数，获取一个以当前时间为sed的6位随机数
 func GetRandomCode () string{
 	s1 := rand.NewSource(time.Now().Unix())
 	r1 := rand.New(s1)
@@ -197,6 +215,7 @@ func (this *UserCenterController) VerPhone() {
 	if (content != verCode) {
 		fmt.Println(verCode , content)
 		logs.Error("input code %v is not equal redis code %v " , verCode , content)
+		//！！！这里提示不友好，验证不通过会直接再次跳转验证页面，怎是没有提示
 		this.Ctx.Redirect(302, "/Ver/phonever")
 	}
 
@@ -224,4 +243,15 @@ func (this *UserCenterController) VerPhone() {
 	redisClient.Setexpire(LoginPrefix+userId , LoginPeriod)
 
 	this.Ctx.Redirect(302, "/Portal/home")
+}
+
+func GetUserInfoFromRedis (uid string) (*UserLoginInfo) {
+	userinfo := redisClient.GetKey(LoginPrefix+uid)
+
+	info := &UserLoginInfo{}
+	err := json.Unmarshal([]byte(userinfo), &info)
+	if (err != nil) {
+		logs.Error("get userinfo from redis fail %v " , err)
+	}
+	return info
 }
