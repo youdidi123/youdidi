@@ -1,0 +1,44 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>全油通</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=0">
+    <link rel="stylesheet" href="/css/weui/weui.css"/>
+    <link rel="stylesheet" href="/css/weui/weuix.css"/>
+
+    <script src="/js/weui/zepto.min.js"></script>
+    <script src="/js/weui/zepto.weui.js"></script>
+    <script src="/js/weui/iscroll-lite.js"></script>
+    <script src="/js/weui/lrz.min.js"></script>
+</head>
+
+<body ontouchstart>
+{{template "sildePic.html" .}}
+<div class="page-bd-15">
+    <div class="weui-msg" id="s2">
+        <div class="weui-msg__icon-area"><i class="weui-icon-warn  weui-icon_msg"></i></div>
+        <div class="weui-msg__text-area">
+            <h2 class="weui-msg__title">尚未完成车主认证</h2>
+            <p class="weui-msg__desc">根据平台要求，未认证车主仅能发单{{.orderNumWithoutVer}}次且会标记为未认证行程，强烈建议尽快完成车主认证</p>
+            <p class="weui-msg__desc">您当前可发起的未认证行程单为{{.num}}</p>
+        </div>
+        <div class="weui-msg__opr-area">
+            <p class="weui-btn-area">
+                {{if gt .num  0}}
+                <a href="/Portal/driverconfirminput" class="weui-btn weui-btn_primary">立即认证</a>
+                <a href="javascript:;" class="weui-btn weui-btn_warn">继续发单</a>
+                {{else}}
+                <a href="/Portal/driverconfirminput" class="weui-btn weui-btn_primary">立即认证</a>
+                <a href="javascript:;" class="weui-btn weui-btn_warn weui-btn_disabled">继续发单</a>
+                {{end}}
+            </p>
+        </div>
+        <div class="weui-msg__extra-area">
+
+        </div>
+    </div>
+    {{template "bottomNav.html" .}}
+</div>
+</body>
+</html>
