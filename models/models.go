@@ -116,7 +116,7 @@ func init () {
 	orm.RegisterModel(new(User),new(Order),new(Location),new(Order_detail),new(Order_location))
 	orm.RegisterDriver("mysql", orm.DRMySQL)
 	orm.RegisterDataBase("default", "mysql", mysqluser+":"+mysqlpass+"@tcp("+mysqlurls+")/"+mysqldb+"?charset=utf8&loc=Asia%2FShanghai")
-	orm.RunSyncdb("default", false, true)
+	orm.RunSyncdb("default", false, false)
 	if beego.AppConfig.String("runmode") == "dev" {
 		orm.Debug = true
 	}

@@ -40,5 +40,17 @@ func (this *OrderController) CreateOrder () {
 		this.TplName = "createOrderFilter.html"
 		this.Data["num"] = orderNumWithoutVer - userInfo.OrderNumWV
 		this.Data["orderNumWithoutVer"] = orderNumWithoutVer
+	} else {
+		this.TplName = "createOrder.html"
+		this.Data["uid"] = uid
 	}
+}
+
+// @router /Portal/createorderforce [GET]
+func (this *OrderController) CreateOrderForce () {
+	uid, _ := this.Ctx.GetSecureCookie("qyt","qyt_id")
+	this.Data["tabIndex"] = 2
+	this.TplName = "createOrder.html"
+	this.Data["uid"] = uid
+
 }
