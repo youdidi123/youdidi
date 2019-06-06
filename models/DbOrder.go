@@ -21,3 +21,8 @@ func (u *Order) GetCurrentOrderFromUserId (id string, list *[]*Order) int64{
 	num , _ := orm.NewOrm().QueryTable(u).Filter("user_id", id).Filter("status__lt",3).OrderBy("-LaunchTime").Limit(1).All(list)
 	return num
 }
+
+func (u *Order) GetReadyOrders (list *[]*Order) int64 {
+	num , _ := orm.NewOrm().QueryTable(u).RelatedSel().Filter("status__lt", 3).OrderBy("LaunchTime").All(list)
+	return num
+}

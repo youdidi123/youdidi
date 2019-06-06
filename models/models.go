@@ -41,6 +41,7 @@ type User struct {
 	Balance float64 `orm:"column(balance)" json:"balance"`
 	IsVip bool `orm:"column(isVip)" json:"isVip"`
 	VipDate string `orm:"column(vipDate)" json:"vipDate"`
+	CarType string `orm:"column(carType)" json:"carType"`
 	Orders []*Order `orm:"reverse(many)"`
 	Order_details []*Order_detail `orm:"reverse(many)"`
 }

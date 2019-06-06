@@ -31,21 +31,23 @@ func genOrderId (uid int) string {
 //点击底部导航栏"车主行程"进入的页面
 // @router /Portal/showdriverorder/ [GET]
 func (this *OrderController) ShowDriverOrder () {
-	uid , _ := this.Ctx.GetSecureCookie("qyt","qyt_id")
+	statusText := []struct {
+		Text string
+	}{{"接单中"}, {"司机到达"}, {"行程中"}, {"到达"}, {"结束"}, {"取消"}, {"无效"}}
+
+	uid, _ := this.Ctx.GetSecureCookie("qyt", "qyt_id")
 
 	var dbOrder models.Order
 	var orderInfo []*models.Order
 
 	num := dbOrder.GetOrderInfoFromUserId(uid, &orderInfo)
 
-	statusText := []struct {
-		Text string
-	}{{"接单中"}, {"司机到达"}, {"行程中"}, {"到达"}, {"结束"}, {"取消"}, {"无效"}}
-
-	for i , v := range orderInfo{
-		launchTime64 , _ := strconv.ParseInt(v.LaunchTime, 10, 64)
-		tm := time.Unix(launchTime64, 0)
-		orderInfo[i].LaunchTime = tm.Format("2006-01-02 15:04:05")
+	if (num > 0) {
+		for i, v := range orderInfo {
+			launchTime64, _ := strconv.ParseInt(v.LaunchTime, 10, 64)
+			tm := time.Unix(launchTime64, 0)
+			orderInfo[i].LaunchTime = tm.Format("2006-01-02 15:04")
+		}
 	}
 
 	this.Data["orderNum"] = num
@@ -189,6 +191,19 @@ func (this *OrderController) SearchOrder () {
 	startCode := this.GetString("startCode")
 	endCode := this.GetString("startCode")
 	logs.Debug("search order day=%v start=%v end=%v", day , startCode , endCode)
+	var dbOrder models.Order
+	var orderInfo []*models.Order
+
+	num := dbOrder.GetReadyOrders(&orderInfo)
+
+	for i , v := range orderInfo{
+		launchTime64 , _ := strconv.ParseInt(v.LaunchTime, 10, 64)
+		tm := time.Unix(launchTime64, 0)
+		orderInfo[i].LaunchTime = tm.Format("2006-01-02 15:04")
+	}
+
+	this.Data["num"] = num
+	this.Data["orders"] = orderInfo
 	this.Data["tabIndex"] = 0
 	this.TplName = "searchOrder.html"
 }

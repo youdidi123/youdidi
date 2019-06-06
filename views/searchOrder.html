@@ -112,46 +112,42 @@
 </script>
 
 <div class="page-bd">
+    {{if lt .num 1}}
+    <div class="weui-cells__title">暂时没有可选行程，联系有车的小伙伴一起拼车出行吧</div>
+    {{else}}
     <div class="weui-panel weui-panel_access">
         <div class="weui-panel__bd">
-            <a href="javascript:void(0);" class="weui-media-box weui-media-box_appmsg">
-                <div class="weui-media-box__hd">
-                    <div class="weui-avatar-circle">
-                        <img src="/img/weui/favicon.png">
-                        <span class="weui-icon-success weui-icon-safe-success"></span>
+            {{range .orders}}
+                <a href="javascript:void(0);" class="weui-media-box weui-media-box_appmsg">
+                    <div class="weui-media-box__hd">
+                        <div class="weui-avatar-circle">
+                            <img src="{{.User.WechatImg}}">
+
+                            {{if eq .User.IsDriver 2}}
+                                <span class="weui-icon-success weui-icon-safe-success"></span>
+                            {{else}}
+                                <span class="weui-icon-success weui-icon-warn"></span>
+                            {{end}}
+                        </div>
                     </div>
-                </div>
-                <div class="weui-media-box__bd">
-                    <h2 class="weui-media-box__title">西安-马家湾 至 采油二厂-XXXX作业区</h2>
-                    <h2 class="weui-media-box__title">出发时间：2019-09-11 11:10:10</h2>
-                    <p class="weui-media-box__desc">车牌号：陕A658W9</p>
-                    <p class="weui-media-box__desc">车辆品牌：别克GLB</p>
-                    <p class="weui-media-box__desc">车主：吴*</p>
-                    <p class="weui-media-box__desc">手机号：186****9669</p>
-                    <ul class="weui-media-box__info">
-                        <li class="weui-media-box__info__meta">座位数/剩余座位：4/3</li>
-                        <li class="weui-media-box__info__meta weui-media-box__info__meta_extra"><span class="f-blue open-popup" data-target="#half">立即预约</span></li>
-                    </ul>
-                </div>
-            </a>
-            <a href="javascript:void(0);" class="weui-media-box weui-media-box_appmsg">
-                <div class="weui-media-box__hd">
-                    <div class="weui-avatar-circle">
-                        <img src="/img/weui/favicon.png">
-                        <span class="weui-icon-success weui-icon-warn"></span>
+                    <div class="weui-media-box__bd">
+                        <h2 class="weui-media-box__title">{{.SrcId.Level2}}-{{.SrcId.Name}} 至 {{.DestId.Level2}}-{{.DestId.Name}}</h2>
+                        <h2 class="weui-media-box__title">出发时间：{{.LaunchTime}}</h2>
+                        <h2 class="weui-media-box__title">费用：{{.Price}}元/座</h2>
+                        <p class="weui-media-box__desc">车辆品牌：{{.User.CarType}}</p>
+                        <p class="weui-media-box__desc">车主：{{.User.Nickname}}</p>
+                        <p class="weui-media-box__desc">行程说明：{{.ThroughL}}</p>
+                        <p class="weui-media-box__desc">行程备注：{{.Marks}}</p>
+                        <ul class="weui-media-box__info">
+                            <li class="weui-media-box__info__meta">座位数/以约座位：{{.PNum}}/{{.ConfirmPnum}}</li>
+                            <li class="weui-media-box__info__meta weui-media-box__info__meta_extra"><span class="f-blue open-popup" data-target="#half">立即预约</span></li>
+                        </ul>
                     </div>
-                </div>
-                <div class="weui-media-box__bd">
-                    <h2 class="weui-media-box__title">西安-马家湾 至 采油二厂-XXXX作业区</h2>
-                    <p class="weui-media-box__desc">车主：吴*  (未认证车主)</p>
-                    <p class="weui-media-box__desc">手机号：186****9669</p>
-                    <p class="weui-media-box__desc">出发时间：2019-09-11 11:10:10</p>
-                    <p class="weui-media-box__desc">车牌号：陕A658W9</p>
-                    <p class="weui-media-box__desc">车辆品牌：别克GLB</p>
-                </div>
-            </a>
+                </a>
+            {{end}}
         </div>
     </div>
+    {{end}}
 </div>
 
 <div id="half" class='weui-popup__container popup-bottom'>

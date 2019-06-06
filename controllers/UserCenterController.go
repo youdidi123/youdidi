@@ -261,3 +261,22 @@ func GetOnroadTypeFromId (uid string) int {
 
 	return userInfo[0].OnRoadType
 }
+
+// @router /Portal/userinfo [GET]
+func (this *UserCenterController) UserInfo() {
+	uid, _ := this.Ctx.GetSecureCookie("qyt","qyt_id")
+	var dbUser models.User
+	var list []*models.User
+	this.Data["success"] =  true
+	this.Data["tabIndex"] = 3
+
+	success, _ := dbUser.GetUserInfoFromId(uid, &list)
+
+	if (success != "true") {
+		this.Data["success"] = false
+		return
+	}
+	this.Data["list"] = list[0]
+	fmt.Println(list[0].Id)
+	this.TplName = "userInfo.html"
+}
