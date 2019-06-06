@@ -32,18 +32,9 @@
                 }
             });
         })
-        function doRequire() {
-            $.prompt({
-                title: '预约座位数',
-                input: '1',
-                empty: false, // 是否允许为空
-                onOK: function (input) {
-                    //点击确认
-                },
-                onCancel: function () {
-                    //点击取消
-                }
-            });
+        function doRequire(oid) {
+            alert(oid);
+            $("#"+oid).hide()
         }
     </script>
 </head>
@@ -140,53 +131,79 @@
                         <p class="weui-media-box__desc">行程备注：{{.Marks}}</p>
                         <ul class="weui-media-box__info">
                             <li class="weui-media-box__info__meta">座位数/以约座位：{{.PNum}}/{{.ConfirmPnum}}</li>
-                            <li class="weui-media-box__info__meta weui-media-box__info__meta_extra"><span class="f-blue open-popup" data-target="#half">立即预约</span></li>
+                            <li class="weui-media-box__info__meta weui-media-box__info__meta_extra"><span class="f-blue open-popup" data-target="#{{.Id}}">立即预约</span></li>
                         </ul>
                     </div>
                 </a>
+                <!--确认页面-->
+                <div id="{{.Id}}" class='weui-popup__container popup-bottom'>
+                    <div class="weui-popup__overlay"></div>
+                    <div class="weui-popup__modal">
+                        <div class="toolbar">
+                            <div class="toolbar-inner">
+                                <a href="javascript:;" class="picker-button close-popup">关闭</a>
+                                <h1 class="title">确认预约</h1>
+                            </div>
+                        </div>
+                        <div class="modal-content">
+                            <div class="page-hd">
+                                <div class="weui-media-box__bd">
+                                    <p class="weui-media-box__title">--行程信息--</p>
+                                    <p class="weui-media-box__desc">单号：{{.Id}}</p>
+                                    <p class="weui-media-box__desc">路线：{{.SrcId.Level2}}-{{.SrcId.Name}} 至 {{.DestId.Level2}}-{{.DestId.Name}}</p>
+                                    <p class="weui-media-box__desc">出发时间：{{.LaunchTime}}</p>
+                                    <p class="weui-media-box__desc">费用：{{.Price}}元/座</p>
+                                    <p class="weui-media-box__desc">行程说明：{{.ThroughL}}</p>
+                                    <p class="weui-media-box__desc">行程备注：{{.Marks}}</p>
+                                    <p class="weui-media-box__desc">座位数：{{.PNum}}</p>
+                                    <p class="weui-media-box__desc">以预约乘客数：{{.RequestPnum}}</p>
+                                    <p class="weui-media-box__title">--车辆信息--</p>
+                                    <p class="weui-media-box__desc">车辆品牌：{{.User.CarType}}</p>
+                                    <p class="weui-media-box__desc">车牌号：{{.User.CarNum}}</p>
+                                    <p class="weui-media-box__title">--车主信息--</p>
+                                    <p class="weui-media-box__desc">昵称：{{.User.Nickname}}</p>
+                                    <p class="weui-media-box__desc">车主星级：{{.User.StarAsD}}</p>
+                                    <p class="weui-media-box__desc">电话：{{.User.Phone}}</p>
+                                    <p class="weui-media-box__desc">车主累计行程数：{{.User.OrderNumAsD}}</p>
+                                    <p class="weui-media-box__desc">车主临时取消行程数：{{.User.CancleOasD}}</p>
+
+                                </div>
+                            </div>
+                            <div class="page-bd-15">
+                                <div class="weui-cells">
+                                    <div class="weui-cell">
+                                        <div class="weui-cell__bd">
+                                            <p>预约座位数：</p>
+                                        </div>
+                                        <div class="weui-cell__ft">
+                                            <div class="weui-count">
+                                                <a class="weui-count__btn weui-count__decrease"></a>
+                                                <input class="weui-count__number" type="number" value="1" />
+                                                <a class="weui-count__btn weui-count__increase"></a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="weui-cell">
+                                        <div class="weui-cell__bd">
+                                            <textarea id="marks" class="weui-textarea" placeholder="希望能和您同行，辛苦通过拼车申请" rows="2" onkeyup="textarea(this);"></textarea>
+                                            <div class="weui-textarea-counter"><span>0</span>/<i>20</i></div>
+                                        </div>
+                                        <i class="weui-icon-clear" onclick="cleararea(this)"></i>
+                                    </div>
+                                </div>
+                                <a href="javascript:;" class="weui-btn weui-btn_primary" onclick="doRequire({{.Id}})">发起预约/锁定座位</a>
+                                <br>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             {{end}}
         </div>
     </div>
     {{end}}
 </div>
 
-<div id="half" class='weui-popup__container popup-bottom'>
-    <div class="weui-popup__overlay"></div>
-    <div class="weui-popup__modal">
-        <div class="toolbar">
-            <div class="toolbar-inner">
-                <a href="javascript:;" class="picker-button close-popup">关闭</a>
-                <h1 class="title">确认预约</h1>
-            </div>
-        </div>
-        <div class="modal-content">
-            <div class="weui-cells">
-                <div class="weui-cell">
-                    <div class="weui-cell__bd">
-                        <p>预约座位数：</p>
-                    </div>
-                    <div class="weui-cell__ft">
-                        <div class="weui-count">
-                            <a class="weui-count__btn weui-count__decrease"></a>
-                            <input class="weui-count__number" type="number" value="1" />
-                            <a class="weui-count__btn weui-count__increase"></a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="weui-cell">
-                <div class="weui-cell__bd">
-                    <textarea id="marks" class="weui-textarea" placeholder="希望能和您同行，辛苦通过拼车申请" rows="2" onkeyup="textarea(this);"></textarea>
-                    <div class="weui-textarea-counter"><span>0</span>/<i>20</i></div>
-                </div>
-                <i class="weui-icon-clear" onclick="cleararea(this)"></i>
-            </div>
-            <div class="page-hd">
-                <a href="javascript:;" class="weui-btn weui-btn_primary" onclick="submit()">发起预约请求</a>
-            </div>
-        </div>
-    </div>
-</div>
+
 <script>
     $(document).on("open", ".weui-popup-modal", function() {
         console.log("open popup");
