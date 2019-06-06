@@ -1,0 +1,235 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>全油通</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=0">
+    <link rel="stylesheet" href="/css/weui/weui.css"/>
+    <link rel="stylesheet" href="/css/weui/weuix.css"/>
+
+    <script src="/js/weui/zepto.min.js"></script>
+    <script src="/js/weui/zepto.weui.js"></script>
+    <script src="/js/weui/iscroll-lite.js"></script>
+    <script src="/js/weui/lrz.min.js"></script>
+    <script src="/js/weui/iscroll-lite.js"></script>
+    <script>
+        $(function() {
+            TagNav('#tagnav', {
+                type: 'scrollToNext',
+                curClassName: 'weui-state-active',
+                index: 2
+            });
+            $('.collapse .js-category').click(function(){
+                $parent = $(this).parent('li');
+                if($parent.hasClass('js-show')){
+                    $parent.removeClass('js-show');
+                    $(this).children('i').removeClass('icon-35').addClass('icon-74');
+                }else{
+                    $parent.siblings().removeClass('js-show');
+                    $parent.addClass('js-show');
+                    $(this).children('i').removeClass('icon-74').addClass('icon-35');
+                    $parent.siblings().find('i').removeClass('icon-35').addClass('icon-74');
+                }
+            });
+        })
+        function doRequire() {
+            $.prompt({
+                title: '预约座位数',
+                input: '1',
+                empty: false, // 是否允许为空
+                onOK: function (input) {
+                    //点击确认
+                },
+                onCancel: function () {
+                    //点击取消
+                }
+            });
+        }
+    </script>
+</head>
+
+<body ontouchstart >
+{{template "sildePic.html" .}}
+
+<div id="tagnav" class="weui-navigator weui-navigator-wrapper">
+    <ul class="weui-navigator-list">
+        <li><a href="javascript:;">今天</a></li>
+        <li><a href="javascript:;">周一</a></li>
+        <li><a href="javascript:;">周二</a></li>
+        <li><a href="javascript:;">周三</a></li>
+        <li><a href="javascript:;">周四</a></li>
+        <li><a href="javascript:;">周五</a></li>
+        <li><a href="javascript:;">周六</a></li>
+    </ul>
+</div>
+
+<div class="page-bd">
+    <ul class="collapse">
+        <li><div class="weui-flex js-category" >
+                <div class="weui-flex__item" ><i class="icon icon-115 f15"></i> <span class="f15">行程筛选</span></div>
+                <i class="icon icon-74"></i>
+            </div>
+            <div class="page-category js-categoryInner">
+
+                <div class="weui-cells page-category-content bg-gray">
+                    <div class="weui-cells weui-cells_form bg-gray">
+                        <div class="weui-cell">
+                            <div class="weui-cell__hd"><label for="start" class="weui-label">出发地</label></div>
+                            <div class="weui-cell__bd">
+                                <input class="weui-input" id="start" name="start" type="text" value="油田基地 西安片区 龙凤园" data-code="2000102610126">
+                            </div>
+                        </div>
+                        <div class="weui-cell">
+                            <div class="weui-cell__hd"><label for="end" class="weui-label">目的地</label></div>
+                            <div class="weui-cell__bd">
+                                <input class="weui-input" id="end" name="end" type="text" value="油田单位 采油二厂 五蛟作业区" data-code="1000201621023">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="page-hd">
+                        <a href="javascript:;" class="weui-btn weui-btn_primary" onclick="submit()">寻找行程</a>
+                    </div>
+                </div>
+            </div>
+        </li>
+    </ul>
+</div>
+
+<script src="/js/weui/picker.city.js"></script>
+<script>
+    $("#start").cityPicker({
+        title: "选择出发地",
+        onChange: function (picker, values, displayValues) {
+            console.log(values, displayValues);
+        }
+    });
+    $("#end").cityPicker({
+        title: "选择目的地",
+        onChange: function (picker, values, displayValues) {
+            console.log(values, displayValues);
+        }
+    });
+</script>
+
+<div class="page-bd">
+    <div class="weui-panel weui-panel_access">
+        <div class="weui-panel__bd">
+            <a href="javascript:void(0);" class="weui-media-box weui-media-box_appmsg">
+                <div class="weui-media-box__hd">
+                    <div class="weui-avatar-circle">
+                        <img src="/img/weui/favicon.png">
+                        <span class="weui-icon-success weui-icon-safe-success"></span>
+                    </div>
+                </div>
+                <div class="weui-media-box__bd">
+                    <h2 class="weui-media-box__title">西安-马家湾 至 采油二厂-XXXX作业区</h2>
+                    <h2 class="weui-media-box__title">出发时间：2019-09-11 11:10:10</h2>
+                    <p class="weui-media-box__desc">车牌号：陕A658W9</p>
+                    <p class="weui-media-box__desc">车辆品牌：别克GLB</p>
+                    <p class="weui-media-box__desc">车主：吴*</p>
+                    <p class="weui-media-box__desc">手机号：186****9669</p>
+                    <ul class="weui-media-box__info">
+                        <li class="weui-media-box__info__meta">座位数/剩余座位：4/3</li>
+                        <li class="weui-media-box__info__meta weui-media-box__info__meta_extra"><span class="f-blue open-popup" data-target="#half">立即预约</span></li>
+                    </ul>
+                </div>
+            </a>
+            <a href="javascript:void(0);" class="weui-media-box weui-media-box_appmsg">
+                <div class="weui-media-box__hd">
+                    <div class="weui-avatar-circle">
+                        <img src="/img/weui/favicon.png">
+                        <span class="weui-icon-success weui-icon-warn"></span>
+                    </div>
+                </div>
+                <div class="weui-media-box__bd">
+                    <h2 class="weui-media-box__title">西安-马家湾 至 采油二厂-XXXX作业区</h2>
+                    <p class="weui-media-box__desc">车主：吴*  (未认证车主)</p>
+                    <p class="weui-media-box__desc">手机号：186****9669</p>
+                    <p class="weui-media-box__desc">出发时间：2019-09-11 11:10:10</p>
+                    <p class="weui-media-box__desc">车牌号：陕A658W9</p>
+                    <p class="weui-media-box__desc">车辆品牌：别克GLB</p>
+                </div>
+            </a>
+        </div>
+    </div>
+</div>
+
+<div id="half" class='weui-popup__container popup-bottom'>
+    <div class="weui-popup__overlay"></div>
+    <div class="weui-popup__modal">
+        <div class="toolbar">
+            <div class="toolbar-inner">
+                <a href="javascript:;" class="picker-button close-popup">关闭</a>
+                <h1 class="title">确认预约</h1>
+            </div>
+        </div>
+        <div class="modal-content">
+            <div class="weui-cells">
+                <div class="weui-cell">
+                    <div class="weui-cell__bd">
+                        <p>预约座位数：</p>
+                    </div>
+                    <div class="weui-cell__ft">
+                        <div class="weui-count">
+                            <a class="weui-count__btn weui-count__decrease"></a>
+                            <input class="weui-count__number" type="number" value="1" />
+                            <a class="weui-count__btn weui-count__increase"></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="weui-cell">
+                <div class="weui-cell__bd">
+                    <textarea id="marks" class="weui-textarea" placeholder="希望能和您同行，辛苦通过拼车申请" rows="2" onkeyup="textarea(this);"></textarea>
+                    <div class="weui-textarea-counter"><span>0</span>/<i>20</i></div>
+                </div>
+                <i class="weui-icon-clear" onclick="cleararea(this)"></i>
+            </div>
+            <div class="page-hd">
+                <a href="javascript:;" class="weui-btn weui-btn_primary" onclick="submit()">发起预约请求</a>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    $(document).on("open", ".weui-popup-modal", function() {
+        console.log("open popup");
+    }).on("close", ".weui-popup-modal", function() {
+        console.log("close popup");
+    });
+    var MAX = 4, MIN = 1;
+    $('.weui-count__decrease').click(function (e) {
+        var $input = $(e.currentTarget).parent().find('.weui-count__number');
+        var number = parseInt($input.val() || "0") - 1
+        if (number < MIN) number = MIN;
+        $input.val(number)
+    })
+    $('.weui-count__increase').click(function (e) {
+        var $input = $(e.currentTarget).parent().find('.weui-count__number');
+        var number = parseInt($input.val() || "0") + 1
+        if (number > MAX) number = MAX;
+        $input.val(number)
+    })
+    function textarea(input) {
+        var content = $(input);
+        var max =  content.next().find('i') .text();
+        var value = content.val();
+        if (value.length>0) {
+
+            value = value.replace(/\n|\r/gi,"");
+            var len = value.length;
+            content.next().find('span').text(len) ;
+            if(len>max){
+                content.next().addClass('f-red');
+            }else{
+                content.next().removeClass('f-red');
+            }
+        }
+    }
+</script>
+{{template "bottomNav.html" .}}
+
+</body>
+
+</head>
+</html>

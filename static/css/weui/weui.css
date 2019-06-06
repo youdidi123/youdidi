@@ -655,7 +655,7 @@ input.weui-btn_plain-default{
   position:relative;
   padding:10px 15px;
   text-align:right;
-  line-height:2.5em;
+  line-height:1.0em;
 }
 .weui-form-preview__hd:after{
   content:" ";
@@ -674,7 +674,7 @@ input.weui-btn_plain-default{
 }
 .weui-form-preview__hd .weui-form-preview__value{
   font-style:normal;
-  font-size:1.6em;
+  font-size:1.0em;
 }
 .weui-form-preview__bd{
   padding:10px 15px;
@@ -1427,7 +1427,7 @@ a.weui-media-box:active{
 }
 .weui-media-box__title{
   font-weight:400;
-  font-size:17px;
+  font-size:13px;
   width:auto;
   overflow:hidden;
   text-overflow:ellipsis;

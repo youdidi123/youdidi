@@ -13,90 +13,98 @@
     <script src="/js/weui/lrz.min.js"></script>
     <script>
         function createOrder() {
-            this.window.location.href="/Portal/createorder";
+            this.window.location.href="{{.buttonHref}}";
+        }
+        function init() {
+            var onRoadType = {{.onRoadType}};
+            if (onRoadType == 1) {
+                $.noti({
+                    title: "无法发布行程",
+                    text: "您有正在进行的乘客拼车行程哦^_^",
+                    // media: "<img src='./images/present.png' />",
+                    time: 4000,
+                });
+            } else if (onRoadType == 2) {
+                $.noti({
+                    title: "敲黑板!!",
+                    text: "您有正在进行的行程，点击进入当前行程查看更多哦^_^",
+                    // media: "<img src='./images/present.png' />",
+                    time: 4000,
+                });
+            } else {
+                $.noti({
+                    title: "欢迎回来",
+                    text: "绿色出行，有你有我，老板发布个出行信息吧 ^_^",
+                    // media: "<img src='./images/present.png' />",
+                    time: 4000,
+                });
+            }
+        }
+
+        function gotoDetail (oid) {
+            this.window.location.href="/Portal/driverorderdetail/" + oid;
         }
     </script>
 </head>
 
-<body ontouchstart>
+<body ontouchstart onload="init()">
 {{template "sildePic.html" .}}
 
 
 <div class="page-bd-15">
     <div class="weui-cells__title">
-        <a href="/Portal/createorder" class="weui-btn weui-btn_primary" onclick="createOrder()">发布行程</a>
+        <a href="{{.buttonHref}}" class="{{.buttonClass}}" onclick="{{.buttonFunc}}">{{.buttonValue}}</a>
     </div>
-    <div class="weui-cells__title">历史行程列表</div>
 
-    <div class="weui-form-preview">
+
+    {{if lt .orderNum  1}}
+        <div class="weui-cells__title">您还没有发布过行程，快来发一单吧</div>
+    {{else}}
+        <div class="weui-cells__title">历史行程列表</div>
+    {{range .orderInfo}}
+    <div class="weui-form-preview" onclick="gotoDetail({{.Id}})">
         <div class="weui-form-preview__hd">
-            <label class="weui-form-preview__label">2018-08-04</label>
-            <em class="weui-form-preview__value">西安 至 庆阳</em>
+            <label class="weui-form-preview__label">
+                {{ $orderStatus := .Status}}
+            {{range $ind, $elem := $.StatusText}}
+                {{if eq $orderStatus $ind}}
+                    {{$elem.Text}}
+            </label>
+                    {{if lt $ind 3}}
+                        <em class="weui-form-preview__value f-green">进入行程 <i class="icon icon-108"></i></em>
+                    {{else}}
+                        <em class="weui-form-preview__value f-blue">查看行程 <i class="icon icon-108"></i></em>
+                    {{end}}
+                {{end}}
+            {{end}}
+
+
         </div>
-        <div class="weui-form-preview__bd">
+        <div class="weui-form-preview__bd bg-gray">
             <div class="weui-form-preview__item">
-                <label class="weui-form-preview__label">行程状态：以完成</label>
+                <label class="weui-form-preview__label">单号：</label>
+                <label class="weui-form-preview__label">{{.Id}}</label>
             </div>
             <div class="weui-form-preview__item">
-                <label class="weui-form-preview__label">途经地</label>
-                <span class="weui-form-preview__value">很长很长的名字很长很长的名字很长很长的名字很长很长的名字很长很长的名字</span>
+                <label class="weui-form-preview__label">出发时间：</label>
+                <label class="weui-form-preview__label">{{.LaunchTime}}</label>
             </div>
-        </div>
-        <div class="weui-form-preview__ft">
-            <a class="weui-form-preview__btn weui-form-preview__btn_default" href="javascript:">辅助操作</a>
-            <button type="submit" class="weui-form-preview__btn weui-form-preview__btn_primary" href="javascript:">操作</button>
+            <div class="weui-form-preview__item">
+                <label class="weui-form-preview__label">出发地：</label>
+                <label class="weui-form-preview__label">{{.SrcId.Level1}} {{.SrcId.Level2}} {{.SrcId.Name}}</label>
+            </div>
+            <div class="weui-form-preview__item">
+                <label class="weui-form-preview__label">目的地：</label>
+                <label class="weui-form-preview__label">{{.DestId.Level1}} {{.DestId.Level2}} {{.DestId.Name}}</label>
+            </div>
         </div>
     </div>
-    <div class="weui-form-preview">
-        <div class="weui-form-preview__hd">
-            <label class="weui-form-preview__label">2018-08-04</label>
-            <em class="weui-form-preview__value">西安 至 庆阳</em>
-        </div>
-        <div class="weui-form-preview__bd">
-            <div class="weui-form-preview__item">
-                <label class="weui-form-preview__label">商品</label>
-                <span class="weui-form-preview__value">电动打蛋机</span>
-            </div>
-            <div class="weui-form-preview__item">
-                <label class="weui-form-preview__label">标题标题</label>
-                <span class="weui-form-preview__value">名字名字名字</span>
-            </div>
-            <div class="weui-form-preview__item">
-                <label class="weui-form-preview__label">标题标题</label>
-                <span class="weui-form-preview__value">很长很长的名字很长很长的名字很长很长的名字很长很长的名字很长很长的名字</span>
-            </div>
-        </div>
-        <div class="weui-form-preview__ft">
-            <a class="weui-form-preview__btn weui-form-preview__btn_default" href="javascript:">辅助操作</a>
-            <button type="submit" class="weui-form-preview__btn weui-form-preview__btn_primary" href="javascript:">操作</button>
-        </div>
-    </div>
-    <div class="weui-form-preview">
-        <div class="weui-form-preview__hd">
-            <label class="weui-form-preview__label">2018-08-04</label>
-            <em class="weui-form-preview__value">西安 至 庆阳</em>
-        </div>
-        <div class="weui-form-preview__bd">
-            <div class="weui-form-preview__item">
-                <label class="weui-form-preview__label">商品</label>
-                <span class="weui-form-preview__value">电动打蛋机</span>
-            </div>
-            <div class="weui-form-preview__item">
-                <label class="weui-form-preview__label">标题标题</label>
-                <span class="weui-form-preview__value">名字名字名字</span>
-            </div>
-            <div class="weui-form-preview__item">
-                <label class="weui-form-preview__label">标题标题</label>
-                <span class="weui-form-preview__value">很长很长的名字很长很长的名字很长很长的名字很长很长的名字很长很长的名字</span>
-            </div>
-        </div>
-        <div class="weui-form-preview__ft">
-            <a class="weui-form-preview__btn weui-form-preview__btn_default" href="javascript:">辅助操作</a>
-            <button type="submit" class="weui-form-preview__btn weui-form-preview__btn_primary" href="javascript:">操作</button>
-        </div>
-    </div>
-    {{template "bottomNav.html" .}}
+    {{end}}
+    {{end}}
+
+
 </div>
+{{template "bottomNav.html" .}}
 
 </body>
 
