@@ -28,6 +28,15 @@ func (u *User) GetUserInfo(name string, list *[]*User) (success string , num int
 	return "true" , num
 }
 
+func (u *User) GetUserInfoFromId (id string, list *[]*User) (success string , num int64){
+	num, error := orm.NewOrm().Raw("SELECT * from User where id = ?" , id).QueryRows(list)
+	if (error != nil) {
+		logs.Error("can not get user info from db id=%s ,error=%s" , id , error)
+		return "false" , 0
+	}
+	return "true" , num
+}
+
 func (u *User) UpdateInfo (id int64, key string , value string)  {
 	o := orm.NewOrm()
 	num , err := o.QueryTable(u).Filter("id", id).Update(orm.Params{
