@@ -41,6 +41,7 @@ type User struct {
 	Balance float64 `orm:"column(balance)" json:"balance"`
 	IsVip bool `orm:"column(isVip)" json:"isVip"`
 	VipDate string `orm:"column(vipDate)" json:"vipDate"`
+	CarType string `orm:"column(carType)" json:"carType"`
 	Orders []*Order `orm:"reverse(many)"`
 	Order_details []*Order_detail `orm:"reverse(many)"`
 }
@@ -51,9 +52,9 @@ type Order struct {
 	CreateTime string `column(createTime);" json:"createTime"`
 	LaunchTime string `column(launchTime);" json:"launchTime"`
 	PNum int `column(pNum);" json:"pNum"`
-	SrcL string `column(srcL);" json:"srcL"`
+	SrcId *Location `json:"srcId" orm:"rel(fk)"`
+	DestId *Location `json:"DestId" orm:"rel(fk)"`
 	ThroughL string `column(throughL);" json:"throughL"`
-	DestL string `column(destL);" json:"destL"`
 	Status int `column(status);" json:"status"`
 	RequestPnum int `column(requestPnum);" json:"requestPnum"`
 	ConfirmPnum int `column(confirmPnum);" json:"confirmPnum"`
@@ -62,28 +63,17 @@ type Order struct {
 	OnroadPnum int `column(onroadPnum);" json:"onroadPnum"`
 	PayedPnum int `column(payedPnum);" json:"payedPnum"`
 	Price float64 `column(price);" json:"price"`
-	marks string `column(marks);" json:"marks"`
+	Marks string `column(marks);" json:"marks"`
 	CancleReason string `column(cancleReason);" json:"cancleReason"`
-	Order_locations []*Order_location `orm:"reverse(many)"`
 	Order_details []*Order_detail `orm:"reverse(many)"`
 }
 
 type Location struct {
-	Id int `orm:"auto;pk;column(id);" json:"id"`
+	Id int64 `orm:"auto;pk;column(id);" json:"id"`
 	Name string `column(name);" json:"name"`
 	Level1 string `column(level1);" json:"level1"`
 	Level2 string `column(level2);" json:"level2"`
-	Order_locations []*Order_location `orm:"reverse(many)"`
-}
-
-type Order_location struct {
-	Id int `orm:"auto;pk;column(id);" json:"id"`
-	Order *Order `json:"order" orm:"rel(fk)"`
-	Location *Location `json:"location" orm:"rel(fk)"`
-	LocationCustom string `column(locationCustom);" json:"locationCustom"`
-	Type int `column(type);" json:"type"`
-	LauchTime string `column(lauchTime);" json:"lauchTime"`
-	Status int `column(status);" json:"status"`
+	Orders []*Order `orm:"reverse(many)"`
 }
 
 type Order_detail struct {
@@ -113,7 +103,7 @@ func init () {
 	mysqldb := beego.AppConfig.String("mysqldb")
 
 	//所有的数据表需要在这里注册
-	orm.RegisterModel(new(User),new(Order),new(Location),new(Order_detail),new(Order_location))
+	orm.RegisterModel(new(User),new(Order),new(Location),new(Order_detail))
 	orm.RegisterDriver("mysql", orm.DRMySQL)
 	orm.RegisterDataBase("default", "mysql", mysqluser+":"+mysqlpass+"@tcp("+mysqlurls+")/"+mysqldb+"?charset=utf8&loc=Asia%2FShanghai")
 	orm.RunSyncdb("default", false, true)

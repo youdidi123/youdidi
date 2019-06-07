@@ -19,8 +19,8 @@ func init() {
     beego.GlobalControllerRouter["youdidi/controllers:ImgConfirmController"] = append(beego.GlobalControllerRouter["youdidi/controllers:ImgConfirmController"],
         beego.ControllerComments{
             Method: "DriverConfirmInput",
-            Router: `/Test`,
-            AllowHTTPMethods: []string{"GET","POST"},
+            Router: `/Portal/driverconfirminput`,
+            AllowHTTPMethods: []string{"GET"},
             MethodParams: param.Make(),
             Filters: nil,
             Params: nil})
@@ -29,6 +29,24 @@ func init() {
         beego.ControllerComments{
             Method: "Get",
             Router: `/Portal/home`,
+            AllowHTTPMethods: []string{"GET"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["youdidi/controllers:OrderController"] = append(beego.GlobalControllerRouter["youdidi/controllers:OrderController"],
+        beego.ControllerComments{
+            Method: "CreateOrder",
+            Router: `/Portal/createorder`,
+            AllowHTTPMethods: []string{"GET"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["youdidi/controllers:OrderController"] = append(beego.GlobalControllerRouter["youdidi/controllers:OrderController"],
+        beego.ControllerComments{
+            Method: "CreateOrderForce",
+            Router: `/Portal/createorderforce`,
             AllowHTTPMethods: []string{"GET"},
             MethodParams: param.Make(),
             Filters: nil,
