@@ -1,0 +1,310 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>全油通</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=0">
+    <link rel="stylesheet" href="/css/weui/weui.css"/>
+    <link rel="stylesheet" href="/css/weui/weuix.css"/>
+
+    <script src="/js/weui/zepto.min.js"></script>
+    <script src="/js/weui/zepto.weui.js"></script>
+    <script src="/js/weui/iscroll-lite.js"></script>
+    <script src="/js/weui/lrz.min.js"></script>
+    <script src="/js/weui/axios.min.js"></script>
+    <script>
+        function init() {
+            var myDate = new Date(new Date().getTime() + 10 * 60 * 1000);
+            var year = myDate.getFullYear();
+            var mouth = myDate.getMonth() + 1;
+            var day = myDate.getDate();
+            var hour = myDate.getHours();
+            var min = myDate.getMinutes();
+
+            if (mouth < 10 ){
+                mouth = "0" + mouth;
+            }
+            if (day < 10) {
+                day = "0" + day;
+            }
+            if (hour < 10) {
+                hour = "0" + hour;
+            }
+            if (min < 10) {
+                min = "0" + min;
+            }
+            document.getElementById('launch-time').value = year + "年" + mouth + "月" + day + "日 " + hour + "时" + min + "分";
+        }
+
+        function getByteLen(val) {
+            var len = 0;
+            for (var i = 0; i < val.length; i++) {
+                var a = val.charAt(i);
+                if (a.match(/[^\x00-\xff]/ig) != null)
+                {
+                    len += 2;
+                }
+                else
+                {
+                    len += 1;
+                }
+            }
+            return len;
+        }
+
+        function submit() {
+            var uid = $("#uid").val();
+            var startCode = $("#start").attr("data-code");
+            var start = $("#start").val();
+            var endCode = $("#end").attr("data-code");
+            var end = $('#end').val();
+            var launchTime = $("#launch-time").val();
+            var charge = $("#charge").val();
+            var siteNum = $("#siteNum").val();
+            var travelExplain = $("#travelExplain").val();
+            var travelCommit = $("#travelCommit").val();
+
+            if (startCode == endCode) {
+                $.toptip('出发地和目的地不能相同哦','error');
+                return
+            }
+
+            launchTimeOri = launchTime;
+            launchTime = launchTime.replace(/[\u4e00-\u9fa5|,]+/g,'');
+            launchTime = launchTime.replace(/ /g,'');
+            launchTimeArr = launchTime.split('');
+            launchTime = launchTimeArr[0] + launchTimeArr[1] + launchTimeArr[2] +launchTimeArr[3] + "-"
+                + launchTimeArr[4] + launchTimeArr[5] + "-"
+                + launchTimeArr[6] + launchTimeArr[7] + " "
+                + launchTimeArr[8] + launchTimeArr[9] + ":"
+                + launchTimeArr[10] + launchTimeArr[11] + ":00";
+            var nowDate = Date.now();
+            launchTime = new Date(Date.parse(launchTime)).getTime();
+            if (launchTime - nowDate < (10 * 60 * 1000)) {
+                $.toptip('至少需要发布10分钟后的行程哦','error');
+                return
+            }
+            launchTime = launchTime/1000;
+
+            if (charge == "") {
+                $.toptip('您还没有填写定价','error');
+                return
+            }
+
+            if (getByteLen(travelExplain) > 30) {
+                $.toptip('行程说明不能超过30个字，要不拼车的小姐姐懒得读哦','error');
+                return
+            }
+
+            if (getByteLen(travelCommit) > 30) {
+                $.toptip('行程备注不能超过30个字，拼车的要求不要太严格哦','error');
+                return
+            }
+
+            var confirmMsg = launchTimeOri +
+                            "<br>" + start +
+                            "<br>至" +
+                            "<br>" + end +
+                            "<br>" + siteNum + "座 * " + charge + "元";
+
+            $.modal({
+                title: "行程说明",
+                text: confirmMsg,
+                buttons: [
+                    { text: "取消", className: "default", onClick: function(){}},
+                    { text: "确认发布", onClick: function(){
+                            $(".loading2").show();
+                            $.ajax({
+                                type:"POST",
+                                url:"/Portal/docreateorder",
+                                data:{
+                                    uid:uid ,
+                                    launchTime:launchTime,
+                                    startCode:startCode,
+                                    endCode:endCode,
+                                    charge:charge,
+                                    siteNum:siteNum,
+                                    travelExplain:travelExplain,
+                                    travelCommit:travelCommit
+                                },
+                                dataType:"json",
+                                success : function(result) {
+                                    console.log(result)
+                                    if (result.code != 0) {
+                                        setTimeout(function() {
+                                            $(".loading2").hide();
+                                        }, 1000)
+                                        $.toast("发布失败：" + result.msg, "forbidden");
+                                    }
+                                    else {
+                                        setTimeout(function() {
+                                            $(".loading2").hide();
+                                        }, 1000)
+                                        $.toast("发布成功", 30000);
+                                        window.location.href = "/Portal/showdriverorder/";
+
+                                    }
+                                },
+                                error : function(result) {
+                                    setTimeout(function() {
+                                        $(".loading2").hide();
+                                    }, 1000)
+                                    alert("网络繁忙，请重试");
+                                }
+                            });
+                        }},
+                ]
+            });
+        }
+    </script>
+
+</head>
+
+<body ontouchstart onload="init()">
+<div class="container">
+    <div class="page-bd">
+        <div class="loading2 hide" data-text="提交中..."></div>
+        <div class="weui-cells__title">发布行程</div>
+        <div class="weui-cells weui-cells_form">
+            <input type="hidden" id="uid" name="uid" value={{.uid}}>
+            <div class="weui-cell">
+                <div class="weui-cell__hd"><label for="start" class="weui-label">出发地</label></div>
+                <div class="weui-cell__bd">
+                    <input class="weui-input" id="start" name="start" type="text" value="油田基地 西安片区 龙凤园" data-code="2000102610126">
+                </div>
+            </div>
+            <div class="weui-cell">
+                <div class="weui-cell__hd"><label for="end" class="weui-label">目的地</label></div>
+                <div class="weui-cell__bd">
+                    <input class="weui-input" id="end" name="end" type="text" value="油田单位 采油二厂 五蛟作业区" data-code="1000201621023">
+                </div>
+            </div>
+            <div class="weui-cell">
+                <div class="weui-cell__hd"><label for="launch-time" class="weui-label">出发时间</label></div>
+                <div class="weui-cell__bd">
+                    <input class="weui-input" id="launch-time" name="launch-time" value="" type="text">
+                </div>
+            </div>
+            <div class="weui-cell">
+                <div class="weui-cell__hd">
+                    <label class="weui-label">定价</label>
+                </div>
+                <div class="weui-cell__bd">
+                    <input class="weui-input" placeholder="100.00" type="number" id="charge" name="charge">
+                </div>
+                <div class="weui-cell__hd">
+                    <label class="weui-label">元/每人</label>
+                </div>
+            </div>
+            <div class="weui-cell weui-cell_select weui-cell_select-after">
+                <div class="weui-cell__hd">
+                    <label for="" class="weui-label">座位数</label>
+                </div>
+                <div class="weui-cell__bd">
+                    <select class="weui-select" name="siteNum" id="siteNum">
+                        <option value="4">4</option>
+                        <option value="3">3</option>
+                        <option value="2">2</option>
+                        <option value="1">1</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="weui-cells weui-cells_form">
+            <div class="weui-cell">
+                <div class="weui-cell__bd">
+                    <textarea id="travelExplain" class="weui-textarea" placeholder="行程起止地点说明，如:西安基地->龙凤园->泾渭苑->庆城" rows="2" onkeyup="textarea(this);"></textarea>
+                    <div class="weui-textarea-counter"><span>0</span>/<i>30</i></div>
+                </div>
+                <i class="weui-icon-clear" onclick="cleararea(this)"></i>
+            </div>
+        </div>
+        <div class="weui-cells weui-cells_form">
+            <div class="weui-cell">
+                <div class="weui-cell__bd">
+                    <textarea id="travelCommit" class="weui-textarea" placeholder="备注信息，如：禁止宠物，大件行李提前联系" rows="2" onkeyup="textarea(this);"></textarea>
+                    <div class="weui-textarea-counter"><span>0</span>/<i>30</i></div>
+                </div>
+                <i class="weui-icon-clear" onclick="cleararea(this)"></i>
+            </div>
+        </div>
+        <a href="javascript:;" class="weui-btn weui-btn_primary" onclick="submit()">发布行程</a>
+        <script src="/js/weui/picker.city.js"></script>
+        <script>
+            $("#start").cityPicker({
+                title: "选择出发地",
+                onChange: function (picker, values, displayValues) {
+                    console.log(values, displayValues);
+                }
+            });
+            $("#end").cityPicker({
+                title: "选择目的地",
+                onChange: function (picker, values, displayValues) {
+                    console.log(values, displayValues);
+                }
+            });
+            function textarea(input) {
+                var content = $(input);
+                var max =  content.next().find('i') .text();
+                var value = content.val();
+                if (value.length>0) {
+
+                    value = value.replace(/\n|\r/gi,"");
+                    var len = value.length;
+                    content.next().find('span').text(len) ;
+                    if(len>max){
+                        content.next().addClass('f-red');
+                    }else{
+                        content.next().removeClass('f-red');
+                    }
+                }
+            }
+            function cleararea(obj){
+                $(obj).prev().find('.weui-textarea').val("");
+                return false;
+            }
+            $("#launch-time").datetimePicker({
+                title: '出发时间',
+                yearSplit: '年',
+                monthSplit: '月',
+                dateSplit: '日',
+                times: function () {
+                    return [  // 自定义的时间
+                        {
+                            values: (function () {
+                                var hours = [];
+                                for (var i=0; i<24; i++) hours.push(i > 9 ? i : '0'+i);
+                                return hours;
+                            })()
+                        },
+                        {
+                            divider: true,  // 这是一个分隔符
+                            content: '时'
+                        },
+                        {
+                            values: (function () {
+                                var minutes = [];
+                                for (var i=0; i<59; i++) minutes.push(i > 9 ? i : '0'+i);
+                                return minutes;
+                            })()
+                        },
+                        {
+                            divider: true,  // 这是一个分隔符
+                            content: '分'
+                        }
+                    ];
+                },
+                onChange: function (picker, values, displayValues) {
+                    console.log(values);
+                }
+            });
+
+        </script>
+    </div>
+
+    {{template "bottomNav.html" .}}
+</div>
+
+</body>
+</html>

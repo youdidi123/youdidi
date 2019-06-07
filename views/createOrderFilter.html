@@ -27,10 +27,10 @@
             <p class="weui-btn-area">
                 {{if gt .num  0}}
                 <a href="/Portal/driverconfirminput" class="weui-btn weui-btn_primary">立即认证</a>
-                <a href="javascript:;" class="weui-btn weui-btn_warn">继续发单</a>
+                <a href="/Portal/createorderforce" class="weui-btn weui-btn_warn">继续发单</a>
                 {{else}}
                 <a href="/Portal/driverconfirminput" class="weui-btn weui-btn_primary">立即认证</a>
-                <a href="javascript:;" class="weui-btn weui-btn_warn weui-btn_disabled">继续发单</a>
+                <a href="javascript:;" class="weui-btn weui-btn_warn weui-btn_disabled">继续发布</a>
                 {{end}}
             </p>
         </div>
@@ -38,7 +38,7 @@
 
         </div>
     </div>
-    {{template "bottomNav.html" .}}
 </div>
+{{template "bottomNav.html" .}}
 </body>
 </html>

@@ -28,7 +28,6 @@ type UserLoginInfo struct {
 	IsPhoneVer bool
 	IsDriver int
 	OrderNumWV int
-	OnRoadType int
 	Token string
 	Phone string
 }
@@ -81,7 +80,6 @@ func (this *UserCenterController) Dologin () {
 				info.IsDriver = list[0].IsDriver
 				info.Token = token
 				info.Nickname = list[0].Nickname
-				info.OnRoadType = list[0].OnRoadType
 				info.OpenId = list[0].OpenId
 				info.OrderNumWV = list[0].OrderNumWV
 				info.Phone = list[0].Phone
@@ -97,7 +95,7 @@ func (this *UserCenterController) Dologin () {
 				this.Ctx.SetSecureCookie("qyt","qyt_token" , token)
 				//this.SetSession("qyt_id" , idStr)
 
-				this.Ctx.Redirect(302, "/Portal/home")
+				this.Ctx.Redirect(302, "/Portal/showdriverorder/")
 
 			} else {
 				msg = "密码错误"
@@ -194,8 +192,8 @@ func getSig (id string , token string) (string , string){
 func GetRandomCode () string{
 	s1 := rand.NewSource(time.Now().Unix())
 	r1 := rand.New(s1)
-	min := 100000
-	code := r1.Intn(1000000)
+	min := 1000
+	code := r1.Intn(10000)
 	if (code < min) {
 		code += min
 	}
@@ -242,7 +240,7 @@ func (this *UserCenterController) VerPhone() {
 	redisClient.SetKey(LoginPrefix+userId , string(data))
 	redisClient.Setexpire(LoginPrefix+userId , LoginPeriod)
 
-	this.Ctx.Redirect(302, "/Portal/home")
+	this.Ctx.Redirect(302, "/Portal/showdriverorder/")
 }
 
 func GetUserInfoFromRedis (uid string) (*UserLoginInfo) {
@@ -254,4 +252,31 @@ func GetUserInfoFromRedis (uid string) (*UserLoginInfo) {
 		logs.Error("get userinfo from redis fail %v " , err)
 	}
 	return info
+}
+
+func GetOnroadTypeFromId (uid string) int {
+	var dbUser models.User
+	var userInfo []*models.User
+	dbUser.GetUserInfoFromId(uid, &userInfo)
+
+	return userInfo[0].OnRoadType
+}
+
+// @router /Portal/userinfo [GET]
+func (this *UserCenterController) UserInfo() {
+	uid, _ := this.Ctx.GetSecureCookie("qyt","qyt_id")
+	var dbUser models.User
+	var list []*models.User
+	this.Data["success"] =  true
+	this.Data["tabIndex"] = 3
+
+	success, _ := dbUser.GetUserInfoFromId(uid, &list)
+
+	if (success != "true") {
+		this.Data["success"] = false
+		return
+	}
+	this.Data["list"] = list[0]
+	fmt.Println(list[0].Id)
+	this.TplName = "userInfo.html"
 }
