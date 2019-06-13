@@ -46,11 +46,3 @@ func (u *User) UpdateInfo (id int64, key string , value string)  {
 		logs.Error("update User fail id=%v key=%v value=%v" , id , key , value)
 	}
 }
-
-func GetUserInfoFormName (name string)([]orm.ParamsList , error) {
-	o := orm.NewOrm()
-	var lsits []orm.ParamsList
-	_ , err := o.Raw("SELECT * from User where name = ?" , name).ValuesList(&lsits)
-	return lsits , err
-
-}

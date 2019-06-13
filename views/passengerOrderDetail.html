@@ -1,0 +1,117 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>长庆出行</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=0">
+    <link rel="stylesheet" href="/css/weui/weui.css"/>
+    <link rel="stylesheet" href="/css/weui/weuix.css"/>
+
+    <script src="/js/weui/zepto.min.js"></script>
+    <script src="/js/weui/zepto.weui.js"></script>
+    <script src="/js/weui/iscroll-lite.js"></script>
+    <script src="/js/weui/lrz.min.js"></script>
+    <script>
+
+    </script>
+</head>
+
+<body ontouchstart>
+<div class="page-hd">
+    <a href="javascript:;" class="weui-btn weui-btn_warn" onclick="submit()">取消行程</a>
+</div>
+<div class="page-bd">
+    <div class="weui-panel weui-panel_access">
+        <div class="weui-panel__bd">
+            <a href="javascript:void(0);" class="weui-media-box weui-media-box_appmsg">
+                <div class="weui-media-box__bd f14">
+                    <div class="timeline">
+                        <ul>
+                            <li class="timeline-item">
+                                <div class="timeline-item-color-red timeline-item-head"></div>
+                                <div class="timeline-item-tail-red" ></div>
+                                <div class="timeline-item-content"><h5>结束</h5>
+                                    <p></p></div>
+                            </li>
+                            <li class="timeline-item">
+                                <div class="timeline-item-color-red timeline-item-head"></div>
+                                <div class="timeline-item-tail-red" ></div>
+                                <div class="timeline-item-content"><h5>点评车主</h5>
+                                    <p></p></div>
+                            </li>
+                            <li class="timeline-item">
+                                <div class="timeline-item-color-red timeline-item-head"></div>
+                                <div class="timeline-item-tail-red" ></div>
+                                <div class="timeline-item-content"><h5>付款完成</h5>
+                                    <p>乘客确认到达后将自动付款</p></div>
+                            </li>
+                            <li class="timeline-item">
+                                <div class="timeline-item-color-red timeline-item-head"></div>
+                                <div class="timeline-item-tail-red" ></div>
+                                <div class="timeline-item-content"><h5>乘客确认达到目的地</h5>
+                                    <p></p></div>
+                            </li>
+                            <li class="timeline-item">
+                                <div class="timeline-item-color-red timeline-item-head"></div>
+                                <div class="timeline-item-tail-red" ></div>
+                                <div class="timeline-item-content"><h5>行程中</h5>
+                                    <p></p></div>
+                            </li>
+                            <li class="timeline-item">
+                                <div class="timeline-item-color timeline-item-head-first">
+                                    <i class="timeline-item-checked   weui-icon-success-no-circle"></i>
+                                </div>
+                                <div class="timeline-item-tail" ></div>
+                                <div class="timeline-item-content"><h4 class="recent">等待车主到达接客地点</h4>
+                                    <p>车主确认到达后将自动进入行程中</p></div>
+                            </li>
+                            <li class="timeline-item">
+                                <div class="timeline-item-color timeline-item-head"></div>
+                                <div class="timeline-item-tail" ></div>
+                                <div class="timeline-item-content"><h4> 车主确认请求</h4>
+                                    <p></p></div>
+                            </li>
+                            <li class="timeline-item">
+                                <div class="timeline-item-color timeline-item-head"></div>
+                                <div class="timeline-item-tail hide" ></div>
+                                <div class="timeline-item-content"><h4> 乘客发起拼车请求</h4>
+                                    <p></p></div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="weui-media-box__bd">
+                    <p class="weui-media-box__info__meta_extra f14">行程信息</p>
+                    <p class="weui-media-box__desc">路线：{{.List.Order.SrcId.Level2}}-{{.List.Order.SrcId.Name}} 至 {{.List.Order.DestId.Level2}}-{{.List.Order.DestId.Name}}</p>
+                    <p class="weui-media-box__desc">出发时间：{{.List.Order.LaunchTime}}</p>
+                    <p class="weui-media-box__desc">费用：{{.List.Order.Price}}元/座</p>
+                    <p class="weui-media-box__desc">座位数：{{.List.SiteNum}}个</p>
+                    <p class="weui-media-box__desc">单号：{{.List.Order.Id}}</p>
+                    <p class="weui-media-box__desc">行程说明：{{.List.Order.ThroughL}}</p>
+                    <p class="weui-media-box__desc">行程备注：{{.List.Order.Marks}}</p>
+                    <p class="weui-media-box__info__meta_extra f14">车辆信息</p>
+                    <p class="weui-media-box__desc">车牌号：{{.List.Driver.CarNum}}
+                    <p class="weui-media-box__desc">车辆品牌：{{.List.Driver.CarType}}</p>
+                    <p class="weui-media-box__info__meta_extra f14">车主信息--</p>
+                    <p class="weui-media-box__desc">车主：{{.List.Driver.Nickname}}
+                        {{if ne .List.Driver.IsDriver 2}}
+                            <span class="f-red">(未认证车主)</span>
+                        {{else}}
+                            <span class="f-green">(认证车主)</span>
+                        {{end}}
+                    </p>
+                    <p class="weui-media-box__desc">车主星级：{{.List.Driver.StarAsD}}</p>
+                    <p class="weui-media-box__desc">电话：{{.List.Driver.Phone}}</p>
+                    <p class="weui-media-box__desc">车主累计行程数：{{.List.Driver.OrderNumAsD}}</p>
+                    <p class="weui-media-box__desc">车主临时取消行程数：{{.List.Driver.CancleOasD}}</p>
+                </div>
+            </a>
+        </div>
+    </div>
+</div>
+{{template "bottomNav.html" .}}
+
+</body>
+
+</head>
+</html>

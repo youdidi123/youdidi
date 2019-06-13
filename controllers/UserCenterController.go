@@ -2,16 +2,13 @@ package controllers
 
 import (
 	"crypto/md5"
-	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/httplib"
 	"github.com/astaxie/beego/logs"
-	"math/rand"
 	"strconv"
-	"strings"
 	"time"
 	"youdidi/models"
 	"youdidi/redisClient"
@@ -174,32 +171,6 @@ func (this *UserCenterController) GetVerCode() {
 	this.ServeJSON()
 	}
 
-//sig:md5(所有字母必须大写) auth:base64
-//短信验证码平台鉴权使用
-func getSig (id string , token string) (string , string){
-	ltime := time.Now().Format("20060102150405")
-	fmt.Println(ltime)
-
-	sig := md5.New()
-	sig.Write([]byte(id+token+ltime))
-
-	auth := base64.StdEncoding.EncodeToString([]byte(id+":"+ltime))
-
-	return strings.ToUpper(hex.EncodeToString(sig.Sum(nil))),auth
-}
-
-//公共函数，获取一个以当前时间为sed的6位随机数
-func GetRandomCode () string{
-	s1 := rand.NewSource(time.Now().Unix())
-	r1 := rand.New(s1)
-	min := 1000
-	code := r1.Intn(10000)
-	if (code < min) {
-		code += min
-	}
-	return strconv.Itoa(code)
-}
-
 // @router /Ver/verPhone [POST]
 func (this *UserCenterController) VerPhone() {
 	userId := this.GetString("userId")
@@ -257,7 +228,12 @@ func GetUserInfoFromRedis (uid string) (*UserLoginInfo) {
 func GetOnroadTypeFromId (uid string) int {
 	var dbUser models.User
 	var userInfo []*models.User
-	dbUser.GetUserInfoFromId(uid, &userInfo)
+	_ , num := dbUser.GetUserInfoFromId(uid, &userInfo)
+
+	if (num == 0 ) {
+		logs.Error("get user onroad type err uid=%v" , uid)
+		dbUser.GetUserInfoFromId(uid, &userInfo)
+	}
 
 	return userInfo[0].OnRoadType
 }

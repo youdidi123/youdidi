@@ -88,6 +88,7 @@ func init() {
 	beego.Include(&controllers.MainController{})
 	beego.Include(&controllers.ImgConfirmController{})
 	beego.Include(&controllers.OrderController{})
+	beego.Include(&controllers.ChatController{})
 
 
 }

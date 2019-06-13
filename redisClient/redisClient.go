@@ -33,8 +33,6 @@ func init () {
 	}
 }
 
-
-
 func SetKey (key string , value string ) {
 	rc := redisC.Get()
 	defer rc.Close()
@@ -56,19 +54,36 @@ func GetKey (key string) (re string) {
 	return value
 }
 
-//func (c *CacheClient)GetKey (key string) (re string) {
-//	rc := c.redisCli.Get()
-//	defer rc.Close()
-//	value, err := redis.String(rc.Do("get", key))
-//	if err != nil {
-//		fmt.Println(err)
-//		return "nil"
-//	}
-//	return value
-//}
-
 func Setexpire (key string, period int){
 	rc := redisC.Get()
+	defer rc.Close()
 	n, _ := rc.Do("EXPIRE", key, period)
 	logs.Debug("set exporpe key %s period %v return %v",key ,period, n)
+}
+
+func Lock (key string ) bool{
+	rc := redisC.Get()
+	defer rc.Close()
+	result := true
+	n, _ := redis.Int64(rc.Do("SETNX", key, "lock"))
+	//if (err != nil) {
+	//	result = false
+	//}
+	if (n == int64(0)) {
+		result = false
+	}
+	return result
+}
+
+func UnLock (key string) bool {
+	rc := redisC.Get()
+	result := true
+	defer rc.Close()
+	_, err := rc.Do("DEL", key)
+	if (err != nil) {
+		result = false
+		logs.Error("unlock fail key=%v err=%v" , key , err)
+	}
+	logs.Notice("del key success key=%v" , key)
+	return result
 }

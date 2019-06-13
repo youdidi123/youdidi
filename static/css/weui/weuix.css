@@ -2461,7 +2461,9 @@ input.b-orange {
 }
 .timeline-item-color {
     background-color: #04BE02;
-
+}
+.timeline-item-color-red {
+    background-color: #e30000;
 }
 .timeline-item-head-first {
     width: 20px;
@@ -2510,6 +2512,16 @@ input.b-orange {
     background-color: #04BE02;
   
 }
+.timeline-item-tail-red {
+    position: absolute;
+    content: '';
+    height: 100%;
+    width: 2px;
+    left: 5px;
+    top: 5px;
+    background-color: #e30000;
+
+}
 .timeline-item-content {
     padding: 0 0 15px 1.2rem;
 }
@@ -2520,9 +2532,14 @@ input.b-orange {
     color: #333;
     font-weight: normal;
 }
-.timeline p {
+.timeline h5 {
     color: #888;
     font-size: 14px;
+    font-weight: normal;
+}
+.timeline p {
+    color: #888;
+    font-size: 10px;
 }
 /*
 * 红点提醒

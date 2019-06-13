@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>长庆出行</title>
+    <link rel="stylesheet" href="http://8.url.cn/edu/classroom/assets/lib/reset.css">
+    <link rel="stylesheet" href="/css/chat/style.css">
+    <script src="/js/weui/zepto.min.js"></script>
+    <script>
+        function init() {
+            var div = document.getElementById('message');
+            div.scrollTop = div.scrollHeight;
+        }
+    </script>
+</head>
+<body onload="init()">
+<section class="chat-page show-selector">
+    <header>
+        <div class="nav-back">
+            <i class="icon icon-back"></i>
+            <span>返回</span>
+        </div>
+    </header>
+    <main>
+        <div class="message-list" id="message" name="message">
+            <div class="message-item message-item--left">
+                <img class="avatar" src="/img/chat/girl.png" alt="头像">
+                <div class="message-bubble">你住的 巷子里 我租了一间公寓</div>
+            </div>
+            <div class="message-item message-item--left">
+                <img class="avatar" src="/img/chat/girl.png" alt="头像">
+                <div class="message-bubble">为了想与你不期而遇</div>
+            </div>
+            <div class="message-item message-item--right">
+                <img class="avatar" src="/img/chat/boy.png" alt="头像">
+                <div class="message-bubble">高中三年 我为什么 为什么不好好读书 没考上跟你一样的大学</div>
+            </div>
+            <div class="message-item message-item--right">
+                <img class="avatar" src="/img/chat/boy.png" alt="头像">
+                <div class="message-bubble">高中三年 我为什么 为什么不好好读书 没考上跟你一样的大学</div>
+            </div>
+            <div class="message-item message-item--right">
+                <img class="avatar" src="/img/chat/boy.png" alt="头像">
+                <div class="message-bubble">高中三年 我为什么 为什么不好好读书 没考上跟你一样的大学</div>
+            </div>
+            <div class="message-item message-item--right">
+                <img class="avatar" src="/img/chat/boy.png" alt="头像">
+                <div class="message-bubble">高中三年 我为什么 为什么不好好读书 没考上跟你一样的大学</div>
+            </div>
+            <div class="message-item message-item--right">
+                <img class="avatar" src="/img/chat/boy.png" alt="头像">
+                <div class="message-bubble">高中三年 我为什么 为什么不好好读书 没考上跟你一样的大学</div>
+            </div>
+        </div>
+    </main>
+    <footer>
+        <i class="icon icon-voice"></i>
+        <input type="text" class="text-input">
+        <i class="icon icon-face"></i>
+        <i class="icon icon-plus"></i>
+    </footer>
+    <div class="message-select">
+        <div class="message-item message-item--right js-to-select" data-score="3">
+            <div class="message-bubble">我找了份工作</div>
+        </div>
+        <div class="message-item message-item--right js-to-select" data-score="-2">
+            <div class="message-bubble">离你宿舍很近</div>
+        </div>
+        <div class="message-item message-item--right js-to-select" data-score="1">
+            <div class="message-bubble">当我开始学会做蛋饼</div>
+        </div>
+    </div>
+</section>
+</body>
+</html>

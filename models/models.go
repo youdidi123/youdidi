@@ -54,6 +54,8 @@ type Order struct {
 	PNum int `column(pNum);" json:"pNum"`
 	SrcId *Location `json:"srcId" orm:"rel(fk)"`
 	DestId *Location `json:"DestId" orm:"rel(fk)"`
+	SrcLocationId int64 `column(srcLocationId);" json:"srcLocationId"`
+	DestLocationId int64 `column(destLocationId);" json:"destLocationId"`
 	ThroughL string `column(throughL);" json:"throughL"`
 	Status int `column(status);" json:"status"`
 	RequestPnum int `column(requestPnum);" json:"requestPnum"`
@@ -81,6 +83,7 @@ type Order_detail struct {
 	Order *Order `json:"order" orm:"rel(fk)"`
 	Driver *User `json:"driver" orm:"rel(fk)"`
 	Passage *User `json:"passage" orm:"rel(fk)"`
+	SiteNum int `column(siteNum);" json:"siteNum"`
 	ModifyPrice float64 `column(ModifyPrice);" json:"ModifyPrice"`
 	isModifyConfirm bool `column(isModifyConfirm);" json:"isModifyConfirm"`
 	DStarNum int `column(dStarNum);" json:"dStarNum"`
@@ -93,6 +96,14 @@ type Order_detail struct {
 	IsPayed bool `column(isPayed);" json:"isPayed"`
 	CancleReason string `column(cancleReason);" json:"cancleReason"`
 	Chat string `column(chat);" json:"chat"`
+	Chats []*Chat `orm:"reverse(many)"`
+}
+
+type Chat struct {
+	Id int `orm:"auto;pk;column(id);" json:"id"`
+	Order *Order_detail `json:"order_detail" orm:"rel(fk)"`
+	Content string `column(content);" json:"content"`
+	TimeStamp string `column(timeStamp);" json:"timeStamp"`
 }
 
 
@@ -103,7 +114,7 @@ func init () {
 	mysqldb := beego.AppConfig.String("mysqldb")
 
 	//所有的数据表需要在这里注册
-	orm.RegisterModel(new(User),new(Order),new(Location),new(Order_detail))
+	orm.RegisterModel(new(User),new(Order),new(Location),new(Order_detail),new(Chat))
 	orm.RegisterDriver("mysql", orm.DRMySQL)
 	orm.RegisterDataBase("default", "mysql", mysqluser+":"+mysqlpass+"@tcp("+mysqlurls+")/"+mysqldb+"?charset=utf8&loc=Asia%2FShanghai")
 	orm.RunSyncdb("default", false, true)
