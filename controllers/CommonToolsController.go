@@ -64,6 +64,39 @@ func DelOrderLock (oid string) {
 	}
 }
 
+func SetUserLock (uid string) bool {
+	i := 0
+	for {
+		if redisClient.Lock(UserLockPrefix + uid) {
+			redisClient.Setexpire(UserLockPrefix + uid , LockExpireTime)
+			logs.Debug("set user lock success oid=%v" , uid)
+			return true
+		}
+		if (i >= retryNum) {
+			logs.Emergency("FATAL:set user lock fail oid=%v" , uid)
+			return false
+		}
+		i++
+		time.Sleep(time.Duration(retryTime)*time.Second)
+	}
+}
+
+func DelUserLock (uid string) {
+	i := 0
+	for {
+		if redisClient.UnLock(OrderLockPrefix + uid) {
+			logs.Debug("unset user lock success oid=%v" , uid)
+			break
+		}
+		if (i >= retryNum) {
+			logs.Emergency("FATAL:unset user lock fail oid=%v" , uid)
+			break
+		}
+		i++
+		time.Sleep(time.Duration(retryTime)*time.Second)
+	}
+}
+
 //sig:md5(所有字母必须大写) auth:base64
 //短信验证码平台鉴权使用
 func getSig (id string , token string) (string , string){
@@ -88,4 +121,47 @@ func GetRandomCode () string{
 		code += min
 	}
 	return strconv.Itoa(code)
+}
+
+func CryptionPhoneNum (phoneNum string) string {
+	result := ""
+
+	if (phoneNum == "") {
+		return result
+	}
+	phoneNumS := []rune(phoneNum)
+
+	if (len(phoneNumS) != 11) {
+		logs.Error("phone num : %v is invaild " , phoneNum)
+		return phoneNum
+	}
+	phoneNumS[3] = '*'
+	phoneNumS[4] = '*'
+	phoneNumS[5] = '*'
+	phoneNumS[6] = '*'
+
+	result = string(phoneNumS)
+
+	return result
+}
+
+func CryptionCarNum (carNum string) string {
+	result := ""
+
+	if (carNum == "") {
+		return result
+	}
+	carNumS := []rune(carNum)
+
+	if (len(carNumS) != 7) {
+		logs.Error("car num : %v is invaild " , carNum)
+		return carNum
+	}
+	carNumS[3] = '*'
+	carNumS[4] = '*'
+	carNumS[5] = '*'
+
+	result = string(carNumS)
+
+	return result
 }

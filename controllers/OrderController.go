@@ -15,10 +15,10 @@ type OrderController struct {
 var (
 	statusText = []struct {
 		Text string
-	}{{"接单中"},{"暂停接单"}, {"司机到达"}, {"行程中"}, {"到达"}, {"完成"}, {"取消"}, {"无效"}}
+	}{{"接单中"}, {"车主到达出发地"}, {"完成"}, {"已取消"}}
 	odStatusText = []struct {
 		Text string
-	}{{"等待车主确认"},{"等待改价确认"}, {"等待出发"}, {"行程中"}, {"乘客到达"},{"等待评价"},{"完成"},  {"取消"}}
+	}{{"发起拼车请求"},{"请求已确认"}, {"车主到达出发地"}, {"评价"},{"完成"},{"拒绝请求"},{"乘客取消"},  {"车主取消"}}
 )
 
 //订单ID生成规则：精确到秒的日志字符串+用户ID（保证是6位，100000用户）+4位随机数字
@@ -137,8 +137,38 @@ func (this *OrderController) DoCreateOrder () {
 func (this *OrderController) DriverOrderDetail () {
 	//test := this.Ctx.Request.RequestURI
 	oid := this.GetString(":oid")
+
+	var dbOrder models.Order
+	var orderInfo []*models.Order
+
+	onum := dbOrder.GetOrderFromId(oid, &orderInfo)
+	this.Data["onum"] = onum
+
+	if (onum > 0) {
+		uid, _ := this.Ctx.GetSecureCookie("qyt", "qyt_id")
+		if (uid != strconv.Itoa(orderInfo[0].User.Id)) {
+			this.Data["isDriver"] = 0
+		} else {
+			this.Data["isDriver"] = 1
+			var dbOrderDetail models.Order_detail
+			var orderDetailInfo []*models.Order_detail
+
+			odnum := dbOrderDetail.GetOrderDetailFromOrderId(oid, &orderDetailInfo)
+
+			for i, v := range orderInfo {
+				launchTime64, _ := strconv.ParseInt(v.LaunchTime, 10, 64)
+				tm := time.Unix(launchTime64, 0)
+				orderInfo[i].LaunchTime = tm.Format("2006-01-02 15:04")
+			}
+
+			this.Data["odnum"] = odnum
+			this.Data["odlist"] = orderDetailInfo
+			this.Data["oinfo"] = orderInfo[0]
+			this.Data["statustext"] = statusText
+			this.Data["odstatustest"] = odStatusText
+		}
+	}
 	this.Data["tabIndex"] = 2
-	this.Data["url"] = oid
 	this.TplName = "driverOrderDetail.html"
 }
 
@@ -195,6 +225,8 @@ func (this *OrderController) SearchOrder () {
 		launchTime64 , _ := strconv.ParseInt(v.LaunchTime, 10, 64)
 		tm := time.Unix(launchTime64, 0)
 		orderInfo[i].LaunchTime = tm.Format("2006-01-02 15:04")
+		orderInfo[i].User.Phone = CryptionPhoneNum(v.User.Phone)
+		orderInfo[i].User.CarNum = CryptionCarNum(v.User.CarNum)
 	}
 
 	this.Data["StatusText"] = statusText
@@ -237,7 +269,7 @@ func (this *OrderController) DoRequire () {
 	var dbOrderDetail models.Order_detail
 	var orderDetailInfo []*models.Order_detail
 
-	numOd := dbOrderDetail.GetOrderInfoFromPassengerId(oid , userIdS , &orderDetailInfo)
+	numOd := dbOrderDetail.GetOrderedOrderFromPassengerId(oid , userIdS , &orderDetailInfo)
 
 	if (numOd > 0) {
 		code = 8
@@ -256,6 +288,15 @@ func (this *OrderController) DoRequire () {
 		return
 	}
 
+	if (! SetUserLock(userIdS)) {
+		DelOrderLock(oid)
+		code = 9
+		msg = "请求超时，请重试"
+		this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
+		this.ServeJSON()
+		return
+	}
+
 	var dbOrder models.Order
 	var orderInfo []*models.Order
 
@@ -267,6 +308,7 @@ func (this *OrderController) DoRequire () {
 			orderInfo[0].PNum - (orderInfo[0].ConfirmPnum + orderInfo[0].RequestPnum))
 		//优先释放锁，不管成功不成功都要继续
 		DelOrderLock(oid)
+		DelUserLock(userIdS)
 		code = 4
 		msg = "来晚一步。。当前剩余座位数不足"
 		this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
@@ -283,6 +325,7 @@ func (this *OrderController) DoRequire () {
 		//优先释放锁，不管成功不成功都要继续
 		logs.Emergency("get userinfo fail uid=%v" , userIdS)
 		DelOrderLock(oid)
+		DelUserLock(userIdS)
 		code = 5
 		msg = "系统后台异常，请重试"
 		this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
@@ -295,6 +338,7 @@ func (this *OrderController) DoRequire () {
 		logs.Notice("user balance is not enough uid=%v balance=%v orderprice=%v requireSite=%v" ,
 			userIdS , userInfo[0].Balance, orderInfo[0].Price , count)
 		DelOrderLock(oid)
+		DelUserLock(userIdS)
 		code = 6
 		msg = "账户余额不足，当前余额为:" + strconv.FormatFloat(userInfo[0].Balance, 'G' , -1,64) +
 			"元 不足支付行程总价:" + strconv.FormatFloat(orderInfo[0].Price * float64(count), 'G' , -1,64) +
@@ -313,12 +357,14 @@ func (this *OrderController) DoRequire () {
 
 	if (orderInfo[0].DoRequire(od, userIdS, count , mark , userInfo[0].Balance - orderInfo[0].Price * float64(count))) {
 		DelOrderLock(oid)
+		DelUserLock(userIdS)
 		code = 0
 		msg = "预约成功"
 		this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
 		this.ServeJSON()
 	} else {
 		DelOrderLock(oid)
+		DelUserLock(userIdS)
 		code = 7
 		msg = "系统错误，请重试"
 		this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
@@ -428,5 +474,196 @@ func (this *OrderController) ShowPassengerOrder () {
 	this.Data["StatusText"] = odStatusText
 	this.Data["onRoadType"] = onRoadType
 	this.TplName = "passengerOrder.html"
+}
+
+// @router /Portal/agreerequest [POST]
+func (this *OrderController) AgreeRequest () {
+	userId, _ := this.Ctx.GetSecureCookie("qyt", "qyt_id")
+	oid := this.GetString("oid")
+	pid := this.GetString("pid")
+	odid := this.GetString("odid")
+
+	code := 0
+	msg := ""
+
+	var dbOrder models.Order
+	var orderInfo []*models.Order
+
+	if (! SetOrderLock(oid)) {
+		code = 1
+		msg = "请求超时，请重试"
+		this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
+		this.ServeJSON()
+		return
+	}
+
+	num := dbOrder.GetOrderFromId(oid , &orderInfo)
+
+	if (num != 1) {
+		DelOrderLock(oid)
+		code = 2
+		msg = "系统错误，请重试"
+		this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
+		this.ServeJSON()
+	}
+
+	if (userId != strconv.Itoa(orderInfo[0].User.Id)) {
+		DelOrderLock(oid)
+		code = 3
+		msg = "这个行程不属于你哦"
+		this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
+		this.ServeJSON()
+	}
+
+	var dbOrderDetail models.Order_detail
+	var orderDetailInfo []*models.Order_detail
+
+	numod := dbOrderDetail.GetOrderDetailFromId(odid , &orderDetailInfo)
+
+	if (numod != 1) {
+		DelOrderLock(oid)
+		code = 4
+		msg = "系统错误，请重试"
+		this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
+		this.ServeJSON()
+	}
+
+	if (pid != strconv.Itoa(orderDetailInfo[0].Passage.Id)) {
+		DelOrderLock(oid)
+		code = 7
+		msg = "乘客信息不符"
+		this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
+		this.ServeJSON()
+	}
+
+	if (orderDetailInfo[0].Status != 0) {
+		DelOrderLock(oid)
+		code = 5
+		msg = "该乘客请求以处理完成，请勿重复操作"
+		this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
+		this.ServeJSON()
+	}
+
+	if (dbOrderDetail.AgreeRequest(odid , oid , orderInfo[0].ConfirmPnum , orderDetailInfo[0].SiteNum)) {
+		code = 0
+		msg = "操作成功"
+	} else {
+		code = 6
+		msg = "系统错误，请重试"
+	}
+
+	DelOrderLock(oid)
+	this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
+	this.ServeJSON()
+}
+
+// @router /Portal/refuserequest [POST]
+func (this *OrderController) RefuseRequest () {
+	userId, _ := this.Ctx.GetSecureCookie("qyt", "qyt_id")
+	oid := this.GetString("oid")
+	pid := this.GetString("pid")
+	odid := this.GetString("odid")
+
+	code := 0
+	msg := ""
+
+	var dbOrder models.Order
+	var orderInfo []*models.Order
+
+	if (! SetOrderLock(oid)) {
+		code = 1
+		msg = "请求超时，请重试"
+		this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
+		this.ServeJSON()
+		return
+	}
+	if (! SetUserLock(pid)) {
+		DelOrderLock(oid)
+		code = 2
+		msg = "请求超时，请重试"
+		this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
+		this.ServeJSON()
+		return
+	}
+
+	num := dbOrder.GetOrderFromId(oid , &orderInfo)
+
+	if (num != 1) {
+		DelOrderLock(oid)
+		DelUserLock(pid)
+		code = 3
+		msg = "系统错误，请重试"
+		this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
+		this.ServeJSON()
+	}
+
+	if (userId != strconv.Itoa(orderInfo[0].User.Id)) {
+		DelOrderLock(oid)
+		DelUserLock(pid)
+		code = 4
+		msg = "这个行程不属于你哦"
+		this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
+		this.ServeJSON()
+	}
+
+	var dbOrderDetail models.Order_detail
+	var orderDetailInfo []*models.Order_detail
+
+	numod := dbOrderDetail.GetOrderDetailFromId(odid , &orderDetailInfo)
+
+	if (numod != 1) {
+		DelOrderLock(oid)
+		DelUserLock(pid)
+		code = 5
+		msg = "系统错误，请重试"
+		this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
+		this.ServeJSON()
+	}
+
+	if (pid != strconv.Itoa(orderDetailInfo[0].Passage.Id)) {
+		DelOrderLock(oid)
+		DelUserLock(pid)
+		code = 6
+		msg = "乘客信息不符"
+		this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
+		this.ServeJSON()
+	}
+
+	if (orderDetailInfo[0].Status != 0) {
+		DelOrderLock(oid)
+		DelUserLock(pid)
+		code = 7
+		msg = "该乘客请求以处理完成，请勿重复操作"
+		this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
+		this.ServeJSON()
+	}
+
+	var dbUser models.User
+	var userInfo []*models.User
+
+	_ , num64 := dbUser.GetUserInfoFromId(pid , &userInfo)
+
+	if (num64 != 1) {
+		DelOrderLock(oid)
+		DelUserLock(pid)
+		code = 8
+		msg = "系统错误，请重试"
+		this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
+		this.ServeJSON()
+	}
+
+	if (dbOrderDetail.RefuseRequest(odid , oid , pid , orderInfo[0].RequestPnum ,
+		orderInfo[0].RefusePnum , userInfo[0].Balance , orderDetailInfo[0].SiteNum , orderInfo[0].Price)) {
+		code = 0
+		msg = "操作成功"
+	} else {
+		code = 9
+		msg = "系统错误，请重试"
+	}
+
+	DelOrderLock(oid)
+	DelUserLock(pid)
+	this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
+	this.ServeJSON()
 
 }

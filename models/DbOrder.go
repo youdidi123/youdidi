@@ -25,7 +25,7 @@ func (u *Order) GetOrderInfoFromUserId (id string, list *[]*Order) int64{
 func (u *Order) GetCurrentDriverOrderFromUserId (id string, list *[]*Order) int64{
 	num , _ := orm.NewOrm().QueryTable(u).
 		Filter("user_id", id).
-		Filter("status__lt",4). //车主当前的行程只会有比4小的
+		Filter("status__lt",2). //车主当前的行程只会有比2小的
 		OrderBy("-LaunchTime").
 		Limit(1).
 		All(list)
@@ -116,7 +116,7 @@ func (u *Order) GetReadyOrders (list *[]*Order , startCode int64 , endCode int64
 }
 
 func (u *Order) GetOrderFromId (oid string , list *[]*Order) int64 {
-	num , _ := orm.NewOrm().QueryTable(u).Filter("id", oid).All(list)
+	num , _ := orm.NewOrm().QueryTable(u).RelatedSel().Filter("id", oid).All(list)
 	return num
 }
 
