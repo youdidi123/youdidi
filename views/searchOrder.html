@@ -74,7 +74,11 @@
                             {{end}}
                         </div>
                     </div>
+                    {{if lt .Status 1}}
                     <div class="weui-media-box__bd open-popup" data-target="#{{.Id}}">
+                        {{else}}
+                        <div class="weui-media-box__bd">
+                            {{end}}
                         <h2 class="weui-media-box__title">{{.SrcId.Level2}}-{{.SrcId.Name}} 至 {{.DestId.Level2}}-{{.DestId.Name}}</h2>
                         <h2 class="weui-media-box__title">出发时间：{{.LaunchTime}}</h2>
                         <h2 class="weui-media-box__title">费用：{{.Price}}元/座</h2>
@@ -98,8 +102,12 @@
                         <p class="weui-media-box__desc">行程说明：{{.ThroughL}}</p>
                         <p class="weui-media-box__desc">行程备注：{{.Marks}}</p>
                         <ul class="weui-media-box__info">
-                            <li class="weui-media-box__info__meta">座位数/以约座位：{{.PNum}}/{{.ConfirmPnum}}</li>
+                            <li class="weui-media-box__info__meta">座位数/以约座位：{{.PNum}}/{{.RequestPnum}}</li>
+                            {{if lt .Status 1}}
                             <li class="weui-media-box__info__meta weui-media-box__info__meta_extra"><span class="f-blue open-popup" data-target="#{{.Id}}">立即预约</span></li>
+                            {{else}}
+                            <li class="weui-media-box__info__meta weui-media-box__info__meta_extra"><span class="f-gray">行程已出发</span></li>
+                            {{end}}
                         </ul>
                     </div>
                 </a>
