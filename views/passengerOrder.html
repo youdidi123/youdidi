@@ -57,7 +57,7 @@
     {{else}}
         <div class="weui-cells__title">历史行程列表</div>
     {{range .orderInfo}}
-    <div class="weui-form-preview" onclick="gotoDetail({{.Order.Id}})">
+    <div class="weui-form-preview" onclick="gotoDetail({{.Id}})">
         <div class="weui-form-preview__hd">
             <label class="weui-form-preview__label">
                 {{ $orderStatus := .Status}}

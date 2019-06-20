@@ -1,8 +1,12 @@
 package models
 
 import (
-	"github.com/astaxie/beego/orm"
+	"fmt"
+	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
+	"github.com/astaxie/beego/orm"
+	"strconv"
+	"time"
 )
 
 func (u *Order) TableName() string {
@@ -17,7 +21,7 @@ func (u *Order) GetOrderInfoFromUserId (id string, list *[]*Order) int64{
 	num , _ := orm.NewOrm().QueryTable(u).
 		RelatedSel("SrcId","DestId").
 		Filter("user_id", id).
-		OrderBy("-LaunchTime").
+		OrderBy("Status","-LaunchTime").
 		All(list)
 	return num
 }
@@ -120,8 +124,9 @@ func (u *Order) GetOrderFromId (oid string , list *[]*Order) int64 {
 	return num
 }
 
-func (u *Order) DoRequire (od Order_detail, pid string, siteNum int , mark string, balance float64) bool{
+func (u *Order) DoRequire (od Order_detail, pid string, siteNum int , mark string) bool{
 	var userInfo User
+	var userInfos []*User
 	o := orm.NewOrm()
 	o.Begin()
 
@@ -132,6 +137,14 @@ func (u *Order) DoRequire (od Order_detail, pid string, siteNum int , mark strin
 		o.Rollback()
 		return false
 	}
+
+	numuser, erruser := o.QueryTable(userInfo).Filter("id", pid).ForUpdate().All(&userInfos)
+	if (numuser < 0 || erruser != nil) {
+		logs.Error("get user info fail pid=%v" , u.Id , pid)
+		o.Rollback()
+		return false
+	}
+	balance, err := strconv.ParseFloat(fmt.Sprintf("%.2f",userInfos[0].Balance - u.Price * float64(siteNum)), 64)
 
 	//将乘客的状态改为行程中
 	_ , err1 := o.QueryTable(userInfo).Filter("id", pid).Update(orm.Params{
@@ -151,12 +164,246 @@ func (u *Order) DoRequire (od Order_detail, pid string, siteNum int , mark strin
 		o.Rollback()
 		return false
 	}
-	err3 := o.Commit()
 
+	var chatInfo Chat
+	chatInfo.Order = &Order{Id:u.Id}
+	if (mark == "") {
+		mark = "希望能和您同行，辛苦通过拼车申请"
+	}
+	chatInfo.Content = mark
+	passengerId, _ := strconv.Atoi(pid)
+	chatInfo.Passenger = &User{Id:passengerId}
+	chatInfo.Type = 0
+	chatInfo.TimeStamp = strconv.FormatInt(time.Now().Unix(),10)
+
+	_, err3 := o.Insert(&chatInfo)
 	if (err3 != nil) {
+		logs.Error("insert chat info fail but go on")
+	}
+
+	var accountFlow Account_flow
+	accountFlow.Type = 2
+	accountFlow.User = &User{Id:passengerId}
+	accountFlow.Oid = u.Id
+	accountFlow.Money,_ = strconv.ParseFloat(fmt.Sprintf("%.2f",u.Price * float64(siteNum)), 64)
+	accountFlow.Time = strconv.FormatInt(time.Now().Unix(),10)
+	accountFlow.Balance = balance
+
+	_, err4 := o.Insert(&accountFlow)
+	if (err4 != nil) {
+		logs.Error("record account flow fail oid=%v pid=%v", u.Id, pid)
+		o.Rollback()
+		return false
+	}
+
+	errcommit := o.Commit()
+
+	if (errcommit != nil) {
 		logs.Error("commit fail oid=%v pid=%v" , u.Id , pid)
 		o.Rollback()
 		return false
 	}
+	return true
+}
+
+func (u *Order) DriverGetStart (oid string) bool{
+	o := orm.NewOrm()
+	var od Order_detail
+	o.Begin()
+
+	_, err1 := o.QueryTable(u).Filter("id", oid).Update(orm.Params{"Status":1})
+	if (err1 != nil) {
+		logs.Error("set order status to 1 fail oid=%v" , oid)
+		o.Rollback()
+		return false
+	}
+
+	_, err2 := o.QueryTable(od).Filter("order_id", oid).Filter("Status", 1).Update(orm.Params{"Status":2})
+	if (err2 != nil) {
+		logs.Error("set order detail status to 2 fail oid=%v" , oid)
+		o.Rollback()
+		return false
+	}
+
+	err3 := o.Commit()
+
+	if (err3 != nil) {
+		logs.Error("commit fail oid=%v" , u.Id)
+		o.Rollback()
+		return false
+	}
+
+	return true
+}
+
+func (u *Order) DriverGetEnd (oid string, uid string) bool{
+	o := orm.NewOrm()
+	var driver User
+	var driverInfo []*User
+	var od Order_detail
+	o.Begin()
+
+	_, err1 := o.QueryTable(u).Filter("id", oid).Update(orm.Params{"Status":2})
+	if (err1 != nil) {
+		logs.Error("set order status to 2 fail oid=%v" , oid)
+		o.Rollback()
+		return false
+	}
+
+	_, err2 := o.QueryTable(driver).Filter("id", uid).Update(orm.Params{"OnRoadType":0})
+	if (err2 != nil) {
+		logs.Error("set user onroadtype to 0 fail uid=%v" , uid)
+		o.Rollback()
+		return false
+	}
+
+	_, err5 := o.QueryTable(od).Filter("order_id", oid).Filter("Status", 2).Update(orm.Params{"Status":3})
+	if (err5 != nil) {
+		logs.Error("set order detail status to 2 fail oid=%v" , oid)
+		o.Rollback()
+		return false
+	}
+
+	num, err3 :=  o.QueryTable(driver).Filter("id", uid).All(&driverInfo)
+
+	if (num < 1 || err3 != nil) {
+		logs.Error("get user info fail uid=%v" , uid)
+		o.Rollback()
+		return false
+	}
+
+	orderNumWV := driverInfo[0].OrderNumWV
+	if (driverInfo[0].IsDriver < 2) {
+		orderNumWV += 1
+	}
+
+	_, err4 := o.QueryTable(driver).Filter("id", uid).Update(orm.Params{
+		"OrderNumAsD":driverInfo[0].OrderNumAsD + 1,
+		"OrderNumWV":orderNumWV})
+	if (err4 != nil) {
+		logs.Error("add user orderNumAsD fail uid=%v" , uid)
+		o.Rollback()
+		return false
+	}
+
+	errcommit := o.Commit()
+
+	if (errcommit != nil) {
+		logs.Error("commit fail oid=%v" , u.Id)
+		o.Rollback()
+		return false
+	}
+
+	return true
+}
+
+func (u *Order) DriverCancle (oid string, confirmNum int, driverId string) bool{
+	o := orm.NewOrm()
+	var driver User
+	var driverInfo []*User
+	var od Order_detail
+	var odList []*Order_detail
+
+	o.Begin()
+
+	_, err1 := o.QueryTable(u).Filter("id", oid).Update(orm.Params{"Status":3})
+	if (err1 != nil) {
+		logs.Error("set order status to 3 fail oid=%v" , oid)
+		o.Rollback()
+		return false
+	}
+
+	num, err2 :=  o.QueryTable(driver).Filter("id", driverId).All(&driverInfo)
+
+	if (num < 1 || err2 != nil) {
+		logs.Error("get user info fail uid=%v" , driverId)
+		o.Rollback()
+		return false
+	}
+
+	orderNumAsD := driverInfo[0].OrderNumAsD + 1
+	cancleOasD := driverInfo[0].CancleOasD
+	orderNumWV := driverInfo[0].OrderNumWV
+	disableTime := ""
+	if (confirmNum > 0) {
+		delayDay, _ := beego.AppConfig.Int64("driverCancleDelay")
+		currentTime := time.Now().Unix()
+		currentTime = currentTime + delayDay * 24 * 60 * 60
+		disableTime = strconv.FormatInt(currentTime,10)
+		cancleOasD += 1 //仅当有确定乘客的情况下取消才计入取消次数里
+		if (driverInfo[0].IsDriver < 2) {
+			orderNumWV += 1
+		}
+	}
+
+	_, err3 := o.QueryTable(driver).Filter("id", driverId).Update(orm.Params{
+		"OrderNumWV":orderNumWV,
+		"OrderNumAsD":orderNumAsD,
+		"CancleOasD":cancleOasD,
+		"DisableTime":disableTime,
+		"OnRoadType":0,
+	})
+
+	if (err3 != nil) {
+		logs.Error("update driver info fail uid=%v" , driverId)
+		o.Rollback()
+		return false
+	}
+
+	_, err4 := o.QueryTable(od).RelatedSel().Filter("order_id", oid).Filter("Status__lt", 4).ForUpdate().All(&odList)
+
+	if (err4 != nil) {
+		logs.Error("get order detail fail oid=%v" , oid)
+		o.Rollback()
+		return false
+	}
+
+	for _, v := range odList {
+		_, err5 := o.QueryTable(od).Filter("id", v.Id).Update(orm.Params{"Status":7})
+		if (err5 != nil) {
+			logs.Error("set order detail status to 7 fail odid=%v" , v.Id)
+			o.Rollback()
+			return false
+		}
+		var passenger User
+		var passengerInfo []*User
+		num, err6 := o.QueryTable(passenger).Filter("id", v.Passage.Id).ForUpdate().All(&passengerInfo)
+		if (num < 1 || err6 != nil) {
+			logs.Error("get passenger info fail id=%v" , v.Passage.Id)
+			o.Rollback()
+			return false
+		}
+		balance, _ := strconv.ParseFloat(fmt.Sprintf("%.2f", v.Order.Price * float64(v.SiteNum) + passengerInfo[0].Balance), 64)
+
+		_, err7 := o.QueryTable(passenger).Filter("id", v.Passage.Id).Update(orm.Params{"Balance":balance,"OnRoadType":0})
+		if (err7 != nil) {
+			logs.Error("return money to passager fail uid=%v" , v.Id)
+			o.Rollback()
+			return false
+		}
+		var accountFlow Account_flow
+		accountFlow.Type = 4
+		accountFlow.User = &User{Id:passengerInfo[0].Id}
+		accountFlow.Oid = oid
+		accountFlow.Money, _ = strconv.ParseFloat(fmt.Sprintf("%.2f", v.Order.Price * float64(v.SiteNum)), 64)
+		accountFlow.Time = strconv.FormatInt(time.Now().Unix(),10)
+		accountFlow.Balance = balance
+
+		_, err8 := o.Insert(&accountFlow)
+		if (err8 != nil) {
+			logs.Error("record account flow fail oid=%v pid=%v", u.Id, passengerInfo[0].Id)
+			o.Rollback()
+			return false
+		}
+	}
+
+	errcommit := o.Commit()
+
+	if (errcommit != nil) {
+		logs.Error("commit fail oid=%v" , u.Id)
+		o.Rollback()
+		return false
+	}
+
 	return true
 }

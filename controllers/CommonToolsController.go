@@ -165,3 +165,8 @@ func CryptionCarNum (carNum string) string {
 
 	return result
 }
+
+func FormatMoney (m float64) float64{
+	r, _ := strconv.ParseFloat(fmt.Sprintf("%.2f", m), 64)
+	return r
+}
