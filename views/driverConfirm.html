@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>全油通</title>
+    <title>长庆出行</title>
     <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=0">
     <link rel="stylesheet" href="/css/weui/weui.css"/>
     <link rel="stylesheet" href="/css/weui/weuix.css"/>
@@ -12,6 +12,268 @@
     <script src="/js/weui/iscroll-lite.js"></script>
     <script src="/js/weui/lrz.min.js"></script>
     <script>
+        $(function(){
+            var tmpl = '<li class="weui-uploader__file" id="#ImgID#" style="background-image:url(#url#)"></li>'
+            var $galleryImg = $(".weui-gallery__img");//相册图片地址
+            var $gallery = $(".weui-gallery");
+            var maxWidth = 1900
+            var maxSize = 1024 * 1024*10; // 10240KB，也就是 10MB
+            var allowTypes = ['image/jpg', 'image/jpeg', 'image/png'];
+            var sfzSrc = "";
+            var driverLiscen = "";
+            var carLiscen = "";
+            $("#sfzInput").on("change", function(e){
+                var src, url = window.URL || window.webkitURL || window.mozURL, files = e.target.files;
+                for (var i = 0, len = files.length; i < len; ++i) {
+                    var file = files[i];
+                    var imgID = genGUID();
+                    var reader = new FileReader();
+                    var fileType = file.type;
+
+                    if (allowTypes.indexOf(file.type) === -1) {
+                        $.toast('该类型不允许上传' + fileType + ' 仅允许png/jpg/jpeg' , "forbidden");
+                        continue;
+                    }
+
+                    if (file.size > maxSize) {
+                        $.toast("图片太大，不允许上传", "forbidden");
+                        continue;
+                    }
+
+                    reader.onload = function (e) {
+                        var img = new Image();
+                        img.onload = function () {
+                            // 不要超出最大宽度
+                            var w = Math.min(maxWidth, img.width);
+                            // 高度按比例计算
+                            var h = img.height * (w / img.width);
+                            var canvas = document.createElement('canvas');
+                            var ctx = canvas.getContext('2d');
+                            // 设置 canvas 的宽度和高度
+                            canvas.width = w;
+                            canvas.height = h;
+                            ctx.drawImage(img, 0, 0, w, h);
+                            var base64 = canvas.toDataURL(fileType,0.8); //0.8指的是压缩80%
+
+                            // 插入到预览区
+                            $("#sfzFiles").append($(tmpl.replace('#url#', base64).replace('#ImgID#', imgID)));
+                            $("#sfzDiv").attr("style","display:none;");
+                        };
+
+                        img.src = e.target.result;
+                        sfzSrc = e.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+            $("#driverLiscenInput").on("change", function(e){
+                var src, url = window.URL || window.webkitURL || window.mozURL, files = e.target.files;
+                for (var i = 0, len = files.length; i < len; ++i) {
+                    var file = files[i];
+                    var imgID = genGUID();
+                    var reader = new FileReader();
+                    var fileType = file.type;
+
+                    if (allowTypes.indexOf(file.type) === -1) {
+                        $.toast('该类型不允许上传' + fileType + ' 仅允许png/jpg/jpeg' , "forbidden");
+                        continue;
+                    }
+
+                    if (file.size > maxSize) {
+                        $.toast("图片太大，不允许上传", "forbidden");
+                        continue;
+                    }
+
+                    reader.onload = function (e) {
+                        var img = new Image();
+                        img.onload = function () {
+                            // 不要超出最大宽度
+                            var w = Math.min(maxWidth, img.width);
+                            // 高度按比例计算
+                            var h = img.height * (w / img.width);
+                            var canvas = document.createElement('canvas');
+                            var ctx = canvas.getContext('2d');
+                            // 设置 canvas 的宽度和高度
+                            canvas.width = w;
+                            canvas.height = h;
+                            ctx.drawImage(img, 0, 0, w, h);
+                            var base64 = canvas.toDataURL(fileType,0.8); //0.8指的是压缩80%
+
+                            // 插入到预览区
+                            $("#driverLiscenFiles").append($(tmpl.replace('#url#', base64).replace('#ImgID#', imgID)));
+                            $("#driverLiscenDiv").attr("style","display:none;");
+                        };
+                        img.src = e.target.result;
+                        driverLiscen = e.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+            $("#carLiscenInput").on("change", function(e){
+                var src, url = window.URL || window.webkitURL || window.mozURL, files = e.target.files;
+                for (var i = 0, len = files.length; i < len; ++i) {
+                    var file = files[i];
+                    var imgID = genGUID();
+                    var reader = new FileReader();
+                    var fileType = file.type;
+
+                    if (allowTypes.indexOf(file.type) === -1) {
+                        $.toast('该类型不允许上传' + fileType + ' 仅允许png/jpg/jpeg' , "forbidden");
+                        continue;
+                    }
+
+                    if (file.size > maxSize) {
+                        $.toast("图片太大，不允许上传", "forbidden");
+                        continue;
+                    }
+                    reader.onload = function (e) {
+                        var img = new Image();
+                        img.onload = function () {
+                            // 不要超出最大宽度
+                            var w = Math.min(maxWidth, img.width);
+                            // 高度按比例计算
+                            var h = img.height * (w / img.width);
+                            var canvas = document.createElement('canvas');
+                            var ctx = canvas.getContext('2d');
+                            // 设置 canvas 的宽度和高度
+                            canvas.width = w;
+                            canvas.height = h;
+                            ctx.drawImage(img, 0, 0, w, h);
+                            var base64 = canvas.toDataURL(fileType,0.8); //0.8指的是压缩80%
+
+                            // 插入到预览区
+                            $("#carLiscenFiles").append($(tmpl.replace('#url#', base64).replace('#ImgID#', imgID)));
+                            $("#carLiscenDiv").attr("style","display:none;");
+                        };
+                        img.src = e.target.result;
+                        carLiscen = e.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            $("#removeImg").on("click", function(e){
+                $("#sfzFiles").find("li").eq(0).remove();
+                $("#driverLiscenFiles").find("li").eq(0).remove();
+                $("#carLiscenFiles").find("li").eq(0).remove();
+                $("#sfzDiv").attr("style","display:block;");
+                $("#driverLiscenDiv").attr("style","display:block;");
+                $("#carLiscenDiv").attr("style","display:block;");
+
+                sfzSrc = "";
+                driverLiscen = "";
+                carLiscen = "";
+            });
+
+            $("#confirm").on("click", function(e){
+                var name = $("#driverName").val();
+                var idNum = $("#idNum").val();
+                var carType = $("#carType").val();
+                var carNum = $("#carNum").val();
+
+                if (carType == "") {
+                    $.alert("请输入车辆品牌","信息不完整");
+                    return;
+                }
+
+                if (sfzSrc == "") {
+                    $.alert("请上传身份证照片","信息不完整");
+                    return;
+                }
+                if (driverLiscen == "") {
+                    $.alert("请上传驾驶证照片","信息不完整");
+                    return;
+                }
+                if (carLiscen == "") {
+                    $.alert("请上传行驶证照片","信息不完整");
+                    return;
+                }
+                if (! checkCarNum()) {
+                    return
+                }
+                if (! checkDriverNum()) {
+                    return
+                }
+                if (! checkIdNum()) {
+                    return
+                }
+                $(".loading2").show();
+                $.ajax({
+                    type:"POST",
+                    url:"/Portal/dodriverconfirm",
+                    data:{
+                        name:name ,
+                        idNum:idNum,
+                        carType:carType,
+                        carNum:carNum,
+                        sfzSrc:sfzSrc,
+                        driverLiscen:driverLiscen,
+                        carLiscen:carLiscen,
+                    },
+                    dataType:"json",
+                    success : function(result) {
+                        console.log(result)
+                        if (result.code != 0) {
+                            $(".loading2").hide();
+                            $.alert(result.msg,"操作异常");
+                        }
+                        else {
+                            $(".loading2").hide();
+                            $.toast("操作成功", 30000);
+                            window.location.href = "/Portal/driverconfirminput";
+
+                        }
+                    },
+                    error : function(result) {
+                        $(".loading2").hide();
+                        $.alert("网络繁忙，请重试","操作异常");
+                    }
+                });
+            });
+
+            $("#carNum").on("change", function(e){
+                $("#carNum").val($("#carNum").val().toUpperCase());
+                checkCarNum();
+            });
+
+            $("#driverName").on("change", function(e){
+                checkDriverNum();
+            });
+            $("#idNum").on("change", function(e){
+                checkIdNum();
+            });
+
+            function checkCarNum() {
+                var pattern = /^[京津沪渝冀豫云辽黑湘皖鲁新苏浙赣鄂桂甘晋蒙陕吉闽贵粤青藏川宁琼使领A-Z]{1}[A-Z]{1}[A-Z0-9]{4}[A-Z0-9挂学警港澳]{1}$/;
+                if (pattern.test($("#carNum").val()) && $("#carNum").val() != "") {
+                   return true;
+                } else {
+                    $.alert("车牌号格式错误","信息不正确");
+                    return false;
+                }
+            }
+
+            function checkDriverNum() {
+                var pattern = /^[\u4E00-\u9FA5]{1,6}$/;
+                if (pattern.test($("#driverName").val()) && $("#driverName").val() != "") {
+                    return true;
+                } else {
+                    $.alert("真实姓名必须是中文","信息不正确");
+                    return false;
+                }
+            }
+
+            function checkIdNum() {
+                var pattern = /(^\d{15}$)|(^\d{18}$)|(^\d{17}(\d|X|x)$)/;
+                if (pattern.test($("#idNum").val()) && $("#idNum").val() != "") {
+                    return true;
+                } else {
+                    $.alert("身份证号格式错误","信息不正确");
+                    return false;
+                }
+            }
+
+        });
         $(function(){
 
             var tmpl = '<li class="weui-uploader__file" id="#ImgID#" style="background-image:url(#url#)"></li>'
@@ -49,7 +311,6 @@
                         continue;
                     }
 
-
                     reader.onload = function (e) {
                         var img = new Image();
                         img.onload = function () {
@@ -74,8 +335,6 @@
                         };
 
                         img.src = e.target.result;
-
-                        //alert(img.src)
 
                         //上传
                         $.ajax({
@@ -113,19 +372,6 @@
 
         });
 
-        function removeimg(obj){
-            $.confirm('您确定要删除吗?', '确认删除?', function() {$(obj).remove();});
-            return false;
-        }
-
-        function doConfirm() {
-            var maxSize = 1024 * 1024*10;
-
-            var form = document.getElementById('confirmForm');
-            var files = document.getElementById('confirmForm');
-            form.submit();
-        }
-
         function genGUID() {
             var G1 = (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1) + (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1);
             var G2 = (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1) + (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1);
@@ -137,77 +383,258 @@
 </head>
 
 <body ontouchstart>
+<div class="loading2 hide" data-text="资料提交中..."></div>
 
-{{template "bottomNav.html" .}}
 
-<form id="confirmForm" method="POST" action="/Portal/driverConfirm" enctype="multipart/form-data">
+<div class="page-hd-title">
+{{if gt .num 0}}
+    {{ $orderStatus := .list.Status}}
+    {{if eq .list.Status 0}}
+        <span class="f-blue">
+            {{else if eq .list.Status 1}}
+        <span class="f-green">
+            {{else}}
+                <span class="f-red">
+    {{end}}
+    {{range $ind, $elem := .dcStatus}}
+        {{if eq $orderStatus $ind}}
+            {{$elem.Text}}
+        {{end}}
+    {{end}}</span>
 
-    <div class="weui-cells__title">驾驶员身份审核</div>
+{{end}}
+</div>
 
-    <div class="weui-cells weui-cells_form">
+<div class="weui-cells__title">驾驶员身份审核</div>
+<div class="weui-cells weui-cells_form">
+{{if gt .num 0}}
+    {{if eq .list.Status 2}}
         <div class="weui-cell">
             <div class="weui-cell__hd"><label class="weui-label">姓名：</label></div>
             <div class="weui-cell__bd">
-                <input class="weui-input" id="driverName" name="driverName" placeholder="如：张三" type="text">
+                <input class="weui-input" id="driverName" name="driverName" placeholder="如：张三" type="text" value="{{.list.RealName}}">
             </div>
         </div>
         <div class="weui-cell">
             <div class="weui-cell__hd"><label class="weui-label">身份证号：</label></div>
             <div class="weui-cell__bd">
-                <input class="weui-input" id="idNum" name="idNum" placeholder="" type="text">
+                <input class="weui-input" id="idNum" name="idNum" placeholder="" type="text" value="{{.list.SfzNum}}">
             </div>
         </div>
         <div class="weui-cell">
             <div class="weui-cell__hd"><label class="weui-label">车辆品牌：</label></div>
             <div class="weui-cell__bd">
-                <input class="weui-input" id="carType" name="carType" placeholder="如：大众迈腾" type="text">
+                <input class="weui-input" id="carType" name="carType" placeholder="如：大众迈腾" type="text" value="{{.list.CarType}}">
             </div>
         </div>
         <div class="weui-cell">
             <div class="weui-cell__hd"><label class="weui-label">车牌号：</label></div>
             <div class="weui-cell__bd">
-                <input class="weui-input" id="carNum" name="carNum" placeholder="如：陕A258FZ" type="text">
+                <input class="weui-input" id="carNum" name="carNum" placeholder="如：陕A258FZ" type="text" value="{{.list.CarNum}}">
             </div>
         </div>
-    </div>
-
-    <div class="weui-cells__title">需上传3张照片：驾驶证、行驶证、身份证</div>
-
-    <div class="weui-gallery" id="gallery">
-        <span class="weui-gallery__img" id="galleryImg"></span>
-        <div class="weui-gallery__opr">
-            <a href="javascript:" class="weui-gallery__del">
-                <i class="weui-icon-delete weui-icon_gallery-delete"></i>
-            </a>
+    {{else}}
+        <div class="weui-cell">
+            <div class="weui-cell__hd"><label class="weui-label">姓名：</label></div>
+            <div class="weui-cell__bd">
+                <input class="weui-input bg-gray" id="driverName" name="driverName" placeholder="如：张三" type="text" value="{{.list.RealName}}" disabled>
+            </div>
+        </div>
+        <div class="weui-cell">
+            <div class="weui-cell__hd"><label class="weui-label">身份证号：</label></div>
+            <div class="weui-cell__bd">
+                <input class="weui-input bg-gray" id="idNum" name="idNum" placeholder="" type="text" value="{{.list.SfzNum}}" disabled>
+            </div>
+        </div>
+        <div class="weui-cell">
+            <div class="weui-cell__hd"><label class="weui-label">车辆品牌：</label></div>
+            <div class="weui-cell__bd">
+                <input class="weui-input bg-gray" id="carType" name="carType" placeholder="如：大众迈腾" type="text" value="{{.list.CarType}}" disabled>
+            </div>
+        </div>
+        <div class="weui-cell">
+            <div class="weui-cell__hd"><label class="weui-label">车牌号：</label></div>
+            <div class="weui-cell__bd">
+                <input class="weui-input bg-gray" id="carNum" name="carNum" placeholder="如：陕A258FZ" type="text" value="{{.list.CarNum}}" disabled>
+            </div>
+        </div>
+    {{end}}
+{{else}}
+    <div class="weui-cell">
+        <div class="weui-cell__hd"><label class="weui-label">姓名：</label></div>
+        <div class="weui-cell__bd">
+            <input class="weui-input" id="driverName" name="driverName" placeholder="如：张三" type="text">
         </div>
     </div>
+    <div class="weui-cell">
+        <div class="weui-cell__hd"><label class="weui-label">身份证号：</label></div>
+        <div class="weui-cell__bd">
+            <input class="weui-input" id="idNum" name="idNum" placeholder="" type="text">
+        </div>
+    </div>
+    <div class="weui-cell">
+        <div class="weui-cell__hd"><label class="weui-label">车辆品牌：</label></div>
+        <div class="weui-cell__bd">
+            <input class="weui-input" id="carType" name="carType" placeholder="如：大众迈腾" type="text">
+        </div>
+    </div>
+    <div class="weui-cell">
+        <div class="weui-cell__hd"><label class="weui-label">车牌号：</label></div>
+        <div class="weui-cell__bd">
+            <input class="weui-input" id="carNum" name="carNum" placeholder="如：陕A258FZ" type="text">
+        </div>
+    </div>
+{{end}}
+</div>
 
+<div class="weui-cells__title">需上传3张照片：驾驶证、行驶证、身份证
+    {{if lt .num 1}}
+    <a href="javascript:;" class="weui-btn weui-btn_mini weui-btn_warn" id="removeImg"><i class="icon icon-23"></i>清空照片</a>
+    {{else if eq .list.Status 2}}
+    <a href="javascript:;" class="weui-btn weui-btn_mini weui-btn_warn" id="removeImg"><i class="icon icon-23"></i>清空照片</a>
+    {{end}}
+</div>
+
+<!--新增begin -->
+{{if lt .num 1}}
+<div class="page-bd-15">
+    <table>
+        <tr>
+            <td>身份证照片</td>
+            <td>
+                <div class="weui-uploader__bd">
+                    <ul class="weui-uploader__files" id="sfzFiles">
+                    </ul>
+                    <div id="sfzDiv" class="weui-uploader__input-box">
+                        <input id="sfzInput" class="weui-uploader__input" accept="image/*" multiple="" type="file">
+                    </div>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>驾驶证照片</td>
+            <td>
+                <div class="weui-uploader__bd">
+                    <ul class="weui-uploader__files" id="driverLiscenFiles">
+                    </ul>
+                    <div id="driverLiscenDiv" class="weui-uploader__input-box">
+                        <input id="driverLiscenInput" class="weui-uploader__input" accept="image/*" multiple="" type="file">
+                    </div>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>行驶证照片</td>
+            <td>
+                <div class="weui-uploader__bd">
+                    <ul class="weui-uploader__files" id="carLiscenFiles">
+                    </ul>
+                    <div id="carLiscenDiv" class="weui-uploader__input-box">
+                        <input id="carLiscenInput" class="weui-uploader__input" accept="image/*" multiple="" type="file">
+                    </div>
+                </div>
+            </td>
+        </tr>
+    </table>
+</div>
+{{else if eq .list.Status 2}}
+<div class="page-bd-15">
+    <table>
+        <tr>
+            <td>身份证照片</td>
+            <td>
+                <div class="weui-uploader__bd">
+                    <ul class="weui-uploader__files" id="sfzFiles">
+                    </ul>
+                    <div id="sfzDiv" class="weui-uploader__input-box">
+                        <input id="sfzInput" class="weui-uploader__input" accept="image/*" multiple="" type="file">
+                    </div>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>驾驶证照片</td>
+            <td>
+                <div class="weui-uploader__bd">
+                    <ul class="weui-uploader__files" id="driverLiscenFiles">
+                    </ul>
+                    <div id="driverLiscenDiv" class="weui-uploader__input-box">
+                        <input id="driverLiscenInput" class="weui-uploader__input" accept="image/*" multiple="" type="file">
+                    </div>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>行驶证照片</td>
+            <td>
+                <div class="weui-uploader__bd">
+                    <ul class="weui-uploader__files" id="carLiscenFiles">
+                    </ul>
+                    <div id="carLiscenDiv" class="weui-uploader__input-box">
+                        <input id="carLiscenInput" class="weui-uploader__input" accept="image/*" multiple="" type="file">
+                    </div>
+                </div>
+            </td>
+        </tr>
+    </table>
+</div>
+{{else}}
     <div class="page-bd-15">
-        <div class="weui-uploader__bd">
-            <ul class="weui-uploader__files" id="uploaderFiles">
-            </ul>
-            <div class="weui-uploader__input-box">
-                <input id="uploaderInput" class="weui-uploader__input" accept="image/*" multiple="" type="file">
-            </div>
-            <div class="weui-uploader__input-box">
-                <input id="uploaderInput" class="weui-uploader__input" accept="image/*" multiple="" type="file">
-            </div>
-            <div class="weui-uploader__input-box">
-                <input id="uploaderInput" class="weui-uploader__input" accept="image/*" multiple="" type="file">
-            </div>
-        </div>
+        <table>
+            <tr>
+                <td>身份证照片</td>
+                <td>
+                    <div class="weui-uploader__bd">
+                        <ul class="weui-uploader__files" id="sfzFiles">
+                            <li class="weui-uploader__file" style="background-image:url({{.list.SfzImg}})"></li>
+                        </ul>
+
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>驾驶证照片</td>
+                <td>
+                    <div class="weui-uploader__bd">
+                        <ul class="weui-uploader__files" id="driverLiscenFiles">
+                            <li class="weui-uploader__file" style="background-image:url({{.list.DriverLiceseImg}})"></li>
+                        </ul>
+
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>行驶证照片</td>
+                <td>
+                    <div class="weui-uploader__bd">
+                        <ul class="weui-uploader__files" id="carLiscenFiles">
+                            <li class="weui-uploader__file" style="background-image:url({{.list.CarLiceseImg}})"></li>
+                        </ul>
+
+                    </div>
+                </td>
+            </tr>
+        </table>
     </div>
-    <label for="weuiAgree" class="weui-agree">
-        <input id="weuiAgree" class="weui-agree__checkbox" type="checkbox" checked >
-        <span class="weui-agree__text">
+{{end}}
+
+<!--新增end -->
+
+<label for="weuiAgree" class="weui-agree">
+    <input id="weuiAgree" class="weui-agree__checkbox" type="checkbox" checked >
+    <span class="weui-agree__text">
                 阅读并同意<a href="http://m.guokr.com/help/privacy/">《隐私条款》</a>
             </span>
-    </label>
+</label>
 
-    <div class="weui-btn-area">
-        <a class="weui-btn weui-btn_primary" href="javascript:" id="btn" onclick="doConfirm()">提交验证</a>
-    </div>
-</form>
+<div class="weui-btn-area">
+    {{if lt .num 1}}
+    <a class="weui-btn weui-btn_primary" href="javascript:" id="confirm">提交验证</a>
+    {{else if eq .list.Status 2}}
+        <a class="weui-btn weui-btn_primary" href="javascript:" id="confirm">重新提交</a>
+    {{end}}
+</div>
+
 {{template "bottomNav.html" .}}
 </body>
 </html>

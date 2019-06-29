@@ -2,16 +2,13 @@ package controllers
 
 import (
 	"crypto/md5"
-	"encoding/base64"
-	"encoding/hex"
+    "encoding/hex"
 	"encoding/json"
 	"fmt"
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/httplib"
 	"github.com/astaxie/beego/logs"
-	"math/rand"
 	"strconv"
-	"strings"
 	"time"
 	"youdidi/models"
 	"youdidi/redisClient"
@@ -87,6 +84,7 @@ func (this *UserCenterController) Dologin() {
 
 				this.Ctx.SetSecureCookie("qyt", "qyt_id", userLoginInfo.idStr) //注入用户id，后续所有用户id都从cookie里获取
 				this.Ctx.SetSecureCookie("qyt", "qyt_token", userLoginInfo.Token)
+
 				//this.SetSession("qyt_id" , idStr)
 
 				this.Ctx.Redirect(302, "/Portal/showdriverorder/")
@@ -136,6 +134,9 @@ func (this *UserCenterController) GetVerCode() {
 	userId := this.GetString("userId")
 	phoneNum := this.GetString("phoneNum")
 
+	code := 0
+	msg := ""
+
 	baseUrl := beego.AppConfig.String("smsBaseUrl")
 	//connectTimeout , _ := strconv.Atoi(beego.AppConfig.String("connectTimeout"))
 	//readWriteTimeout , _ := strconv.Atoi(beego.AppConfig.String("readWriteTimeout"))
@@ -169,36 +170,20 @@ func (this *UserCenterController) GetVerCode() {
 	req.Body(body)
 	result, err := req.String()
 
-	fmt.Println(result, err)
-
-	this.Data["json"] = "[{\"code\": 1, \"userId\": " + userId + ", \"phoneNum\": " + phoneNum + "}]"
-	this.ServeJSON()
-}
-
-//sig:md5(所有字母必须大写) auth:base64
-//短信验证码平台鉴权使用
-func getSig(id string, token string) (string, string) {
-	ltime := time.Now().Format("20060102150405")
-	fmt.Println(ltime)
-
-	sig := md5.New()
-	sig.Write([]byte(id + token + ltime))
-
-	auth := base64.StdEncoding.EncodeToString([]byte(id + ":" + ltime))
-
-	return strings.ToUpper(hex.EncodeToString(sig.Sum(nil))), auth
-}
-
-//公共函数，获取一个以当前时间为sed的6位随机数
-func GetRandomCode() string {
-	s1 := rand.NewSource(time.Now().Unix())
-	r1 := rand.New(s1)
-	min := 1000
-	code := r1.Intn(10000)
-	if code < min {
-		code += min
+	if (err != nil) {
+		code = 1
+		msg = "网络开小差了哦"
+		this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
+		this.ServeJSON()
+		return
 	}
-	return strconv.Itoa(code)
+
+	code = 0
+	msg = "操作成功"
+	logs.Debug(result)
+
+	this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
+	this.ServeJSON()
 }
 
 // @router /Ver/verPhone [POST]
@@ -207,15 +192,21 @@ func (this *UserCenterController) VerPhone() {
 	phoneNum := this.GetString("phoneNum")
 	verCode := this.GetString("verCode")
 
+	code := 0
+	msg := ""
+
 	userIdInt64, _ := strconv.ParseInt(userId, 10, 64)
 
 	content := redisClient.GetKey(PhoneVerPrefix + userId)
 
-	if content != verCode {
-		fmt.Println(verCode, content)
-		logs.Error("input code %v is not equal redis code %v ", verCode, content)
+	if (content != verCode) {
+		logs.Error("input code %v is not equal redis code %v " , verCode , content)
 		//！！！这里提示不友好，验证不通过会直接再次跳转验证页面，怎是没有提示
-		this.Ctx.Redirect(302, "/Ver/phonever")
+		code = 1
+		msg = "验证码错误"
+		this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
+		this.ServeJSON()
+		return
 	}
 
 	logs.Debug("input code %v is equal redis code %v ", verCode, content)
@@ -228,9 +219,13 @@ func (this *UserCenterController) VerPhone() {
 
 	info := &UserLoginInfo{}
 	err := json.Unmarshal([]byte(userinfo), &info)
-	if err != nil {
-		logs.Error("get userinfo from redis fail %v ", err)
-		this.Ctx.Redirect(302, "/Login")
+	if (err != nil) {
+		logs.Error("get userinfo from redis fail %v " , err)
+		code = 2
+		msg = "网络开小差了哦"
+		this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
+		this.ServeJSON()
+		return
 	}
 
 	info.Phone = phoneNum
@@ -241,7 +236,10 @@ func (this *UserCenterController) VerPhone() {
 	redisClient.SetKey(LoginPrefix+userId, string(data))
 	redisClient.Setexpire(LoginPrefix+userId, LoginPeriod)
 
-	this.Ctx.Redirect(302, "/Portal/showdriverorder/")
+	code = 0
+	msg = "操作成功"
+	this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
+	this.ServeJSON()
 }
 
 func GetUserInfoFromRedis(uid string) *UserLoginInfo {
@@ -258,7 +256,12 @@ func GetUserInfoFromRedis(uid string) *UserLoginInfo {
 func GetOnroadTypeFromId(uid string) int {
 	var dbUser models.User
 	var userInfo []*models.User
-	dbUser.GetUserInfoFromId(uid, &userInfo)
+	_ , num := dbUser.GetUserInfoFromId(uid, &userInfo)
+
+	if (num == 0 ) {
+		logs.Error("get user onroad type err uid=%v" , uid)
+		dbUser.GetUserInfoFromId(uid, &userInfo)
+	}
 
 	return userInfo[0].OnRoadType
 }
@@ -282,7 +285,28 @@ func (this *UserCenterController) UserInfo() {
 	this.TplName = "userInfo.html"
 }
 
-// cache user info in redis
+// @router /Portal/help [GET]
+func (this *UserCenterController) Help() {
+	this.Data["tabIndex"] = 3
+
+	this.TplName = "help.html"
+}
+
+// @router /Portal/aboutus [GET]
+func (this *UserCenterController) AboutUs() {
+	this.Data["tabIndex"] = 3
+
+	this.TplName = "aboutUs.html"
+}
+
+// @router /Portal/disclaimer [GET]
+func (this *UserCenterController) Disclaimer() {
+	this.Data["tabIndex"] = 3
+
+	this.TplName = "disclaimer.html"
+}
+
+// generate user log info 
 func GenUserLoginInfo(userInfo *models.User) (*UserLoginInfo, error) {
 	token := getToken(userInfo.Name, userInfo.Passwd)
 	userLoginInfo := &UserLoginInfo{}
@@ -297,17 +321,14 @@ func GenUserLoginInfo(userInfo *models.User) (*UserLoginInfo, error) {
 	userLoginInfo.idStr = strconv.Itoa(userInfo.Id)
 
 	return userLoginInfo, nil
-
 }
 
+// cache user info in redis
 func CacheUserLoginInfo(userLoginInfo *UserLoginInfo) error {
-
 	data, _ := json.Marshal(userLoginInfo)
 	fmt.Println("data: %v", string(data))
 
 	redisClient.SetKey(LoginPrefix+userLoginInfo.idStr, string(data))
 	redisClient.Setexpire(LoginPrefix+userLoginInfo.idStr, LoginPeriod)
-
 	return nil
-
 }

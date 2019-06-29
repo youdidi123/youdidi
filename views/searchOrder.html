@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>全油通</title>
+    <title>长庆出行</title>
     <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=0">
     <link rel="stylesheet" href="/css/weui/weui.css"/>
     <link rel="stylesheet" href="/css/weui/weuix.css"/>
@@ -13,95 +13,48 @@
     <script src="/js/weui/lrz.min.js"></script>
     <script src="/js/weui/iscroll-lite.js"></script>
     <script>
-        $(function() {
-            TagNav('#tagnav', {
-                type: 'scrollToNext',
-                curClassName: 'weui-state-active',
-                index: 2
-            });
-            $('.collapse .js-category').click(function(){
-                $parent = $(this).parent('li');
-                if($parent.hasClass('js-show')){
-                    $parent.removeClass('js-show');
-                    $(this).children('i').removeClass('icon-35').addClass('icon-74');
-                }else{
-                    $parent.siblings().removeClass('js-show');
-                    $parent.addClass('js-show');
-                    $(this).children('i').removeClass('icon-74').addClass('icon-35');
-                    $parent.siblings().find('i').removeClass('icon-35').addClass('icon-74');
+        function doRequire(oid) {
+            $(".loading2").show();
+            var count = $("#"+oid+"-number").val()
+            var mark = $("#"+oid+"-marks").val()
+            $.ajax({
+                type:"POST",
+                url:"/Portal/dorequire",
+                data:{
+                    oid:oid ,
+                    count:count,
+                    mark:mark,
+                },
+                dataType:"json",
+                success : function(result) {
+                    console.log(result)
+                    if (result.code != 0) {
+                        $(".loading2").hide();
+                        $.alert(result.msg,"预约失败");
+                    }
+                    else {
+                        $(".loading2").hide();
+                        $.toast("预约成功", 30000);
+                        window.location.href = "/Portal/showpassengerorder/";
+
+                    }
+                },
+                error : function(result) {
+                    $(".loading2").hide();
+                    $.toast("网络繁忙，请重试" , "forbidden");
                 }
             });
-        })
-        function doRequire(oid) {
-            alert(oid);
-            $("#"+oid).hide()
         }
     </script>
 </head>
 
-<body ontouchstart >
+<div ontouchstart >
 {{template "sildePic.html" .}}
 
-<div id="tagnav" class="weui-navigator weui-navigator-wrapper">
-    <ul class="weui-navigator-list">
-        <li><a href="javascript:;">今天</a></li>
-        <li><a href="javascript:;">周一</a></li>
-        <li><a href="javascript:;">周二</a></li>
-        <li><a href="javascript:;">周三</a></li>
-        <li><a href="javascript:;">周四</a></li>
-        <li><a href="javascript:;">周五</a></li>
-        <li><a href="javascript:;">周六</a></li>
-    </ul>
+<div class="loading2 hide" data-text="位置锁定中..."></div>
+<div class="page-hd">
+    <a href="/Portal/searchinput" class="weui-btn weui-btn_primary">重新搜索</a>
 </div>
-
-<div class="page-bd">
-    <ul class="collapse">
-        <li><div class="weui-flex js-category" >
-                <div class="weui-flex__item" ><i class="icon icon-115 f15"></i> <span class="f15">行程筛选</span></div>
-                <i class="icon icon-74"></i>
-            </div>
-            <div class="page-category js-categoryInner">
-
-                <div class="weui-cells page-category-content bg-gray">
-                    <div class="weui-cells weui-cells_form bg-gray">
-                        <div class="weui-cell">
-                            <div class="weui-cell__hd"><label for="start" class="weui-label">出发地</label></div>
-                            <div class="weui-cell__bd">
-                                <input class="weui-input" id="start" name="start" type="text" value="油田基地 西安片区 龙凤园" data-code="2000102610126">
-                            </div>
-                        </div>
-                        <div class="weui-cell">
-                            <div class="weui-cell__hd"><label for="end" class="weui-label">目的地</label></div>
-                            <div class="weui-cell__bd">
-                                <input class="weui-input" id="end" name="end" type="text" value="油田单位 采油二厂 五蛟作业区" data-code="1000201621023">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="page-hd">
-                        <a href="javascript:;" class="weui-btn weui-btn_primary" onclick="submit()">寻找行程</a>
-                    </div>
-                </div>
-            </div>
-        </li>
-    </ul>
-</div>
-
-<script src="/js/weui/picker.city.js"></script>
-<script>
-    $("#start").cityPicker({
-        title: "选择出发地",
-        onChange: function (picker, values, displayValues) {
-            console.log(values, displayValues);
-        }
-    });
-    $("#end").cityPicker({
-        title: "选择目的地",
-        onChange: function (picker, values, displayValues) {
-            console.log(values, displayValues);
-        }
-    });
-</script>
-
 <div class="page-bd">
     {{if lt .num 1}}
     <div class="weui-cells__title">暂时没有可选行程，联系有车的小伙伴一起拼车出行吧</div>
@@ -121,17 +74,40 @@
                             {{end}}
                         </div>
                     </div>
-                    <div class="weui-media-box__bd">
+                    {{if lt .Status 1}}
+                    <div class="weui-media-box__bd open-popup" data-target="#{{.Id}}">
+                        {{else}}
+                        <div class="weui-media-box__bd">
+                            {{end}}
                         <h2 class="weui-media-box__title">{{.SrcId.Level2}}-{{.SrcId.Name}} 至 {{.DestId.Level2}}-{{.DestId.Name}}</h2>
                         <h2 class="weui-media-box__title">出发时间：{{.LaunchTime}}</h2>
                         <h2 class="weui-media-box__title">费用：{{.Price}}元/座</h2>
+                        <h2 class="weui-media-box__title">当前状态：
+                            {{ $orderStatus := .Status}}
+                            {{range $ind, $elem := $.StatusText}}
+                                {{if eq $orderStatus $ind}}
+                                    {{$elem.Text}}
+                                    </label>
+                                {{end}}
+                            {{end}}
+                        </h2>
                         <p class="weui-media-box__desc">车辆品牌：{{.User.CarType}}</p>
-                        <p class="weui-media-box__desc">车主：{{.User.Nickname}}</p>
+                        <p class="weui-media-box__desc">车主：{{.User.Nickname}}
+                            {{if ne .User.IsDriver 2}}
+                                <span class="f-red">(未认证车主)</span>
+                            {{else}}
+                                <span class="f-green">(认证车主)</span>
+                            {{end}}
+                        </p>
                         <p class="weui-media-box__desc">行程说明：{{.ThroughL}}</p>
                         <p class="weui-media-box__desc">行程备注：{{.Marks}}</p>
                         <ul class="weui-media-box__info">
-                            <li class="weui-media-box__info__meta">座位数/以约座位：{{.PNum}}/{{.ConfirmPnum}}</li>
+                            <li class="weui-media-box__info__meta">座位数/以约座位：{{.PNum}}/{{.RequestPnum}}</li>
+                            {{if lt .Status 1}}
                             <li class="weui-media-box__info__meta weui-media-box__info__meta_extra"><span class="f-blue open-popup" data-target="#{{.Id}}">立即预约</span></li>
+                            {{else}}
+                            <li class="weui-media-box__info__meta weui-media-box__info__meta_extra"><span class="f-gray">行程已出发</span></li>
+                            {{end}}
                         </ul>
                     </div>
                 </a>
@@ -152,6 +128,15 @@
                                     <p class="weui-media-box__desc">单号：{{.Id}}</p>
                                     <p class="weui-media-box__desc">路线：{{.SrcId.Level2}}-{{.SrcId.Name}} 至 {{.DestId.Level2}}-{{.DestId.Name}}</p>
                                     <p class="weui-media-box__desc">出发时间：{{.LaunchTime}}</p>
+                                    <p class="weui-media-box__desc">当前状态：
+                                        {{ $orderStatus := .Status}}
+                                        {{range $ind, $elem := $.StatusText}}
+                                            {{if eq $orderStatus $ind}}
+                                                {{$elem.Text}}
+                                                </label>
+                                            {{end}}
+                                        {{end}}
+                                    </p>
                                     <p class="weui-media-box__desc">费用：{{.Price}}元/座</p>
                                     <p class="weui-media-box__desc">行程说明：{{.ThroughL}}</p>
                                     <p class="weui-media-box__desc">行程备注：{{.Marks}}</p>
@@ -178,14 +163,14 @@
                                         <div class="weui-cell__ft">
                                             <div class="weui-count">
                                                 <a class="weui-count__btn weui-count__decrease"></a>
-                                                <input class="weui-count__number" type="number" value="1" />
+                                                <input class="weui-count__number" type="number" id="{{.Id}}-number" name="{{.Id}}-number" value="1" />
                                                 <a class="weui-count__btn weui-count__increase"></a>
                                             </div>
                                         </div>
                                     </div>
                                     <div class="weui-cell">
                                         <div class="weui-cell__bd">
-                                            <textarea id="marks" class="weui-textarea" placeholder="希望能和您同行，辛苦通过拼车申请" rows="2" onkeyup="textarea(this);"></textarea>
+                                            <textarea id="{{.Id}}-marks" name="{{.Id}}-marks" class="weui-textarea" placeholder="希望能和您同行，辛苦通过拼车申请" rows="2" onkeyup="textarea(this);"></textarea>
                                             <div class="weui-textarea-counter"><span>0</span>/<i>20</i></div>
                                         </div>
                                         <i class="weui-icon-clear" onclick="cleararea(this)"></i>
@@ -241,7 +226,7 @@
     }
 </script>
 {{template "bottomNav.html" .}}
-
+</div>
 </body>
 
 </head>

@@ -1,0 +1,119 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>长庆出行</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=0">
+    <link rel="stylesheet" href="/css/weui/weui.css"/>
+    <link rel="stylesheet" href="/css/weui/weuix.css"/>
+
+    <script src="/js/weui/zepto.min.js"></script>
+    <script src="/js/weui/zepto.weui.js"></script>
+    <script src="/js/weui/iscroll-lite.js"></script>
+    <script src="/js/weui/lrz.min.js"></script>
+    <script src="/js/weui/iscroll-lite.js"></script>
+    <script>
+        function init() {
+            var now = new Date();
+            var nowTime = now.getTime() ;
+            var oneDayTime = 24*60*60*1000 ;
+            for(var i = 0 ; i < 7 ; i++){
+                //显示周一
+                var ShowTime = nowTime + i*oneDayTime ;
+                //初始化日期时间
+                var myDate = new Date(ShowTime);
+                var year=myDate.getFullYear();
+                var month=myDate.getMonth()+1;
+                var date=myDate.getDate();
+                if (month < 10) {
+                    month = "0" + month
+                }
+                if (date < 10) {
+                    date = "0" + date
+                }
+                var riqi = year+"-"+month+"-"+date;
+                if (i == 0 ) {
+                    xingqi = "今天";
+                } else if (i == 1) {
+                    xingqi = "明天";
+                } else {
+                    xingqi = "星期" + "日一二三四五六".charAt(myDate.getDay());
+                }
+                $("#launchTime").append("<option value='"+riqi+"'>"+ riqi + " " + xingqi +"</option>");
+            }
+        }
+        function submit() {
+            var startCode = $("#start").attr("data-code");
+            var endCode = $("#end").attr("data-code");
+            var launchTime = $("#launchTime").val();
+            if (startCode == endCode) {
+                $.alert("出发地和目的地不能相同哦","请修正选项");
+                $("#end").focus();
+                return
+            }
+            $("#startCode").val(startCode);
+            $("#endCode").val(endCode);
+            $(".loading2").show();
+            $("form[name='search']").submit();
+        }
+    </script>
+</head>
+
+<body ontouchstart onload="init()">
+<div class="loading2 hide" data-text="查询中..."></div>
+{{template "sildePic.html" .}}
+<form method="POST" action="/Portal/searchorder" id="search" name="search">
+    <input type="hidden" name="startCode" id="startCode" value="">
+    <input type="hidden" name="endCode" id="endCode" value="">
+    <div class="page-bd">
+        <div class="weui-cells weui-cells_form">
+            <div class="weui-cell weui-cell_select weui-cell_select-after">
+                <div class="weui-cell__hd">
+                    <label for="" class="weui-label">出发时间</label>
+                </div>
+                <div class="weui-cell__bd">
+                    <select class="weui-select" name="launchTime" id="launchTime">
+
+                    </select>
+                </div>
+            </div>
+            <div class="weui-cell">
+                <div class="weui-cell__hd"><label for="start" class="weui-label">出发地</label></div>
+                <div class="weui-cell__bd">
+                    <input class="weui-input" id="start" name="start" type="text" value="油田基地 西安片区 龙凤园" data-code="2000102610126">
+                </div>
+            </div>
+            <div class="weui-cell">
+                <div class="weui-cell__hd"><label for="end" class="weui-label">目的地</label></div>
+                <div class="weui-cell__bd">
+                    <input class="weui-input" id="end" name="end" type="text" value="油田单位 采油二厂 五蛟作业区" data-code="1000201621023">
+                </div>
+            </div>
+        </div>
+        <div class="page-hd">
+            <a href="javascript:;" class="weui-btn weui-btn_primary" onclick="submit()">寻找行程</a>
+        </div>
+    </div>
+</form>
+<script src="/js/weui/picker.city.js"></script>
+<script>
+    $("#start").cityPicker({
+        title: "选择出发地",
+        onChange: function (picker, values, displayValues) {
+            console.log(values, displayValues);
+        }
+    });
+    $("#end").cityPicker({
+        title: "选择目的地",
+        onChange: function (picker, values, displayValues) {
+            console.log(values, displayValues);
+        }
+    });
+</script>
+
+{{template "bottomNav.html" .}}
+
+</body>
+
+</head>
+</html>

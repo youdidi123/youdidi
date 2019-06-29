@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>全油通</title>
+    <title>长庆出行</title>
     <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=0">
     <link rel="stylesheet" href="/css/weui/weui.css"/>
     <link rel="stylesheet" href="/css/weui/weuix.css"/>
@@ -65,7 +65,7 @@
             var travelCommit = $("#travelCommit").val();
 
             if (startCode == endCode) {
-                $.toptip('出发地和目的地不能相同哦','error');
+                $.alert("出发地和目的地不能相同哦","请修正行程单内容");
                 return
             }
 
@@ -81,23 +81,23 @@
             var nowDate = Date.now();
             launchTime = new Date(Date.parse(launchTime)).getTime();
             if (launchTime - nowDate < (10 * 60 * 1000)) {
-                $.toptip('至少需要发布10分钟后的行程哦','error');
+                $.alert("至少需要发布10分钟后的行程哦","请修正行程单内容");
                 return
             }
             launchTime = launchTime/1000;
 
             if (charge == "") {
-                $.toptip('您还没有填写定价','error');
+                $.alert("您还没有填写定价","请修正行程单内容");
                 return
             }
 
             if (getByteLen(travelExplain) > 30) {
-                $.toptip('行程说明不能超过30个字，要不拼车的小姐姐懒得读哦','error');
+                $.alert("行程说明不能超过30个字，要不拼车的小姐姐懒得读哦","请修正行程单内容");
                 return
             }
 
             if (getByteLen(travelCommit) > 30) {
-                $.toptip('行程备注不能超过30个字，拼车的要求不要太严格哦','error');
+                $.alert("行程备注不能超过30个字，拼车的要求不要太严格哦","请修正行程单内容");
                 return
             }
 
@@ -131,25 +131,19 @@
                                 success : function(result) {
                                     console.log(result)
                                     if (result.code != 0) {
-                                        setTimeout(function() {
-                                            $(".loading2").hide();
-                                        }, 1000)
-                                        $.toast("发布失败：" + result.msg, "forbidden");
+                                        $(".loading2").hide();
+                                        $.alert(result.msg,"行程发布有异常");
                                     }
                                     else {
-                                        setTimeout(function() {
-                                            $(".loading2").hide();
-                                        }, 1000)
+                                        $(".loading2").hide();
                                         $.toast("发布成功", 30000);
                                         window.location.href = "/Portal/showdriverorder/";
 
                                     }
                                 },
                                 error : function(result) {
-                                    setTimeout(function() {
-                                        $(".loading2").hide();
-                                    }, 1000)
-                                    alert("网络繁忙，请重试");
+                                    $(".loading2").hide();
+                                    $.alert("网络繁忙，请重试","行程发布有异常");
                                 }
                             });
                         }},
