@@ -143,7 +143,7 @@ func (c *WxLoginController) WxDologon(userInfo *UserInfo) error {
 
 	logs.Notice("%s", user)
 
-	userLoginInfo, err := GenUserLoginInfo(list[0])
+	userLoginInfo, err := GenUserLoginInfo(user)
 	if (err != nil) {
 		logs.Error("Generate user login info failed!")
 		return fmt.Errorf("Generate user login info failed! for:%s", err)
