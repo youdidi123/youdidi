@@ -22,31 +22,31 @@ type UserCenterController struct {
 }
 
 type UserLoginInfo struct {
-	Name string
-	Nickname string
-	OpenId string
+	Name       string
+	Nickname   string
+	OpenId     string
 	IsPhoneVer bool
-	IsDriver int
+	IsDriver   int
 	OrderNumWV int
-	Token string
-	Phone string
+	Token      string
+	Phone      string
 }
 
 var (
-	LoginPeriod = 30*60 //用户登陆有效期
-	LoginPrefix = "LOGIN_INFO_"  //缓存在redis中的用户数据key前缀
+	LoginPeriod    = 30 * 60        //用户登陆有效期
+	LoginPrefix    = "LOGIN_INFO_"  //缓存在redis中的用户数据key前缀
 	PhoneVerPrefix = "RANDOM_CODE_" //短信验证码key前缀
 )
 
 //登陆页首页，后续接入微信用户体系后废弃
 // @router /Login/ [GET]
-func (this *UserCenterController) Login (){
+func (this *UserCenterController) Login() {
 	this.TplName = "login.html"
 }
 
 //执行真正的登陆操作，接入微信后需要改造
 // @router /Dologin/ [POST,GET]
-func (this *UserCenterController) Dologin () {
+func (this *UserCenterController) Dologin() {
 	inputName := this.GetString("name")
 	inputPasswd := this.GetString("passwd")
 
@@ -54,45 +54,33 @@ func (this *UserCenterController) Dologin () {
 	reUrl := "login.html"
 
 	logs.Notice("user named %s begin to login", inputName)
-	logs.Debug("name is %s , passwd is %s" , inputName , inputPasswd)
+	logs.Debug("name is %s , passwd is %s", inputName, inputPasswd)
 
 	var dbUser models.User
 	var list []*models.User
 
 	success, num := dbUser.GetUserInfo(inputName, &list)
 
-	if (success != "true") {
-		logs.Error("get info of %s fail" , inputName)
+	if success != "true" {
+		logs.Error("get info of %s fail", inputName)
 		msg = "网络异常，请重试"
 	} else {
-		if (num == 0) {
+		if num == 0 {
 			msg = "未注册用户，请先注册"
 		} else {
 			logs.Debug("get info of %s success; pwd:", inputName)
-			if (inputPasswd == list[0].Passwd) {
+			if inputPasswd == list[0].Passwd {
 				//msg = "登陆成功"
 				//reUrl = "index.html"
-				token := getToken(inputName , inputPasswd)
 
-				info := &UserLoginInfo{}
-				info.Name = inputName
-				info.IsPhoneVer = list[0].IsPhoneVer
-				info.IsDriver = list[0].IsDriver
-				info.Token = token
-				info.Nickname = list[0].Nickname
-				info.OpenId = list[0].OpenId
-				info.OrderNumWV = list[0].OrderNumWV
-				info.Phone = list[0].Phone
+				token, idStr, err := CacheUserLoginInfo(list[0])
+				if (err != nil) {
+					logs.Warn("Cache user login info failed!")
+				}
+				idStr = strconv.Itoa(list[0].Id)
 
-				data, _ := json.Marshal(info)
-				fmt.Println("data: %v", string(data))
-				idStr := strconv.Itoa(list[0].Id)
-
-				redisClient.SetKey(LoginPrefix+idStr , string(data))
-				redisClient.Setexpire(LoginPrefix+idStr , LoginPeriod)
-
-				this.Ctx.SetSecureCookie("qyt","qyt_id" , idStr) //注入用户id，后续所有用户id都从cookie里获取
-				this.Ctx.SetSecureCookie("qyt","qyt_token" , token)
+				this.Ctx.SetSecureCookie("qyt", "qyt_id", idStr) //注入用户id，后续所有用户id都从cookie里获取
+				this.Ctx.SetSecureCookie("qyt", "qyt_token", token)
 				//this.SetSession("qyt_id" , idStr)
 
 				this.Ctx.Redirect(302, "/Portal/showdriverorder/")
@@ -109,11 +97,18 @@ func (this *UserCenterController) Dologin () {
 	this.TplName = reUrl
 }
 
-//使用用户名，密码，时间戳生成用户的鉴权token
+
+//执行真正的注册操作，非微信入口的注册
+// @router /Dologon/ [POST,GET]
+func (this *UserCenterController) Dologon() {
+
+}
+
+	//使用用户名，密码，时间戳生成用户的鉴权token
 // 用户cookie和服务redis里都需要存储
-func getToken(name string , passwd string) string{
+func getToken(name string, passwd string) string {
 	t := time.Now().Unix()
-	str := string(t)+name+passwd
+	str := string(t) + name + passwd
 	h := md5.New()
 	h.Write([]byte(str))
 	return hex.EncodeToString(h.Sum(nil))
@@ -122,7 +117,7 @@ func getToken(name string , passwd string) string{
 //加载用户绑定手机页面
 // @router /Ver/phonever [GET]
 func (this *UserCenterController) PhoneVer() {
-	id, _ := this.Ctx.GetSecureCookie("qyt","qyt_id")
+	id, _ := this.Ctx.GetSecureCookie("qyt", "qyt_id")
 	//id := this.GetSession("qyt_id")
 	this.Data["userId"] = id
 	this.TplName = "phoneVer.html"
@@ -148,53 +143,53 @@ func (this *UserCenterController) GetVerCode() {
 	sig, auth := getSig(accountSid, token)
 	randomCode := GetRandomCode()
 
-	redisClient.SetKey(PhoneVerPrefix+userId , randomCode)
-	redisClient.Setexpire(PhoneVerPrefix+userId , expireMin * 60)
+	redisClient.SetKey(PhoneVerPrefix+userId, randomCode)
+	redisClient.Setexpire(PhoneVerPrefix+userId, expireMin*60)
 
 	baseUrl = baseUrl + "/2013-12-26/Accounts/" + accountSid + "/SMS/TemplateSMS?sig=" + sig
 
 	req := httplib.Post(baseUrl)
 
 	//req.SetTimeout(connectTimeout , readWriteTimeout * time.Second)
-	req.Header("Accept","application/json")
-	req.Header("Content-Type","application/json;charset=utf-8")
-	req.Header("Content-Length","256")
-	req.Header("Authorization",auth)
+	req.Header("Accept", "application/json")
+	req.Header("Content-Type", "application/json;charset=utf-8")
+	req.Header("Content-Length", "256")
+	req.Header("Authorization", auth)
 
 	body := "{\"to\":\"" + phoneNum + "\",\"appId\":\"" + appId + "\",\"templateId\":\"1\",\"datas\":[\"" + randomCode + "\",\"" + strconv.Itoa(expireMin) + "\"]}"
 	fmt.Println(body)
 
 	//在这里发请求，发送验证码，钱不够，测试的时候再取消注释
 	req.Body(body)
-	result , err := req.String()
+	result, err := req.String()
 
-	fmt.Println(result , err)
+	fmt.Println(result, err)
 
 	this.Data["json"] = "[{\"code\": 1, \"userId\": " + userId + ", \"phoneNum\": " + phoneNum + "}]"
 	this.ServeJSON()
-	}
+}
 
 //sig:md5(所有字母必须大写) auth:base64
 //短信验证码平台鉴权使用
-func getSig (id string , token string) (string , string){
+func getSig(id string, token string) (string, string) {
 	ltime := time.Now().Format("20060102150405")
 	fmt.Println(ltime)
 
 	sig := md5.New()
-	sig.Write([]byte(id+token+ltime))
+	sig.Write([]byte(id + token + ltime))
 
-	auth := base64.StdEncoding.EncodeToString([]byte(id+":"+ltime))
+	auth := base64.StdEncoding.EncodeToString([]byte(id + ":" + ltime))
 
-	return strings.ToUpper(hex.EncodeToString(sig.Sum(nil))),auth
+	return strings.ToUpper(hex.EncodeToString(sig.Sum(nil))), auth
 }
 
 //公共函数，获取一个以当前时间为sed的6位随机数
-func GetRandomCode () string{
+func GetRandomCode() string {
 	s1 := rand.NewSource(time.Now().Unix())
 	r1 := rand.New(s1)
 	min := 1000
 	code := r1.Intn(10000)
-	if (code < min) {
+	if code < min {
 		code += min
 	}
 	return strconv.Itoa(code)
@@ -208,27 +203,27 @@ func (this *UserCenterController) VerPhone() {
 
 	userIdInt64, _ := strconv.ParseInt(userId, 10, 64)
 
-	content := redisClient.GetKey(PhoneVerPrefix+userId)
+	content := redisClient.GetKey(PhoneVerPrefix + userId)
 
-	if (content != verCode) {
-		fmt.Println(verCode , content)
-		logs.Error("input code %v is not equal redis code %v " , verCode , content)
+	if content != verCode {
+		fmt.Println(verCode, content)
+		logs.Error("input code %v is not equal redis code %v ", verCode, content)
 		//！！！这里提示不友好，验证不通过会直接再次跳转验证页面，怎是没有提示
 		this.Ctx.Redirect(302, "/Ver/phonever")
 	}
 
-	logs.Debug("input code %v is equal redis code %v " , verCode , content)
+	logs.Debug("input code %v is equal redis code %v ", verCode, content)
 
 	var dbUser models.User
-	dbUser.UpdateInfo(userIdInt64 , "phone" , phoneNum)
-	dbUser.UpdateInfo(userIdInt64 , "IsPhoneVer" , "1")
+	dbUser.UpdateInfo(userIdInt64, "phone", phoneNum)
+	dbUser.UpdateInfo(userIdInt64, "IsPhoneVer", "1")
 
-	userinfo := redisClient.GetKey(LoginPrefix+userId)
+	userinfo := redisClient.GetKey(LoginPrefix + userId)
 
 	info := &UserLoginInfo{}
 	err := json.Unmarshal([]byte(userinfo), &info)
-	if (err != nil) {
-		logs.Error("get userinfo from redis fail %v " , err)
+	if err != nil {
+		logs.Error("get userinfo from redis fail %v ", err)
 		this.Ctx.Redirect(302, "/Login")
 	}
 
@@ -237,24 +232,24 @@ func (this *UserCenterController) VerPhone() {
 
 	data, _ := json.Marshal(info)
 
-	redisClient.SetKey(LoginPrefix+userId , string(data))
-	redisClient.Setexpire(LoginPrefix+userId , LoginPeriod)
+	redisClient.SetKey(LoginPrefix+userId, string(data))
+	redisClient.Setexpire(LoginPrefix+userId, LoginPeriod)
 
 	this.Ctx.Redirect(302, "/Portal/showdriverorder/")
 }
 
-func GetUserInfoFromRedis (uid string) (*UserLoginInfo) {
-	userinfo := redisClient.GetKey(LoginPrefix+uid)
+func GetUserInfoFromRedis(uid string) *UserLoginInfo {
+	userinfo := redisClient.GetKey(LoginPrefix + uid)
 
 	info := &UserLoginInfo{}
 	err := json.Unmarshal([]byte(userinfo), &info)
-	if (err != nil) {
-		logs.Error("get userinfo from redis fail %v " , err)
+	if err != nil {
+		logs.Error("get userinfo from redis fail %v ", err)
 	}
 	return info
 }
 
-func GetOnroadTypeFromId (uid string) int {
+func GetOnroadTypeFromId(uid string) int {
 	var dbUser models.User
 	var userInfo []*models.User
 	dbUser.GetUserInfoFromId(uid, &userInfo)
@@ -264,19 +259,43 @@ func GetOnroadTypeFromId (uid string) int {
 
 // @router /Portal/userinfo [GET]
 func (this *UserCenterController) UserInfo() {
-	uid, _ := this.Ctx.GetSecureCookie("qyt","qyt_id")
+	uid, _ := this.Ctx.GetSecureCookie("qyt", "qyt_id")
 	var dbUser models.User
 	var list []*models.User
-	this.Data["success"] =  true
+	this.Data["success"] = true
 	this.Data["tabIndex"] = 3
 
 	success, _ := dbUser.GetUserInfoFromId(uid, &list)
 
-	if (success != "true") {
+	if success != "true" {
 		this.Data["success"] = false
 		return
 	}
 	this.Data["list"] = list[0]
 	fmt.Println(list[0].Id)
 	this.TplName = "userInfo.html"
+}
+
+// cache user info in redis
+func CacheUserLoginInfo(userInfo *models.User) (string, string, error) {
+	token := getToken(userInfo.Name, userInfo.Passwd)
+	info := &UserLoginInfo{}
+	info.Name = userInfo.Name
+	info.IsPhoneVer = userInfo.IsPhoneVer
+	info.IsDriver = userInfo.IsDriver
+	info.Token = token
+	info.Nickname = userInfo.Nickname
+	info.OpenId = userInfo.OpenId
+	info.OrderNumWV = userInfo.OrderNumWV
+	info.Phone = userInfo.Phone
+
+	data, _ := json.Marshal(info)
+	fmt.Println("data: %v", string(data))
+	idStr := strconv.Itoa(userInfo.Id)
+
+	redisClient.SetKey(LoginPrefix+idStr, string(data))
+	redisClient.Setexpire(LoginPrefix+idStr, LoginPeriod)
+
+	return token, idStr, nil
+
 }

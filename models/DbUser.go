@@ -37,6 +37,16 @@ func (u *User) GetUserInfoFromId (id string, list *[]*User) (success string , nu
 	return "true" , num
 }
 
+//GetUserInfoFormOpenId
+func (u *User) GetUserInfoFormOpenId (OpenId string, list *[]*User) (int64, error) {
+	num, error := orm.NewOrm().Raw("SELECT * from User where OpenId = ?" , OpenId).QueryRows(list)
+	if (error != nil) {
+		logs.Error("can not get user info from db OpenId=%s ,error=%s" , OpenId , error)
+		return 0, error
+	}
+	return num, nil
+}
+
 func (u *User) UpdateInfo (id int64, key string , value string)  {
 	o := orm.NewOrm()
 	num , err := o.QueryTable(u).Filter("id", id).Update(orm.Params{
