@@ -52,7 +52,7 @@ func (c *WxLoginController) Wxtest () {
 	userInfo.Unionid = "Unionid-test_111111"
 	userInfo.Province = "Province-test_111111"
 
-	c.WxDologon(&userInfo)
+	//c.WxDologon(&userInfo)
     c.Ctx.ResponseWriter.Header().Set("Content-Type", "text/html;charset=utf-8")
 	c.Ctx.WriteString("<img src=\"http://thirdwx.qlogo.cn/mmopen/vi_32/0NNL244MVpxDRwPj3gScx6UbLCVjmqPtaHbkKIicxFplEkicOLuwyz42Ip40bP8Lw2ibwA4Vu9LBZvtKn70AicR3cg/132\" alt=\"test\" />")
 }
@@ -88,14 +88,15 @@ func (c *WxLoginController) UserInfoCheck () {
     //var accessToken AccessToken
     //accessToken.Access_token = "22_uKo3_E_UxGVOlfAaMR-vz_fL8BlkmZU09f3J-WFh06wPkHaa5GrVKGQp1QUVnwvuD-1K723rIAGZgJj-QhkLAxPLtdZqPMYV49jvUYRYzHI"
     //accessToken.Openid = "ooafc5o6_Jkfgk8BH9VobbfQzz6U"
-    _, err = WxGetUserInfo(accessToken)
+    userInfo, err := WxGetUserInfo(accessToken)
     if err != nil {
         logs.Error("Get userInfo Failed:%s", err)
         c.Abort("401")
         return
     }
 
-
+    //数据库注册微信登陆信息
+	c.WxDologon(userInfo)
 	c.Ctx.Redirect(302, "http://www.youdidi.vip/Portal/showdriverorder/")
     //c.Ctx.ResponseWriter.Header().Set("Content-Type", "text/html;charset=utf-8")
 	//c.Ctx.WriteString("<img src=\""+userInfo.Headimgurl+"\" alt=\"test\" /><br />")
