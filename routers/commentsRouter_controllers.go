@@ -54,8 +54,35 @@ func init() {
 
     beego.GlobalControllerRouter["youdidi/controllers:OrderController"] = append(beego.GlobalControllerRouter["youdidi/controllers:OrderController"],
         beego.ControllerComments{
+            Method: "DoCreateOrder",
+            Router: `/Portal/docreateorder`,
+            AllowHTTPMethods: []string{"POST"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["youdidi/controllers:OrderController"] = append(beego.GlobalControllerRouter["youdidi/controllers:OrderController"],
+        beego.ControllerComments{
+            Method: "DriverOrderDetail",
+            Router: `/Portal/driverorderdetail/:oid`,
+            AllowHTTPMethods: []string{"GET"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["youdidi/controllers:OrderController"] = append(beego.GlobalControllerRouter["youdidi/controllers:OrderController"],
+        beego.ControllerComments{
+            Method: "SearchOrder",
+            Router: `/Portal/searchorder`,
+            AllowHTTPMethods: []string{"GET"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["youdidi/controllers:OrderController"] = append(beego.GlobalControllerRouter["youdidi/controllers:OrderController"],
+        beego.ControllerComments{
             Method: "ShowDriverOrder",
-            Router: `/Portal/showDriverorder/`,
+            Router: `/Portal/showdriverorder/`,
             AllowHTTPMethods: []string{"GET"},
             MethodParams: param.Make(),
             Filters: nil,
@@ -72,8 +99,26 @@ func init() {
 
     beego.GlobalControllerRouter["youdidi/controllers:UserCenterController"] = append(beego.GlobalControllerRouter["youdidi/controllers:UserCenterController"],
         beego.ControllerComments{
+            Method: "Dologon",
+            Router: `/Dologon/`,
+            AllowHTTPMethods: []string{"POST","GET"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["youdidi/controllers:UserCenterController"] = append(beego.GlobalControllerRouter["youdidi/controllers:UserCenterController"],
+        beego.ControllerComments{
             Method: "Login",
             Router: `/Login/`,
+            AllowHTTPMethods: []string{"GET"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["youdidi/controllers:UserCenterController"] = append(beego.GlobalControllerRouter["youdidi/controllers:UserCenterController"],
+        beego.ControllerComments{
+            Method: "UserInfo",
+            Router: `/Portal/userinfo`,
             AllowHTTPMethods: []string{"GET"},
             MethodParams: param.Make(),
             Filters: nil,
@@ -108,8 +153,8 @@ func init() {
 
     beego.GlobalControllerRouter["youdidi/controllers:WxLoginController"] = append(beego.GlobalControllerRouter["youdidi/controllers:WxLoginController"],
         beego.ControllerComments{
-            Method: "GetWechatGZAccessToken",
-            Router: `/GetWechatGZAccessToken/`,
+            Method: "UserInfoCheck",
+            Router: `/UserInfoCheck/`,
             AllowHTTPMethods: []string{"POST","GET"},
             MethodParams: param.Make(),
             Filters: nil,
@@ -119,6 +164,15 @@ func init() {
         beego.ControllerComments{
             Method: "WxLogin",
             Router: `/WxLogin/`,
+            AllowHTTPMethods: []string{"POST","GET"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["youdidi/controllers:WxLoginController"] = append(beego.GlobalControllerRouter["youdidi/controllers:WxLoginController"],
+        beego.ControllerComments{
+            Method: "Wxtest",
+            Router: `/Wxtest/`,
             AllowHTTPMethods: []string{"POST","GET"},
             MethodParams: param.Make(),
             Filters: nil,

@@ -8,6 +8,7 @@ import (
     "io/ioutil"
     "encoding/json"
     "fmt"
+	"youdidi/models"
 )
 
 type WxLoginController struct {
@@ -40,6 +41,18 @@ type UserInfo struct {
 
 // @router /Wxtest/ [POST,GET]
 func (c *WxLoginController) Wxtest () {
+    var userInfo UserInfo
+	userInfo.Openid = "Openid-test_111111"
+	userInfo.Nickname = "Nickname-test_111111"
+	userInfo.Sex = 0
+	userInfo.Province = "Province-test_111111"
+	userInfo.City = "City-test_111111"
+	userInfo.Headimgurl = "http://thirdwx.qlogo.cn/mmopen/vi_32/0NNL244MVpxDRwPj3gScx"+
+		"6UbLCVjmqPtaHbkKIicxFplEkicOLuwyz42Ip40bP8Lw2ibwA4Vu9LBZvtKn70AicR3cg/132"
+	userInfo.Unionid = "Unionid-test_111111"
+	userInfo.Province = "Province-test_111111"
+
+	c.WxDologon(&userInfo)
     c.Ctx.ResponseWriter.Header().Set("Content-Type", "text/html;charset=utf-8")
 	c.Ctx.WriteString("<img src=\"http://thirdwx.qlogo.cn/mmopen/vi_32/0NNL244MVpxDRwPj3gScx6UbLCVjmqPtaHbkKIicxFplEkicOLuwyz42Ip40bP8Lw2ibwA4Vu9LBZvtKn70AicR3cg/132\" alt=\"test\" />")
 }
@@ -75,7 +88,7 @@ func (c *WxLoginController) UserInfoCheck () {
     //var accessToken AccessToken
     //accessToken.Access_token = "22_uKo3_E_UxGVOlfAaMR-vz_fL8BlkmZU09f3J-WFh06wPkHaa5GrVKGQp1QUVnwvuD-1K723rIAGZgJj-QhkLAxPLtdZqPMYV49jvUYRYzHI"
     //accessToken.Openid = "ooafc5o6_Jkfgk8BH9VobbfQzz6U"
-    userInfo, err := GetUserInfo(accessToken)
+    userInfo, err := WxGetUserInfo(accessToken)
     if err != nil {
         logs.Error("Get userInfo Failed:%s", err)
         c.Abort("401")
@@ -90,6 +103,51 @@ func (c *WxLoginController) UserInfoCheck () {
     //refreshTokenUrl := "https://api.weixin.qq.com/sns/oauth2/refresh_token?" +
     //                  "appid=APPID&grant_type=refresh_token&refresh_token=REFRESH_TOKEN"
 }
+
+//根据微信的用户信息进行注册，并返回用户的cookie，
+// 如果已经注册过OpenId已经存在则直接返回用户的cookie
+func (c *WxLoginController) WxDologon(userInfo *UserInfo) error {
+	var dbUser models.User
+	var list []*models.User
+
+	num, err := dbUser.GetUserInfoFormOpenId(userInfo.Openid, &list)
+	if (err != nil) {
+		logs.Error("OpenId %s get user info from db error：%s!", userInfo.Openid, err)
+	}
+	if (num == 0) {
+		logs.Notice("OpenId %s not resgisted：%s!", userInfo.Openid, err)
+		var newUser models.User
+		newUser.Nickname = userInfo.Nickname
+		newUser.Province = userInfo.Province
+		newUser.OpenId = userInfo.Openid
+		newUser.Sex = userInfo.Sex
+		newUser.Unionid = userInfo.Unionid
+		newUser.WechatImg = userInfo.Headimgurl
+		_, err = newUser.Insert()
+		if (err != nil){
+			logs.Error("OpenId %s creat user failed!", userInfo.Openid)
+		}
+
+	} else if (num > 1) {
+		logs.Error("OpenId %s multiple registration!", userInfo.Openid)
+	}
+
+	logs.Notice("%s", list[0])
+
+
+	token, idStr, err := CacheUserLoginInfo(list[0])
+	if (err != nil) {
+		logs.Warn("Cache user login info failed!")
+	}
+
+	c.Ctx.SetSecureCookie("qyt", "qyt_id", idStr) //注入用户id，后续所有用户id都从cookie里获取
+	c.Ctx.SetSecureCookie("qyt", "qyt_token", token)
+
+
+	return nil
+
+}
+
 
 func GetWechatGZAccessToken(code string)  (*AccessToken, error) {
 	appId := beego.AppConfig.String("weixin::AppId")
@@ -128,7 +186,7 @@ func GetWechatGZAccessToken(code string)  (*AccessToken, error) {
     return &accessToken, nil
 }
 
-func GetUserInfo (accessToken *AccessToken) (*UserInfo, error) {
+func WxGetUserInfo (accessToken *AccessToken) (*UserInfo, error) {
     u := url.Values{}
     u.Set("lang", "zh_CN")
     u.Set("openid", accessToken.Openid)
