@@ -1,0 +1,111 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>长庆出行</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=0">
+    <link rel="stylesheet" href="/css/weui/weui.css"/>
+    <link rel="stylesheet" href="/css/weui/weuix.css"/>
+
+    <script src="/js/weui/zepto.min.js"></script>
+    <script src="/js/weui/zepto.weui.js"></script>
+    <script src="/js/weui/iscroll-lite.js"></script>
+    <script src="/js/weui/lrz.min.js"></script>
+    <script>
+        function init() {
+            var onRoadType = {{.onRoadType}};
+            if (onRoadType == 2) {
+                $.noti({
+                    title: "敲黑板!!",
+                    text: "您还有乘客没有送达哦^_^",
+                    // media: "<img src='./images/present.png' />",
+                    time: 4000,
+                });
+            } else if (onRoadType == 1) {
+                $.noti({
+                    title: "敲黑板!!",
+                    text: "您有正在进行的行程，点击进入当前行程查看更多哦^_^",
+                    // media: "<img src='./images/present.png' />",
+                    time: 4000,
+                });
+            } else {
+                $.noti({
+                    title: "欢迎回来",
+                    text: "绿色出行，有你有我，快快找到合适的行程出发吧 ^_^",
+                    // media: "<img src='./images/present.png' />",
+                    time: 4000,
+                });
+            }
+        }
+        function gotoDetail (oid) {
+            this.window.location.href="/Portal/passengerorderdetail/" + oid;
+        }
+    </script>
+</head>
+
+<body ontouchstart onload="init()">
+{{template "sildePic.html" .}}
+
+
+<div class="page-bd-15">
+    <div class="weui-cells__title">
+        <a href="{{.buttonHref}}" class="{{.buttonClass}}" onclick="{{.buttonFunc}}">{{.buttonValue}}</a>
+    </div>
+
+    {{if lt .orderNum  1}}
+        <div class="weui-cells__title">您还没有进行过拼车，快去查查有没有需要的行程把</div>
+    {{else}}
+        <div class="weui-cells__title">历史行程列表</div>
+    {{range .orderInfo}}
+    <div class="weui-form-preview" onclick="gotoDetail({{.Id}})">
+        <div class="weui-form-preview__hd">
+            <label class="weui-form-preview__label">
+                {{ $orderStatus := .Status}}
+            {{range $ind, $elem := $.StatusText}}
+                {{if eq $orderStatus $ind}}
+                    {{$elem.Text}}
+            </label>
+                    {{if lt $ind 4}}
+                        <em class="weui-form-preview__value f-green">进入行程 <i class="icon icon-108"></i></em>
+                    {{else}}
+                        <em class="weui-form-preview__value f-blue">查看行程 <i class="icon icon-108"></i></em>
+                    {{end}}
+                {{end}}
+            {{end}}
+
+
+        </div>
+        <div class="weui-form-preview__bd bg-gray">
+            <div class="weui-form-preview__item">
+                <label class="weui-form-preview__label">单号：</label>
+                <label class="weui-form-preview__label">{{.Order.Id}}</label>
+            </div>
+            <div class="weui-form-preview__item">
+                <label class="weui-form-preview__label">出发时间：</label>
+                <label class="weui-form-preview__label">{{.Order.LaunchTime}}</label>
+            </div>
+            <div class="weui-form-preview__item">
+                <label class="weui-form-preview__label">出发地：</label>
+                <label class="weui-form-preview__label">{{.Order.SrcId.Level1}} {{.Order.SrcId.Level2}} {{.Order.SrcId.Name}}</label>
+            </div>
+            <div class="weui-form-preview__item">
+                <label class="weui-form-preview__label">目的地：</label>
+                <label class="weui-form-preview__label">{{.Order.DestId.Level1}} {{.Order.DestId.Level2}} {{.Order.DestId.Name}}</label>
+            </div>
+            <div class="weui-form-preview__item">
+                <label class="weui-form-preview__label">车牌号：</label>
+                <label class="weui-form-preview__label">{{.Order.User.CarNum}}</label>
+            </div>
+        </div>
+    </div>
+    {{end}}
+    {{end}}
+
+
+</div>
+{{template "bottomNav.html" .}}
+
+</body>
+
+</head>
+</html>

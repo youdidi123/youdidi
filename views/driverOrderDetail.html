@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>全油通</title>
+    <title>长庆出行</title>
     <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=0">
     <link rel="stylesheet" href="/css/weui/weui.css"/>
     <link rel="stylesheet" href="/css/weui/weuix.css"/>
@@ -12,18 +12,433 @@
     <script src="/js/weui/iscroll-lite.js"></script>
     <script src="/js/weui/lrz.min.js"></script>
     <script>
+        function allOption(pid , odid) {
+            var oid = {{.oinfo.Id}} ;
+            $.actions({
+                title: "选择操作",
+                onClose: function() {
+                    console.log("close");
+                },
+                actions: [
+                    {
+                        text: "确认请求",
+                        className: "color-primary",
+                        onClick: function() {
+                            $(".loading2").show();
+                            $.ajax({
+                                type:"POST",
+                                url:"/Portal/agreerequest",
+                                data:{
+                                    pid:pid ,
+                                    oid:oid ,
+                                    odid:odid
+                                },
+                                dataType:"json",
+                                success : function(result) {
+                                    console.log(result)
+                                    if (result.code != 0) {
+                                        $(".loading2").hide();
+                                        $.alert(result.msg,"操作异常");
+                                    }
+                                    else {
+                                        $(".loading2").hide();
+                                        $.toast("操作成功", 30000);
+                                        window.location.href = "/Portal/driverorderdetail/"+oid;
 
+                                    }
+                                },
+                                error : function(result) {
+                                    $(".loading2").hide();
+                                    $.alert("网络繁忙，请重试","操作异常");
+                                }
+                            });
+                        }
+                    },
+                    {
+                        text: "拒绝请求",
+                        className: "color-danger",
+                        onClick: function() {
+                            $(".loading2").show();
+                            $.ajax({
+                                type:"POST",
+                                url:"/Portal/refuserequest",
+                                data:{
+                                    pid:pid ,
+                                    oid:oid ,
+                                    odid:odid
+                                },
+                                dataType:"json",
+                                success : function(result) {
+                                    console.log(result)
+                                    if (result.code != 0) {
+                                        $(".loading2").hide();
+                                        $.alert(result.msg,"操作异常");
+                                    }
+                                    else {
+                                        $(".loading2").hide();
+                                        $.toast("操作成功", 30000);
+                                        window.location.href = "/Portal/driverorderdetail/"+oid;
+
+                                    }
+                                },
+                                error : function(result) {
+                                    $(".loading2").hide();
+                                    $.alert("网络繁忙，请重试","操作异常");
+                                }
+                            });
+                        }
+                    },
+                    {
+                        text: "查看留言",
+                        onClick: function() {
+                            window.location.href = "/Portal/chat/"+pid+"/"+oid+"/driver";
+                        }
+                    }
+                ]
+            });
+        }
+        function chatOption(pid) {
+            var oid = {{.oinfo.Id}};
+            $.actions({
+                title: "选择操作",
+                onClose: function() {
+                    console.log("close");
+                },
+                actions: [
+                    {
+                        text: "查看留言",
+                        onClick: function() {
+                            window.location.href = "/Portal/chat/"+pid+"/"+oid+"/driver";
+                        }
+                    }
+                ]
+            });
+        }
+
+        function chatAndCommentOption(pid, odid) {
+            var oid = {{.oinfo.Id}};
+            $.actions({
+                title: "选择操作",
+                onClose: function() {
+                    console.log("close");
+                },
+                actions: [
+                    {
+                        text: "点评乘客",
+                        className: "color-primary",
+                        onClick: function() {
+                            window.location.href = "/Portal/recommand/"+odid+"/1";
+                        }
+                    },
+                    {
+                        text: "查看留言",
+                        onClick: function() {
+                            window.location.href = "/Portal/chat/"+pid+"/"+oid+"/driver";
+                        }
+                    }
+                ]
+            });
+        }
+
+        function commentOption(odid) {
+            $.actions({
+                title: "选择操作",
+                onClose: function() {
+                    console.log("close");
+                },
+                actions: [
+                    {
+                        text: "点评乘客",
+                        className: "color-primary",
+                        onClick: function() {
+                            window.location.href = "/Portal/recommand/"+odid+"/1";
+                        }
+                    },
+                ]
+            });
+        }
+
+        function getStart() {
+            var oid = {{.oinfo.Id}};
+            var requestNum = {{.oinfo.RequestPnum}};
+            var confirmNum = {{.oinfo.ConfirmPnum}};
+            var launchTime = {{.launchTime}};
+            var now = new Date();
+            var nowTime = now.getTime() ;
+
+            if (launchTime*1000 - nowTime > 10 * 60 * 1000) {
+            //if (launchTime*1000 - nowTime < 10 * 60 * 1000) {
+                $.alert("距行程开始前10分钟内才能确认到达出发地哦","现在不能操作哦",function(){
+                    return;
+                });
+            }else if (requestNum > confirmNum) {
+                $.alert("您有尚未操作的乘客申请","现在不能操作哦",function(){
+                    return;
+                });
+            } else {
+                doGetStart(oid)
+            }
+        }
+        function doGetStart(oid) {
+            $(".loading2").show();
+            $.ajax({
+                type:"POST",
+                url:"/Portal/getstart",
+                data:{
+                    oid:oid ,
+                },
+                dataType:"json",
+                success : function(result) {
+                    console.log(result)
+                    if (result.code != 0) {
+                        $(".loading2").hide();
+                        $.alert(result.msg,"操作异常");
+                    }
+                    else {
+                        $(".loading2").hide();
+                        $.toast("操作成功", 30000);
+                        window.location.href = "/Portal/driverorderdetail/"+oid;
+
+                    }
+                },
+                error : function(result) {
+                    $(".loading2").hide();
+                    $.alert("网络繁忙，请重试","操作异常");
+                }
+            });
+        }
+        function getEnd() {
+            var oid = {{.oinfo.Id}};
+            var launchTime = {{.launchTime}};
+            var now = new Date();
+            var nowTime = now.getTime() ;
+
+            if (nowTime - launchTime*1000 < 20 * 60 * 1000) {
+                //if (nowTime - launchTime*1000 > 20 * 60 * 1000) {
+                $.alert("行程开始后至少20分钟才能确认到达哦","现在不能操作哦",function(){
+                    return;
+                });
+            }
+            $.alert("当乘客确认到达后行程费用会自动转入您的余额中","操作提醒",function(){
+                $(".loading2").show();
+                $.ajax({
+                    type:"POST",
+                    url:"/Portal/getend",
+                    data:{
+                        oid:oid ,
+                    },
+                    dataType:"json",
+                    success : function(result) {
+                        console.log(result)
+                        if (result.code != 0) {
+                            $(".loading2").hide();
+                            $.alert(result.msg,"操作异常");
+                        }
+                        else {
+                            $(".loading2").hide();
+                            $.toast("操作成功", 30000);
+                            window.location.href = "/Portal/driverorderdetail/"+oid;
+
+                        }
+                    },
+                    error : function(result) {
+                        $(".loading2").hide();
+                        $.alert("网络繁忙，请重试","操作异常");
+                    }
+                });
+            });
+        }
+        function cancle() {
+            var oid = {{.oinfo.Id}};
+            var confirmNum = {{.oinfo.ConfirmPnum}};
+            var msg = "";
+            if (confirmNum > 0) {
+                msg = "此行程已有确认的乘客<br>若取消，您在未来7天内将禁止再次发布行程"
+            } else {
+                msg = "不在等等了吗？"
+            }
+            $.confirm(msg, "确认取消?", function() {
+                $(".loading2").show();
+                $.ajax({
+                    type:"POST",
+                    url:"/Portal/drivercancle",
+                    data:{
+                        oid:oid ,
+                        confirmNum:confirmNum,
+                    },
+                    dataType:"json",
+                    success : function(result) {
+                        console.log(result)
+                        if (result.code != 0) {
+                            $(".loading2").hide();
+                            $.alert(result.msg,"操作异常");
+                        }
+                        else {
+                            $(".loading2").hide();
+                            $.toast("操作成功", 30000);
+                            window.location.href = "/Portal/driverorderdetail/"+oid;
+
+                        }
+                    },
+                    error : function(result) {
+                        $(".loading2").hide();
+                        $.alert("网络繁忙，请重试","操作异常");
+                    }
+                });
+            }, function() {
+                //取消操作
+            });
+        }
+
+        $(function(){
+            $(document.body).pullToRefresh({
+                distance: 10,
+                onRefresh:function() {
+                    window.location.reload()
+                    $(document.body).pullToRefreshDone();
+
+                }});
+        });
     </script>
 </head>
 
 <body ontouchstart>
+<div class="weui-pull-to-refresh__layer">
+    <div class='weui-pull-to-refresh__arrow'></div>
+    <div class='weui-pull-to-refresh__preloader'></div>
+    <div class="down">下拉刷新</div>
+    <div class="up">释放刷新</div>
+    <div class="refresh">正在刷新</div>
+</div>
+<div class="loading2 hide" data-text="处理中..."></div>
+{{if lt .onum 1}}
+订单不存在哦
+{{else if ne .isDriver 1}}
+这个订单不属于你哦
+{{else}}
 
-<div class="page-bd-15">
-    <div class="weui-cells__title">
-        {{.url}}
+    <div class="page-hd">
+        {{if eq .oinfo.Status 0}}
+        <a href="javascript:;" class="weui-btn weui-btn_primary" onclick="getStart()">确认到达出发地</a>
+        {{else if eq .oinfo.Status 1}}
+        <a href="javascript:;" class="weui-btn weui-btn_primary" onclick="getEnd()">确认到达目的地</a>
+        {{end}}
+        {{if lt .oinfo.Status 2}}
+        <a href="javascript:;" class="weui-btn weui-btn_default" onclick="cancle()">取消行程</a>
+        {{end}}
     </div>
 
+<div class="page-bd">
+    <div class="weui-form-preview">
+        <div class="weui-form-preview__hd">
+            <label class="weui-form-preview__label">
+                行程详情
+            </label>
+            <em class="weui-form-preview__value f-green">
+                {{ $orderStatus := .oinfo.Status}}
+                {{range $ind, $elem := $.statustext}}
+                    {{if eq $orderStatus $ind}}
+                        {{$elem.Text}}
+                    {{end}}
+                {{end}}
+            </em>
+        </div>
+        <div class="weui-form-preview__bd bg-gray">
+            <div class="weui-form-preview__item">
+                <label class="weui-form-preview__label">单号：</label>
+                <label class="weui-form-preview__label">{{.oinfo.Id}}</label>
+            </div>
+            <div class="weui-form-preview__item">
+                <label class="weui-form-preview__label">出发时间：</label>
+                <label class="weui-form-preview__label">{{.oinfo.LaunchTime}}</label>
+            </div>
+            <div class="weui-form-preview__item">
+                <label class="weui-form-preview__label">出发地：</label>
+                <label class="weui-form-preview__label">{{.oinfo.SrcId.Level1}} {{.oinfo.SrcId.Level2}} {{.oinfo.SrcId.Name}}</label>
+            </div>
+            <div class="weui-form-preview__item">
+                <label class="weui-form-preview__label">目的地：</label>
+                <label class="weui-form-preview__label">{{.oinfo.DestId.Level1}} {{.oinfo.DestId.Level2}} {{.oinfo.DestId.Name}}</label>
+            </div>
+            <div class="weui-form-preview__item">
+                <label class="weui-form-preview__label">座位总数：{{.oinfo.PNum}}</label>
+                <label class="weui-form-preview__label">单座价格：{{.oinfo.Price}}元</label>
+            </div>
+            <div class="weui-form-preview__item">
+                <label class="weui-form-preview__label">已锁定座位数：{{.oinfo.RequestPnum}}</label>
+                <label class="weui-form-preview__label">已确认座位数：{{.oinfo.ConfirmPnum}}</label>
+            </div>
+            <div class="weui-form-preview__item">
+                <label class="weui-form-preview__label">已拒绝座位数：{{.oinfo.RefusePnum}}</label>
+                <label class="weui-form-preview__label">乘客取消座位数：{{.oinfo.CanclePnum}}</label>
+            </div>
+        </div>
+    </div>
 </div>
+<div class="page-bd">
+    {{if lt .odnum 1}}
+    <div class="weui-cells__title">暂无发起申请的乘客</div>
+    {{else}}
+        <div class="weui-cells__title">发起请求乘客列表</div>
+    <div class="weui-panel weui-panel_access">
+        <div class="weui-panel__bd">
+            {{range .odlist}}
+            <a href="javascript:void(0);" class="weui-media-box weui-media-box_appmsg">
+                <div class="weui-media-box__hd">
+                    <div class="weui-avatar-circle">
+                        <img src="{{.Passage.WechatImg}}">
+                    </div>
+                </div>
+                {{if eq .Status 0}}
+                <div class="weui-media-box__bd" onclick="allOption({{.Passage.Id}} , {{.Id}})">
+                {{else if eq .Status 1 2 3}}
+                    <div class="weui-media-box__bd" onclick="chatAndCommentOption({{.Passage.Id}}, {{.Id}})">
+                        {{else if eq .Status 4}}
+                        <div class="weui-media-box__bd" onclick="commentOption({{.Id}})">
+                {{else}}
+                <div class="weui-media-box__bd">
+                {{end}}
+                    <h2 class="weui-media-box__title">当前状态：
+                        {{if eq .Status 0}}
+                        <span class="f-blue">
+                           {{else if gt .Status 4}}
+                               <span class="f-red">
+                                   {{else}}
+                                       <span class="f-green">
+                                           {{end}}
+                        {{ $odStatus := .Status}}
+                                   {{range $ind, $elem := $.odstatustest}}
+                                       {{if eq $odStatus $ind}}
+                                           {{$elem.Text}}
+                                       {{end}}
+                                   {{end}}
+                            </span>
+
+                    </h2>
+                    <h2 class="weui-media-box__title">乘客名：{{.Passage.Nickname}}</h2>
+                    <h2 class="weui-media-box__title">乘客电话：{{.Passage.Phone}}</h2>
+                    <h2 class="weui-media-box__title">请求座位数：{{.SiteNum}}</h2>
+                    <p class="weui-media-box__desc">乘客星级：{{.Passage.StarAsP}}</p>
+                    <p class="weui-media-box__desc">历史拼车次数：{{.Passage.OrderNumAsP}}</p>
+                </div>
+                <ul class="weui-media-box__info">
+                    {{if eq .Status 0}}
+                    <li class="weui-media-box__info__meta weui-media-box__info__meta_extra" onclick="allOption({{.Passage.Id}} , {{.Id}})"><span class="f-blue">更多操作<i class="icon icon-108"></i></span></li>
+                    {{else if eq .Status 1 2 3}}
+                        <li class="weui-media-box__info__meta weui-media-box__info__meta_extra" onclick="chatAndCommentOption({{.Passage.Id}}, {{.Id}})"><span class="f-blue">更多操作<i class="icon icon-108"></i></span></li>
+                    {{else if eq .Status 4}}
+                        <li class="weui-media-box__info__meta weui-media-box__info__meta_extra" onclick="commentOption({{.Id}})"><span class="f-blue">更多操作<i class="icon icon-108"></i></span></li>
+                    {{else}}
+                        <li class="weui-media-box__info__meta weui-media-box__info__meta_extra"><span class="f-gray">下次再见<i class="icon icon-108"></i></span></li>
+                    {{end}}
+                </ul>
+            </a>
+            {{end}}
+        </div>
+    </div>
+    {{end}}
+</div>
+{{end}}
 {{template "bottomNav.html" .}}
 
 </body>

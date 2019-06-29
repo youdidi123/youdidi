@@ -1,0 +1,52 @@
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>车主审核</title>
+</head>
+<body>
+
+<input type="button" value="通过">
+<br>
+<input type="button" value="拒绝">
+<br>
+<textarea rows="3" placeholder="若拒绝，需写拒绝理由">
+
+</textarea>
+
+<table border="1">
+    <tr>
+        <th>单号</th>
+        <th>车主ID</th>
+        <th>真实姓名</th>
+        <th>身份证号</th>
+        <th>车辆品牌</th>
+        <th>车牌号</th>
+        <th>申请时间</th>
+    </tr>
+    <tr>
+        <td>{{.list.Id}}</td>
+        <td>{{.list.User.Id}}</td>
+        <td>{{.list.RealName}}</td>
+        <td>{{.list.SfzNum}}</td>
+        <td>{{.list.CarType}}</td>
+        <td>{{.list.CarNum}}</td>
+        <td>{{.list.Time}}</td>
+    </tr>
+</table>
+<table border="1">
+    <tr>
+        <td>身份证</td>
+        <td><img src="{{.list.SfzImg}}" height="500px" width="500px"\></td>
+    </tr>
+    <tr>
+        <td>驾照</td>
+        <td><img src="{{.list.DriverLiceseImg}}" height="500px" width="500px"\></td>
+    </tr>
+    <tr>
+        <td>行驶证</td>
+        <td><img src="{{.list.CarLiceseImg}}" height="500px" width="500px"\></td>
+    </tr>
+</table>
+
+</body>
+</html>

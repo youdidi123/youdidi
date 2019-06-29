@@ -1,0 +1,99 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>长庆出行</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=0">
+    <link rel="stylesheet" href="/css/weui/weui.css"/>
+    <link rel="stylesheet" href="/css/weui/weuix.css"/>
+
+    <script src="/js/weui/zepto.min.js"></script>
+    <script src="/js/weui/zepto.weui.js"></script>
+    <script src="/js/weui/iscroll-lite.js"></script>
+    <script src="/js/weui/lrz.min.js"></script>
+    <script>
+        function gotoChat(oid, pid) {
+            this.window.location.href="/Portal/chat/"+pid+"/"+oid+"/passenger";
+        }
+        $(function(){
+            $(document.body).pullToRefresh({
+                distance: 10,
+                onRefresh:function() {
+                    window.location.reload()
+                    $(document.body).pullToRefreshDone();
+
+                }});
+        });
+    </script>
+</head>
+
+<body ontouchstart>
+<div class="weui-pull-to-refresh__layer">
+    <div class='weui-pull-to-refresh__arrow'></div>
+    <div class='weui-pull-to-refresh__preloader'></div>
+    <div class="down">下拉刷新</div>
+    <div class="up">释放刷新</div>
+    <div class="refresh">正在刷新</div>
+</div>
+<div class="loading2 hide" data-text="操作中..."></div>
+{{ if lt .num 1}}
+这个订单不属于你哦
+{{else}}
+<div class="page-hd">
+    {{if lt .List.Status 4}}
+    <div class="weui-media-box__bd" onclick="gotoChat({{.List.Order.Id}}, {{.List.Passage.Id}})">
+        <div class="weui-avatar center">
+            <img src="/img/weui/favicon.png">
+        </div>
+        <label class="label f-blue v-center u">查看留言</label>
+        <p class="weui-media-box__desc v-center"><span class="f-black"> 车主：</span>{{.List.Driver.Nickname}}
+            {{if ne .List.Driver.IsDriver 2}}
+                <span class="f-red">(未认证车主)</span>
+            {{else}}
+                <span class="f-green">(认证车主)</span>
+            {{end}}
+        </p>
+        <p class="weui-media-box__desc v-center"><span class="f-black"> 车主电话：</span>{{.List.Driver.Phone}}</p>
+    </div>
+    {{else}}
+        <div class="weui-media-box__bd">
+            <div class="weui-avatar center">
+                <img src="/img/weui/favicon.png">
+            </div>
+            <br>
+            <p class="weui-media-box__desc v-center"><span class="f-black"> 车主：</span>{{.List.Driver.Nickname}}
+                {{if ne .List.Driver.IsDriver 2}}
+                    <span class="f-red">(未认证车主)</span>
+                {{else}}
+                    <span class="f-green">(认证车主)</span>
+                {{end}}
+            </p>
+        </div>
+    {{end}}
+</div>
+<div class="page-bd">
+    <div class="weui-panel weui-panel_access">
+        <div class="weui-panel__bd">
+            <a href="javascript:void(0);" class="weui-media-box weui-media-box_appmsg">
+                {{template "passengerTimeline.html" .}}
+                <div class="weui-media-box__bd">
+                    <p class="weui-media-box__desc"><span class="f-black"> 出发时间：</span>{{.List.Order.LaunchTime}}</p>
+                    <p class="weui-media-box__desc"><span class="f-black"> 出发地：</span>{{.List.Order.SrcId.Level2}}-{{.List.Order.SrcId.Name}}</p>
+                    <p class="weui-media-box__desc"><span class="f-black"> 目的地：</span>{{.List.Order.DestId.Level2}}-{{.List.Order.DestId.Name}}</p>
+                    {{if lt .List.Status 4}}
+                    <p class="weui-media-box__desc"><span class="f-black"> 车牌号：</span>{{.List.Driver.CarNum}}
+                    {{end}}
+                    <p class="weui-media-box__desc"><span class="f-black"> 车辆品牌：</span>{{.List.Driver.CarType}}</p>
+                </div>
+            </a>
+        </div>
+    </div>
+</div>
+<div class="page-bd-15">
+    {{template "passengerButton.html" .}}
+</div>
+{{end}}
+{{template "bottomNav.html" .}}
+</body>
+
+</html>

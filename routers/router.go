@@ -10,6 +10,41 @@ import (
 )
 
 func init() {
+	var AdminLoginFilter = func(ctx *context.Context)() {
+		id, isId := ctx.GetSecureCookie("qyt","qyt_admin_id")
+		if (! isId) {
+			ctx.Redirect(302, "/AdminLogin/")
+			logs.Debug("can not get id from cookie")
+		} else {
+			logs.Debug("id of cookis : %v" , id)
+			token , isToken := ctx.GetSecureCookie("qyt" , "qyt_admin_token")
+			if (! isToken) {
+				logs.Debug("can not get token from cookie")
+				ctx.Redirect(302, "/AdminLogin")
+			} else {
+				content := redisClient.GetKey(controllers.AdminLoginPrefix+id)
+				if (content == "nil") {
+					logs.Debug("cache is empty")
+					ctx.Redirect(302, "/AdminLogin")
+				} else {
+					info := &controllers.AdminUserLoginInfo{}
+					err := json.Unmarshal([]byte(content), &info)
+					if (err != nil) {
+
+						ctx.Redirect(302, "/AdminLogin")
+					} else {
+						if (token != info.Token) {
+							logs.Debug("token did not match of cookie and cache")
+							ctx.Redirect(302, "/AdminLogin")
+						} else {
+							redisClient.Setexpire(controllers.AdminLoginPrefix+id , controllers.AdminLoginPeriod)
+						}
+					}
+				}
+			}
+		}
+	}
+
 	var LoginFilter = func(ctx *context.Context)() {
 		id, isId := ctx.GetSecureCookie("qyt","qyt_id")
 		if (! isId) {
@@ -73,6 +108,7 @@ func init() {
 		redisClient.Setexpire(controllers.LoginPrefix+id , controllers.LoginPeriod)
 	}
 
+	beego.InsertFilter("/admin/*", beego.BeforeExec, AdminLoginFilter)
 	beego.InsertFilter("/Portal/*", beego.BeforeExec, LoginFilter)
 	beego.InsertFilter("/Portal/*", beego.BeforeExec, PhoneVerFilter)
 	beego.InsertFilter("/Portal/*", beego.AfterExec, ResetInfoFilter)
@@ -82,12 +118,13 @@ func init() {
 
     beego.Router("/wxverifytest", &controllers.WxVerifyTestController{})
     //beego.Router("/wxlogin", &controllers.WxLoginController{})
-	beego.Router("/", &controllers.OrderController{}, "GET:SearchOrder")
+	beego.Router("/", &controllers.OrderController{}, "GET:SearchInput")
 	beego.Include(&controllers.WxLoginController{})
 	beego.Include(&controllers.UserCenterController{})
 	beego.Include(&controllers.MainController{})
 	beego.Include(&controllers.ImgConfirmController{})
 	beego.Include(&controllers.OrderController{})
-
-
+	beego.Include(&controllers.ChatController{})
+	beego.Include(&controllers.AccountFlowController{})
+	beego.Include(&controllers.AdminUserController{})
 }

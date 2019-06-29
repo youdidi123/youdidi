@@ -1,0 +1,176 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>长庆出行</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=0">
+    <link rel="stylesheet" href="/css/weui/weui.css"/>
+    <link rel="stylesheet" href="/css/weui/weuix.css"/>
+    <link rel="stylesheet" href="http://8.url.cn/edu/classroom/assets/lib/reset.css">
+    <link rel="stylesheet" href="/css/style.css">
+
+    <script src="/js/weui/zepto.min.js"></script>
+    <script src="/js/weui/zepto.weui.js"></script>
+    <script src="/js/weui/iscroll-lite.js"></script>
+    <script src="/js/weui/lrz.min.js"></script>
+    <script>
+        function init() {
+            $("#content").scrollTop($("#content")[0].scrollHeight);
+            $("#huifu")[0].focus();
+            window.setInterval(function() {
+                var type = {{.rType}};
+                var oid = {{.oid}};
+                var pid= {{.pid}};
+                var pageType = {{.type}};
+                var content = "";
+                $.ajax({
+                    type:"POST",
+                    url:"/Portal/refreshMsg",
+                    data:{
+                        oid:oid ,
+                        pid:pid ,
+                        type:type
+                    },
+                    dataType:"json",
+                    success : function(result) {
+                        if (result.code == 0) {
+                            for(var p in result.data){
+                                if (pageType == "driver") {
+                                    if (result.data[p].Type == 0) {
+                                       content = content + "<div class=\"message-item message-item--left\">\n" +
+                                           "        <img class=\"avatar\" src=\"{{.pimg}}\" alt=\"头像\">\n" +
+                                           "        <div class=\"message-bubble\">"+result.data[p].Content+"</div>\n" +
+                                           "    </div>";
+                                    } else {
+                                        content = content + "<div class=\"message-item message-item--right\">\n" +
+                                            "        <img class=\"avatar\" src=\"{{.dimg}}\" alt=\"头像\">\n" +
+                                            "        <div class=\"message-bubble\">"+result.data[p].Content+"</div>\n" +
+                                            "    </div>";
+                                    }
+                                }else {
+                                    if (result.data[p].Type == 0) {
+                                        content = content + "<div class=\"message-item message-item--right\">\n" +
+                                            "        <img class=\"avatar\" src=\"{{.pimg}}\" alt=\"头像\">\n" +
+                                            "        <div class=\"message-bubble\">"+result.data[p].Content+"</div>\n" +
+                                            "    </div>";
+                                    } else {
+                                        content = content + "<div class=\"message-item message-item--left\">\n" +
+                                            "        <img class=\"avatar\" src=\"{{.dimg}}\" alt=\"头像\">\n" +
+                                            "        <div class=\"message-bubble\">"+result.data[p].Content+"</div>\n" +
+                                            "    </div>";
+                                    }
+                                }
+                            }
+                            $("#content").empty();
+                            $("#content").append(content);
+                            $("#content").scrollTop($("#content")[0].scrollHeight);
+                        }
+                    },
+                    error : function(result) {
+                        $.alert("网络繁忙，请重试","回复失败");
+                    }
+                });
+            },3000);
+        }
+        function goback() {
+            history.go(-1);
+        }
+        function setMsg() {
+            var type = {{.rType}};
+            var oid = {{.oid}};
+            var pid= {{.pid}};
+            var msg = $("#huifu").val();
+            $.ajax({
+                type:"POST",
+                url:"/Portal/setMsg",
+                data:{
+                    oid:oid ,
+                    pid:pid ,
+                    msg:msg ,
+                    type:type
+                },
+                dataType:"json",
+                success : function(result) {
+                    if (result.code != 0) {
+                        $.alert("留言失败，请重试","留言失败");
+                    }
+                    else {
+                        var content = "<div class=\"message-item message-item--right\">\n" +
+                            "        <img class=\"avatar\" src=\"{{.dimg}}\" alt=\"头像\">\n" +
+                            "        <div class=\"message-bubble\">"+msg+"</div>\n" +
+                            "    </div>";
+                        $("#content").append(content);
+                        $("#content").scrollTop($("#content")[0].scrollHeight);
+                        $("#huifu").val("");
+                    }
+                },
+                error : function(result) {
+                    $.alert("网络繁忙，请重试","回复失败");
+                }
+            });
+        }
+    </script>
+</head>
+
+<body ontouchstart onload="init()">
+<div class="page-hd">
+    <header>
+        <div class="nav-back" onclick="goback()">
+            <i class="icon icon-back"></i>
+            <span>返回</span>
+        </div>
+        <h1>{{.title}}</h1>
+    </header>
+</div>
+<div class="page-bg" name="content" id="content" style="overflow-y: scroll;overflow-x: hidden; max-height:88%;">
+    {{ $pageType := .type}}
+    {{ $pImg := .pimg}}
+    {{ $dImg := .dimg}}
+    {{range .info}}
+        {{if eq $pageType "driver"}}
+            {{if eq .Type 0}}
+    <div class="message-item message-item--left">
+        <img class="avatar" src="{{$pImg}}" alt="头像">
+        <div class="message-bubble">{{.Content}}</div>
+    </div>
+            {{else}}
+    <div class="message-item message-item--right">
+        <img class="avatar" src="{{$dImg}}" alt="头像">
+        <div class="message-bubble">{{.Content}}</div>
+    </div>
+            {{end}}
+        {{else}}
+            {{if eq .Type 0}}
+    <div class="message-item message-item--right">
+         <img class="avatar" src="{{$pImg}}" alt="头像">
+         <div class="message-bubble">{{.Content}}</div>
+    </div>
+            {{else}}
+    <div class="message-item message-item--left">
+         <img class="avatar" src="{{$dImg}}" alt="头像">
+         <div class="message-bubble">{{.Content}}</div>
+    </div>
+            {{end}}
+        {{end}}
+    {{end}}
+</div>
+
+<div class="page-bd" style="height:40px">
+    <div class="weui-tab tab-bottom " style="height:40px" id="bottom">
+        <div class="weui-tab__panel">
+
+        </div>
+        <div class="weui-tabbar" style="height:40px">
+            <div class="weui-cell weui-cell_vcode" style="width:100%">
+                <div class="weui-cell__bd" style="width:60%">
+                    <input class="weui-input" placeholder="" id="huifu">
+                </div>
+                <div class="weui-cell__ft" style="width:40%">
+                    <button  class="weui-vcode-btn" onclick="setMsg()">立即回复</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

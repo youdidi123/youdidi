@@ -1,0 +1,225 @@
+<div class="weui-media-box__bd f14">
+    <div class="timeline">
+        {{if eq .List.Status 0 }}
+            <ul>
+                <li class="timeline-item">
+                    <div class="timeline-item-color-red timeline-item-head"></div>
+                    <div class="timeline-item-tail-red" ></div>
+                    <div class="timeline-item-content"><h5>完成</h5>
+                        <p></p></div>
+                </li>
+                <li class="timeline-item">
+                    <div class="timeline-item-color-red timeline-item-head"></div>
+                    <div class="timeline-item-tail-red" ></div>
+                    <div class="timeline-item-content"><h5>待乘客确认</h5>
+                        <p></p></div>
+                </li>
+                <li class="timeline-item">
+                    <div class="timeline-item-color-red timeline-item-head"></div>
+                    <div class="timeline-item-tail-red" ></div>
+                    <div class="timeline-item-content"><h5>行程中</h5>
+                        <p></p></div>
+                </li>
+                <li class="timeline-item">
+                    <div class="timeline-item-color-red timeline-item-head"></div>
+                    <div class="timeline-item-tail-red" ></div>
+                    <div class="timeline-item-content"><h5>车主确认请求</h5>
+                        <p></p></div>
+                </li>
+                <li class="timeline-item">
+                    <div class="timeline-item-color timeline-item-head-first">
+                        <i class="timeline-item-checked   weui-icon-success-no-circle"></i>
+                    </div>
+                    <div class="timeline-item-tail" ></div>
+                    <div class="timeline-item-content"><h5 class="recent">乘客发起拼车请求</h5>
+                        <p></p></div>
+                </li>
+            </ul>
+        {{else if eq .List.Status 1}}
+            <ul>
+                <li class="timeline-item">
+                    <div class="timeline-item-color-red timeline-item-head"></div>
+                    <div class="timeline-item-tail-red" ></div>
+                    <div class="timeline-item-content"><h5>完成</h5>
+                        <p></p></div>
+                </li>
+                <li class="timeline-item">
+                    <div class="timeline-item-color-red timeline-item-head"></div>
+                    <div class="timeline-item-tail-red" ></div>
+                    <div class="timeline-item-content"><h5>待乘客确认</h5>
+                        <p></p></div>
+                </li>
+                <li class="timeline-item">
+                    <div class="timeline-item-color-red timeline-item-head"></div>
+                    <div class="timeline-item-tail-red" ></div>
+                    <div class="timeline-item-content"><h5>行程中</h5>
+                        <p></p></div>
+                </li>
+                <li class="timeline-item">
+                    <div class="timeline-item-color timeline-item-head-first">
+                        <i class="timeline-item-checked   weui-icon-success-no-circle"></i>
+                    </div>
+                    <div class="timeline-item-tail" ></div>
+                    <div class="timeline-item-content"><h5 class="recent">车主确认请求</h5>
+                        <p></p></div>
+                </li>
+                <li class="timeline-item">
+                    <div class="timeline-item-color timeline-item-head"></div>
+                    <div class="timeline-item-tail" ></div>
+                    <div class="timeline-item-content"><h5>乘客发起拼车请求</h5>
+                        <p></p></div>
+                </li>
+            </ul>
+        {{else if eq .List.Status 2}}
+            <ul>
+                <li class="timeline-item">
+                    <div class="timeline-item-color-red timeline-item-head"></div>
+                    <div class="timeline-item-tail-red" ></div>
+                    <div class="timeline-item-content"><h5>完成</h5>
+                        <p></p></div>
+                </li>
+                <li class="timeline-item">
+                    <div class="timeline-item-color-red timeline-item-head"></div>
+                    <div class="timeline-item-tail-red" ></div>
+                    <div class="timeline-item-content"><h5>待乘客确认</h5>
+                        <p></p></div>
+                </li>
+                <li class="timeline-item">
+                    <div class="timeline-item-color timeline-item-head-first">
+                        <i class="timeline-item-checked   weui-icon-success-no-circle"></i>
+                    </div>
+                    <div class="timeline-item-tail" ></div>
+                    <div class="timeline-item-content"><h5 class="recent">行程中</h5>
+                        <p></p></div>
+                </li>
+                <li class="timeline-item">
+                    <div class="timeline-item-color timeline-item-head"></div>
+                    <div class="timeline-item-tail" ></div>
+                    <div class="timeline-item-content"><h5>车主确认请求</h5>
+                        <p></p></div>
+                </li>
+                <li class="timeline-item">
+                    <div class="timeline-item-color timeline-item-head"></div>
+                    <div class="timeline-item-tail" ></div>
+                    <div class="timeline-item-content"><h5>乘客发起拼车请求</h5>
+                        <p></p></div>
+                </li>
+            </ul>
+        {{else if eq .List.Status 3}}
+        <ul>
+            <li class="timeline-item">
+                <div class="timeline-item-color-red timeline-item-head"></div>
+                <div class="timeline-item-tail-red" ></div>
+                <div class="timeline-item-content"><h5>完成</h5>
+                    <p></p></div>
+            </li>
+            <li class="timeline-item">
+                <div class="timeline-item-color timeline-item-head-first">
+                    <i class="timeline-item-checked   weui-icon-success-no-circle"></i>
+                </div>
+                <div class="timeline-item-tail" ></div>
+                <div class="timeline-item-content"><h5 class="recent">待乘客确认</h5>
+                    <p></p></div>
+            </li>
+            <li class="timeline-item">
+                <div class="timeline-item-color timeline-item-head"></div>
+                <div class="timeline-item-tail" ></div>
+                <div class="timeline-item-content"><h5>行程中</h5>
+                    <p></p></div>
+            </li>
+            <li class="timeline-item">
+                <div class="timeline-item-color timeline-item-head"></div>
+                <div class="timeline-item-tail" ></div>
+                <div class="timeline-item-content"><h5>车主确认请求</h5>
+                    <p></p></div>
+            </li>
+            <li class="timeline-item">
+                <div class="timeline-item-color timeline-item-head"></div>
+                <div class="timeline-item-tail" ></div>
+                <div class="timeline-item-content"><h5>乘客发起拼车请求</h5>
+                    <p></p></div>
+            </li>
+        </ul>
+        {{else if eq .List.Status 4}}
+            <ul>
+                <li class="timeline-item">
+                    <div class="timeline-item-color timeline-item-head-first">
+                        <i class="timeline-item-checked   weui-icon-success-no-circle"></i>
+                    </div>
+                    <div class="timeline-item-tail" ></div>
+                    <div class="timeline-item-content"><h5 class="recent">完成</h5>
+                        <p></p></div>
+                </li>
+                <li class="timeline-item">
+                    <div class="timeline-item-color timeline-item-head"></div>
+                    <div class="timeline-item-tail" ></div>
+                    <div class="timeline-item-content"><h5>待乘客确认</h5>
+                        <p></p></div>
+                </li>
+                <li class="timeline-item">
+                    <div class="timeline-item-color timeline-item-head"></div>
+                    <div class="timeline-item-tail" ></div>
+                    <div class="timeline-item-content"><h5>行程中</h5>
+                        <p></p></div>
+                </li>
+                <li class="timeline-item">
+                    <div class="timeline-item-color timeline-item-head"></div>
+                    <div class="timeline-item-tail" ></div>
+                    <div class="timeline-item-content"><h5>车主确认请求</h5>
+                        <p></p></div>
+                </li>
+                <li class="timeline-item">
+                    <div class="timeline-item-color timeline-item-head"></div>
+                    <div class="timeline-item-tail" ></div>
+                    <div class="timeline-item-content"><h5>乘客发起拼车请求</h5>
+                        <p></p></div>
+                </li>
+            </ul>
+        {{else if eq .List.Status 5}}
+            <ul>
+                <li class="timeline-item">
+                    <div class="timeline-item-color-red timeline-item-head"></div>
+                    <div class="timeline-item-tail-red" ></div>
+                    <div class="timeline-item-content"><h5>车主拒绝请求</h5>
+                        <p></p></div>
+                </li>
+                <li class="timeline-item">
+                    <div class="timeline-item-color timeline-item-head"></div>
+                    <div class="timeline-item-tail" ></div>
+                    <div class="timeline-item-content"><h5>乘客发起拼车请求</h5>
+                        <p></p></div>
+                </li>
+            </ul>
+        {{else if eq .List.Status 6}}
+            <ul>
+                <li class="timeline-item">
+                    <div class="timeline-item-color-red timeline-item-head"></div>
+                    <div class="timeline-item-tail-red" ></div>
+                    <div class="timeline-item-content"><h5>乘客取消行程</h5>
+                        <p></p></div>
+                </li>
+                <li class="timeline-item">
+                    <div class="timeline-item-color timeline-item-head"></div>
+                    <div class="timeline-item-tail" ></div>
+                    <div class="timeline-item-content"><h5>乘客发起拼车请求</h5>
+                        <p></p></div>
+                </li>
+            </ul>
+        {{else if eq .List.Status 7}}
+            <ul>
+                <li class="timeline-item">
+                    <div class="timeline-item-color-red timeline-item-head"></div>
+                    <div class="timeline-item-tail-red" ></div>
+                    <div class="timeline-item-content"><h5>车主取消行程</h5>
+                        <p></p></div>
+                </li>
+                <li class="timeline-item">
+                    <div class="timeline-item-color timeline-item-head"></div>
+                    <div class="timeline-item-tail" ></div>
+                    <div class="timeline-item-content"><h5>乘客发起拼车请求</h5>
+                        <p></p></div>
+                </li>
+            </ul>
+        {{end}}
+    </div>
+</div>

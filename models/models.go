@@ -42,8 +42,10 @@ type User struct {
 	IsVip bool `orm:"column(isVip)" json:"isVip"`
 	VipDate string `orm:"column(vipDate)" json:"vipDate"`
 	CarType string `orm:"column(carType)" json:"carType"`
+	DisableTime string `orm:"column(disableTime)" json:"disableTime"`
 	Orders []*Order `orm:"reverse(many)"`
 	Order_details []*Order_detail `orm:"reverse(many)"`
+	Account_flows []*Account_flow `orm:"reverse(many)"`
 }
 
 type Order struct {
@@ -54,6 +56,8 @@ type Order struct {
 	PNum int `column(pNum);" json:"pNum"`
 	SrcId *Location `json:"srcId" orm:"rel(fk)"`
 	DestId *Location `json:"DestId" orm:"rel(fk)"`
+	SrcLocationId int64 `column(srcLocationId);" json:"srcLocationId"`
+	DestLocationId int64 `column(destLocationId);" json:"destLocationId"`
 	ThroughL string `column(throughL);" json:"throughL"`
 	Status int `column(status);" json:"status"`
 	RequestPnum int `column(requestPnum);" json:"requestPnum"`
@@ -66,6 +70,7 @@ type Order struct {
 	Marks string `column(marks);" json:"marks"`
 	CancleReason string `column(cancleReason);" json:"cancleReason"`
 	Order_details []*Order_detail `orm:"reverse(many)"`
+	Chats []*Chat `orm:"reverse(many)"`
 }
 
 type Location struct {
@@ -81,6 +86,7 @@ type Order_detail struct {
 	Order *Order `json:"order" orm:"rel(fk)"`
 	Driver *User `json:"driver" orm:"rel(fk)"`
 	Passage *User `json:"passage" orm:"rel(fk)"`
+	SiteNum int `column(siteNum);" json:"siteNum"`
 	ModifyPrice float64 `column(ModifyPrice);" json:"ModifyPrice"`
 	isModifyConfirm bool `column(isModifyConfirm);" json:"isModifyConfirm"`
 	DStarNum int `column(dStarNum);" json:"dStarNum"`
@@ -95,6 +101,49 @@ type Order_detail struct {
 	Chat string `column(chat);" json:"chat"`
 }
 
+type Account_flow struct {
+	Id int `orm:"auto;pk;column(id);" json:"id"`
+	Time string `column(time);" json:"time"`
+	User *User `json:"order" orm:"rel(fk)"`
+	Type int `column(type);" json:"type"` //0:用户充值 1:用户提现 2:预付款 3:确认付款 4:退款 5:收款 6:付违约款 7:收违约款 8:用户提现到账 9:平台信息费
+	Oid string `column(oid);" json:"oid"` //0，1,8对应Cash_flow ID 其余对应Order ID
+	Money float64 `column(money);" json:"money"`
+	Balance float64 `column(balance);" json:"balance"` //记录每一次操作后的用户余额；type为3，6，8,9此字段不填
+}
+
+type Chat struct {
+	Id int `orm:"auto;pk;column(id);" json:"id"`
+	Order *Order `json:"order" orm:"rel(fk)"`
+	Passenger *User `json:"passenger" orm:"rel(fk)"`
+	Content string `column(content);" json:"content"`
+	Type int `column(type);" json:"type"` //0:乘客发送的消息 1：司机发送的消息
+	TimeStamp string `column(timeStamp);" json:"timeStamp"`
+}
+
+type Driver_confirm struct {
+	Id int `orm:"auto;pk;column(id);" json:"id"`
+	Time string `column(time);" json:"time"`
+	RealName string `column(realName);" json:"realName"`
+	CarNum string `column(carNum);" json:"carNum"`
+	SfzNum string `column(sfzNum);" json:"sfzNum"`
+	CarType string `column(carType);" json:"carType"`
+	SfzImg string `orm:"column(sfzImg)" json:"sfzImg"`
+	DriverLiceseImg string `orm:"column(driverLiceseImg)" json:"driverLiceseImg"`
+	CarLiceseImg string `orm:"column(carLiceseImg)" json:"carLiceseImg"`
+	Status int `column(status);" json:"status"` //0：审核中 1：审核通过 2：审核失败
+	RejectReason string `column(rejectReason);" json:"rejectReason"`
+	User *User `json:"user" orm:"rel(fk)"`
+}
+
+type Admin_user struct {
+	Id int `orm:"auto;pk;column(id);" json:"id"`
+	Name string `column(name);" json:"name"`
+	Passwd string `column(passwd);" json:"passwd"`
+	Phone string `column(phone);" json:"phone"`
+	Email string `column(email);" json:"email"`
+	Type int `column(type);" json:"type"`
+
+}
 
 func init () {
 	mysqluser := beego.AppConfig.String("mysqluser")
@@ -103,7 +152,16 @@ func init () {
 	mysqldb := beego.AppConfig.String("mysqldb")
 
 	//所有的数据表需要在这里注册
-	orm.RegisterModel(new(User),new(Order),new(Location),new(Order_detail))
+	orm.RegisterModel(
+		new(User),
+		new(Order),
+		new(Location),
+		new(Order_detail),
+		new(Chat),
+		new(Account_flow),
+		new(Driver_confirm),
+		new(Admin_user),
+		)
 	orm.RegisterDriver("mysql", orm.DRMySQL)
 	orm.RegisterDataBase("default", "mysql", mysqluser+":"+mysqlpass+"@tcp("+mysqlurls+")/"+mysqldb+"?charset=utf8&loc=Asia%2FShanghai")
 	orm.RunSyncdb("default", false, true)
