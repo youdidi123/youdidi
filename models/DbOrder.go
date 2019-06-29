@@ -139,7 +139,7 @@ func (u *Order) DoRequire (od Order_detail, pid string, siteNum int , mark strin
 	}
 
 	numuser, erruser := o.QueryTable(userInfo).Filter("id", pid).ForUpdate().All(&userInfos)
-	if (numuser < 0 || erruser != nil) {
+	if (numuser < 1 || erruser != nil) {
 		logs.Error("get user info fail pid=%v" , u.Id , pid)
 		o.Rollback()
 		return false
@@ -157,6 +157,11 @@ func (u *Order) DoRequire (od Order_detail, pid string, siteNum int , mark strin
 	}
 
 	//订单中讲requestPnum+座位数
+	if ((u.PNum - u.RequestPnum) < od.SiteNum) {
+		logs.Error("siteNum is not enough")
+		o.Rollback()
+		return false
+	}
 	num := u.RequestPnum + od.SiteNum
 	_ , err2 := o.QueryTable(u).Filter("id", od.Order.Id).Update(orm.Params{"RequestPnum":num})
 	if (err2 != nil) {
@@ -306,8 +311,8 @@ func (u *Order) DriverCancle (oid string, confirmNum int, driverId string) bool{
 
 	o.Begin()
 
-	_, err1 := o.QueryTable(u).Filter("id", oid).Update(orm.Params{"Status":3})
-	if (err1 != nil) {
+	num1, err1 := o.QueryTable(u).Filter("id", oid).Filter("Status__lt", 2).Update(orm.Params{"Status":3})
+	if (num1< 1 || err1 != nil) {
 		logs.Error("set order status to 3 fail oid=%v" , oid)
 		o.Rollback()
 		return false

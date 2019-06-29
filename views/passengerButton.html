@@ -1,6 +1,6 @@
 <script>
     function pConfirm() {
-        var odid = {{.List.Id}}
+        var odid = {{.List.Id}};
             $.confirm("确认达到目的地后，行程费用将自动转入车主账户", "确认操作?", function() {
                 $(".loading2").show();
                 $.ajax({
@@ -33,6 +33,41 @@
             });
     }
 
+    function pCancle() {
+        var odid = {{.List.Id}};
+        $.confirm("取消前请仔细阅读行程取消规则", "确认取消?", function() {
+            $(".loading2").show();
+            $.ajax({
+                type:"POST",
+                url:"/Portal/passengercancle",
+                data:{
+                    odid:odid ,
+                },
+                dataType:"json",
+                success : function(result) {
+                    console.log(result)
+                    if (result.code != 0) {
+                        $(".loading2").hide();
+                        $.alert(result.msg,"操作异常");
+                    }
+                    else {
+                        $(".loading2").hide();
+                        $.toast("操作成功", 30000);
+                        window.location.href = "/Portal/passengerorderdetail/{{.List.Id}}";
+
+                    }
+                },
+                error : function(result) {
+                    $(".loading2").hide();
+                    $.alert("网络繁忙，请重试","操作异常");
+                }
+            });
+        }, function() {
+            //取消操作
+        });
+    }
+
+
 </script>
 {{if eq .List.Status 2 3}}
     <a href="javascript:;" class="weui-btn weui-btn_primary" onclick="pConfirm()">确认到达目的地</a>
@@ -41,12 +76,9 @@
     <a href="javascript:;" class="weui-btn weui-btn_default" onclick="pCancle()">取消行程</a>
     <p class="page-hd-desc f12"><span class="f-red">***</span> 行程取消规则：</p>
     <p class="page-hd-desc f12">1.距行程出发时间30分钟以上取消，无需支付任何费用</p>
-    <p class="page-hd-desc f12">2.距行程出发时间30分钟以内取消，需支付20%行程费用给车主</p>
-    <p class="page-hd-desc f12">3.行程出发后取消，需支付100%行程费用给车主</p>
+    <p class="page-hd-desc f12">2.距行程出发时间30分钟以内取消且车主以同意拼车请求，需支付20%行程费用给车主</p>
+    <p class="page-hd-desc f12">3.行程出发后取消且车主以同意拼车请求，需支付100%行程费用给车主</p>
 {{end}}
 {{if eq .List.Status 4}}
-    <a href="javascript:;" class="weui-btn weui-btn_primary" onclick="pRecommand()">评价车主</a>
-{{end}}
-{{if gt .List.Status 3}}
-    <a href="javascript:;" class="weui-btn weui-btn_default" onclick="pComplaint()">投诉与建议</a>
+    <a href="/Portal/recommand/{{.List.Id}}/0" class="weui-btn weui-btn_primary">评价车主</a>
 {{end}}

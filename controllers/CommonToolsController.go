@@ -115,8 +115,8 @@ func getSig (id string , token string) (string , string){
 func GetRandomCode () string{
 	s1 := rand.NewSource(time.Now().Unix())
 	r1 := rand.New(s1)
-	min := 1000
-	code := r1.Intn(10000)
+	min := 100000
+	code := r1.Intn(1000000)
 	if (code < min) {
 		code += min
 	}

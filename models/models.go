@@ -105,10 +105,10 @@ type Account_flow struct {
 	Id int `orm:"auto;pk;column(id);" json:"id"`
 	Time string `column(time);" json:"time"`
 	User *User `json:"order" orm:"rel(fk)"`
-	Type int `column(type);" json:"type"` //0:用户充值 1:用户提现 2:预付款 3:确认付款 4:退款 5:收款 6:付违约款 7:收违约款 8:用户提现到账
-	Oid string `column(oid);" json:"oid"` //0，1对应Cash_flow ID 其余对应Order ID
+	Type int `column(type);" json:"type"` //0:用户充值 1:用户提现 2:预付款 3:确认付款 4:退款 5:收款 6:付违约款 7:收违约款 8:用户提现到账 9:平台信息费
+	Oid string `column(oid);" json:"oid"` //0，1,8对应Cash_flow ID 其余对应Order ID
 	Money float64 `column(money);" json:"money"`
-	Balance float64 `column(balance);" json:"balance"` //记录每一次操作后的用户余额；type为3，6，8此字段不填
+	Balance float64 `column(balance);" json:"balance"` //记录每一次操作后的用户余额；type为3，6，8,9此字段不填
 }
 
 type Chat struct {
@@ -120,6 +120,30 @@ type Chat struct {
 	TimeStamp string `column(timeStamp);" json:"timeStamp"`
 }
 
+type Driver_confirm struct {
+	Id int `orm:"auto;pk;column(id);" json:"id"`
+	Time string `column(time);" json:"time"`
+	RealName string `column(realName);" json:"realName"`
+	CarNum string `column(carNum);" json:"carNum"`
+	SfzNum string `column(sfzNum);" json:"sfzNum"`
+	CarType string `column(carType);" json:"carType"`
+	SfzImg string `orm:"column(sfzImg)" json:"sfzImg"`
+	DriverLiceseImg string `orm:"column(driverLiceseImg)" json:"driverLiceseImg"`
+	CarLiceseImg string `orm:"column(carLiceseImg)" json:"carLiceseImg"`
+	Status int `column(status);" json:"status"` //0：审核中 1：审核通过 2：审核失败
+	RejectReason string `column(rejectReason);" json:"rejectReason"`
+	User *User `json:"user" orm:"rel(fk)"`
+}
+
+type Admin_user struct {
+	Id int `orm:"auto;pk;column(id);" json:"id"`
+	Name string `column(name);" json:"name"`
+	Passwd string `column(passwd);" json:"passwd"`
+	Phone string `column(phone);" json:"phone"`
+	Email string `column(email);" json:"email"`
+	Type int `column(type);" json:"type"`
+
+}
 
 func init () {
 	mysqluser := beego.AppConfig.String("mysqluser")
@@ -128,7 +152,16 @@ func init () {
 	mysqldb := beego.AppConfig.String("mysqldb")
 
 	//所有的数据表需要在这里注册
-	orm.RegisterModel(new(User),new(Order),new(Location),new(Order_detail),new(Chat),new(Account_flow))
+	orm.RegisterModel(
+		new(User),
+		new(Order),
+		new(Location),
+		new(Order_detail),
+		new(Chat),
+		new(Account_flow),
+		new(Driver_confirm),
+		new(Admin_user),
+		)
 	orm.RegisterDriver("mysql", orm.DRMySQL)
 	orm.RegisterDataBase("default", "mysql", mysqluser+":"+mysqlpass+"@tcp("+mysqlurls+")/"+mysqldb+"?charset=utf8&loc=Asia%2FShanghai")
 	orm.RunSyncdb("default", false, true)

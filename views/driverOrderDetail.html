@@ -115,7 +115,7 @@
             });
         }
 
-        function chatAndCommentOption(pid) {
+        function chatAndCommentOption(pid, odid) {
             var oid = {{.oinfo.Id}};
             $.actions({
                 title: "选择操作",
@@ -127,7 +127,7 @@
                         text: "点评乘客",
                         className: "color-primary",
                         onClick: function() {
-                            $.alert("oid:" + oid + "pid:" + pid);
+                            window.location.href = "/Portal/recommand/"+odid+"/1";
                         }
                     },
                     {
@@ -136,6 +136,24 @@
                             window.location.href = "/Portal/chat/"+pid+"/"+oid+"/driver";
                         }
                     }
+                ]
+            });
+        }
+
+        function commentOption(odid) {
+            $.actions({
+                title: "选择操作",
+                onClose: function() {
+                    console.log("close");
+                },
+                actions: [
+                    {
+                        text: "点评乘客",
+                        className: "color-primary",
+                        onClick: function() {
+                            window.location.href = "/Portal/recommand/"+odid+"/1";
+                        }
+                    },
                 ]
             });
         }
@@ -149,6 +167,7 @@
             var nowTime = now.getTime() ;
 
             if (launchTime*1000 - nowTime > 10 * 60 * 1000) {
+            //if (launchTime*1000 - nowTime < 10 * 60 * 1000) {
                 $.alert("距行程开始前10分钟内才能确认到达出发地哦","现在不能操作哦",function(){
                     return;
                 });
@@ -195,6 +214,7 @@
             var nowTime = now.getTime() ;
 
             if (nowTime - launchTime*1000 < 20 * 60 * 1000) {
+                //if (nowTime - launchTime*1000 > 20 * 60 * 1000) {
                 $.alert("行程开始后至少20分钟才能确认到达哦","现在不能操作哦",function(){
                     return;
                 });
@@ -269,10 +289,27 @@
                 //取消操作
             });
         }
+
+        $(function(){
+            $(document.body).pullToRefresh({
+                distance: 10,
+                onRefresh:function() {
+                    window.location.reload()
+                    $(document.body).pullToRefreshDone();
+
+                }});
+        });
     </script>
 </head>
 
 <body ontouchstart>
+<div class="weui-pull-to-refresh__layer">
+    <div class='weui-pull-to-refresh__arrow'></div>
+    <div class='weui-pull-to-refresh__preloader'></div>
+    <div class="down">下拉刷新</div>
+    <div class="up">释放刷新</div>
+    <div class="refresh">正在刷新</div>
+</div>
 <div class="loading2 hide" data-text="处理中..."></div>
 {{if lt .onum 1}}
 订单不存在哦
@@ -328,7 +365,7 @@
                 <label class="weui-form-preview__label">单座价格：{{.oinfo.Price}}元</label>
             </div>
             <div class="weui-form-preview__item">
-                <label class="weui-form-preview__label">乘客发起请求数：{{.oinfo.RequestPnum}}</label>
+                <label class="weui-form-preview__label">已锁定座位数：{{.oinfo.RequestPnum}}</label>
                 <label class="weui-form-preview__label">已确认座位数：{{.oinfo.ConfirmPnum}}</label>
             </div>
             <div class="weui-form-preview__item">
@@ -354,10 +391,12 @@
                 </div>
                 {{if eq .Status 0}}
                 <div class="weui-media-box__bd" onclick="allOption({{.Passage.Id}} , {{.Id}})">
-                {{else if eq .Status 1 2 3 4}}
-                    <div class="weui-media-box__bd" onclick="chatAndCommentOption({{.Passage.Id}})">
+                {{else if eq .Status 1 2 3}}
+                    <div class="weui-media-box__bd" onclick="chatAndCommentOption({{.Passage.Id}}, {{.Id}})">
+                        {{else if eq .Status 4}}
+                        <div class="weui-media-box__bd" onclick="commentOption({{.Id}})">
                 {{else}}
-                <div class="weui-media-box__bd" onclick="chatOption({{.Passage.Id}})">
+                <div class="weui-media-box__bd">
                 {{end}}
                     <h2 class="weui-media-box__title">当前状态：
                         {{if eq .Status 0}}
@@ -385,10 +424,12 @@
                 <ul class="weui-media-box__info">
                     {{if eq .Status 0}}
                     <li class="weui-media-box__info__meta weui-media-box__info__meta_extra" onclick="allOption({{.Passage.Id}} , {{.Id}})"><span class="f-blue">更多操作<i class="icon icon-108"></i></span></li>
-                    {{else if eq .Status 1 2 3 4}}
-                        <li class="weui-media-box__info__meta weui-media-box__info__meta_extra" onclick="chatAndCommentOption({{.Passage.Id}})"><span class="f-blue">更多操作<i class="icon icon-108"></i></span></li>
+                    {{else if eq .Status 1 2 3}}
+                        <li class="weui-media-box__info__meta weui-media-box__info__meta_extra" onclick="chatAndCommentOption({{.Passage.Id}}, {{.Id}})"><span class="f-blue">更多操作<i class="icon icon-108"></i></span></li>
+                    {{else if eq .Status 4}}
+                        <li class="weui-media-box__info__meta weui-media-box__info__meta_extra" onclick="commentOption({{.Id}})"><span class="f-blue">更多操作<i class="icon icon-108"></i></span></li>
                     {{else}}
-                        <li class="weui-media-box__info__meta weui-media-box__info__meta_extra" onclick="chatOption({{.Passage.Id}})"><span class="f-blue">更多操作<i class="icon icon-108"></i></span></li>
+                        <li class="weui-media-box__info__meta weui-media-box__info__meta_extra"><span class="f-gray">下次再见<i class="icon icon-108"></i></span></li>
                     {{end}}
                 </ul>
             </a>

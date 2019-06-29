@@ -20,7 +20,7 @@ func (u *User) Insert() (int64, error) {
 
 
 func (u *User) GetUserInfo(name string, list *[]*User) (success string , num int64){
-	num, error := orm.NewOrm().Raw("SELECT * from User where name = ?" , name).QueryRows(list)
+	num, error := orm.NewOrm().QueryTable(u).Filter("Name", name).All(list)
 	if (error != nil) {
 		logs.Error("can not get user info from db name=%s ,error=%s" , name , error)
 		return "false" , 0
@@ -29,7 +29,7 @@ func (u *User) GetUserInfo(name string, list *[]*User) (success string , num int
 }
 
 func (u *User) GetUserInfoFromId (id string, list *[]*User) (success string , num int64){
-	num, error := orm.NewOrm().Raw("SELECT * from User where id = ?" , id).QueryRows(list)
+	num, error := orm.NewOrm().QueryTable(u).Filter("Id", id).All(list)
 	if (error != nil) {
 		logs.Error("can not get user info from db id=%s ,error=%s" , id , error)
 		return "false" , 0

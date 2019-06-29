@@ -15,15 +15,32 @@
         function gotoChat(oid, pid) {
             this.window.location.href="/Portal/chat/"+pid+"/"+oid+"/passenger";
         }
+        $(function(){
+            $(document.body).pullToRefresh({
+                distance: 10,
+                onRefresh:function() {
+                    window.location.reload()
+                    $(document.body).pullToRefreshDone();
+
+                }});
+        });
     </script>
 </head>
 
 <body ontouchstart>
+<div class="weui-pull-to-refresh__layer">
+    <div class='weui-pull-to-refresh__arrow'></div>
+    <div class='weui-pull-to-refresh__preloader'></div>
+    <div class="down">下拉刷新</div>
+    <div class="up">释放刷新</div>
+    <div class="refresh">正在刷新</div>
+</div>
 <div class="loading2 hide" data-text="操作中..."></div>
 {{ if lt .num 1}}
 这个订单不属于你哦
 {{else}}
 <div class="page-hd">
+    {{if lt .List.Status 4}}
     <div class="weui-media-box__bd" onclick="gotoChat({{.List.Order.Id}}, {{.List.Passage.Id}})">
         <div class="weui-avatar center">
             <img src="/img/weui/favicon.png">
@@ -38,6 +55,21 @@
         </p>
         <p class="weui-media-box__desc v-center"><span class="f-black"> 车主电话：</span>{{.List.Driver.Phone}}</p>
     </div>
+    {{else}}
+        <div class="weui-media-box__bd">
+            <div class="weui-avatar center">
+                <img src="/img/weui/favicon.png">
+            </div>
+            <br>
+            <p class="weui-media-box__desc v-center"><span class="f-black"> 车主：</span>{{.List.Driver.Nickname}}
+                {{if ne .List.Driver.IsDriver 2}}
+                    <span class="f-red">(未认证车主)</span>
+                {{else}}
+                    <span class="f-green">(认证车主)</span>
+                {{end}}
+            </p>
+        </div>
+    {{end}}
 </div>
 <div class="page-bd">
     <div class="weui-panel weui-panel_access">
@@ -48,7 +80,9 @@
                     <p class="weui-media-box__desc"><span class="f-black"> 出发时间：</span>{{.List.Order.LaunchTime}}</p>
                     <p class="weui-media-box__desc"><span class="f-black"> 出发地：</span>{{.List.Order.SrcId.Level2}}-{{.List.Order.SrcId.Name}}</p>
                     <p class="weui-media-box__desc"><span class="f-black"> 目的地：</span>{{.List.Order.DestId.Level2}}-{{.List.Order.DestId.Name}}</p>
+                    {{if lt .List.Status 4}}
                     <p class="weui-media-box__desc"><span class="f-black"> 车牌号：</span>{{.List.Driver.CarNum}}
+                    {{end}}
                     <p class="weui-media-box__desc"><span class="f-black"> 车辆品牌：</span>{{.List.Driver.CarType}}</p>
                 </div>
             </a>

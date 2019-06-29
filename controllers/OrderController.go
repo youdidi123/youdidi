@@ -297,6 +297,7 @@ func (this *OrderController) DoRequire () {
 	} else if (onRoadType == 2) {
 		code = 2
 		msg = "您有车主行程尚未结束"
+		logs.Debug("onroadType=%v",onRoadType)
 		this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
 		this.ServeJSON()
 		return
@@ -330,7 +331,7 @@ func (this *OrderController) DoRequire () {
 	dbOrder.GetOrderFromId(oid, &orderInfo)
 
 	//判断当前订单的空余座位数是不是满足要求
-	if (count > (orderInfo[0].PNum - (orderInfo[0].ConfirmPnum + orderInfo[0].RequestPnum))) {
+	if (count > (orderInfo[0].PNum - orderInfo[0].RequestPnum)) {
 		logs.Error("sitnum do not match require rnum=%v restnum=%v" , count ,
 			orderInfo[0].PNum - (orderInfo[0].ConfirmPnum + orderInfo[0].RequestPnum))
 		//优先释放锁，不管成功不成功都要继续
@@ -877,6 +878,150 @@ func (this *OrderController) PassengerConfirm () {
 	}
 
 	DelOrderLock(orderId)
+	this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
+	this.ServeJSON()
+}
+
+// @router /Portal/passengercancle [POST]
+func (this *OrderController) PassengerCancle () {
+	userId, _ := this.Ctx.GetSecureCookie("qyt", "qyt_id")
+	odid := this.GetString("odid")
+
+	code := 0
+	msg := ""
+
+	var dbOd models.Order_detail
+	var odInfo []*models.Order_detail
+
+	num1 := dbOd.GetOrderDetailFromId(odid, &odInfo)
+
+	if (num1 != 1) {
+		code = 1
+		msg = "系统错误，请重试"
+		this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
+		this.ServeJSON()
+		return
+	}
+
+	if (userId != strconv.Itoa(odInfo[0].Passage.Id)) {
+		code = 2
+		msg = "这个行程不属于你哦"
+		this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
+		this.ServeJSON()
+		return
+	}
+
+	orderId := odInfo[0].Order.Id
+
+	if (! SetOrderLock(orderId)) {
+		code = 3
+		msg = "请求超时，请重试"
+		this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
+		this.ServeJSON()
+		return
+	}
+	if (dbOd.PassengerCancle(odid)) {
+		code = 0
+		msg = "操作成功"
+	} else {
+		code = 4
+		msg = "系统错误，请重试"
+	}
+
+	DelOrderLock(orderId)
+	this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
+	this.ServeJSON()
+}
+
+// @router /Portal/recommand/:odid/:uType [GET]
+func (this *OrderController) Recommand () {
+	odid := this.GetString(":odid")
+	uType := this.GetString(":uType")
+
+	var dbOd models.Order_detail
+	var odInfo []*models.Order_detail
+
+	num := dbOd.GetOrderDetailFromId(odid, &odInfo)
+
+	if (num < 1) {
+		this.Data["isRecommand"] = false
+		this.Data["starNum"] = 1
+		this.Data["mark"] = ""
+	} else {
+		if (uType == "0") {
+			this.Data["isRecommand"] = odInfo[0].IsDcommit
+			this.Data["starNum"] = odInfo[0].DStarNum
+			this.Data["mark"] = odInfo[0].DCommit
+			this.Data["tabIndex"] = 1
+		} else {
+			this.Data["isRecommand"] = odInfo[0].IsPcommit
+			this.Data["starNum"] = odInfo[0].PStarNum
+			this.Data["mark"] = odInfo[0].PCommit
+			this.Data["tabIndex"] = 2
+		}
+	}
+	this.Data["odid"] = odid
+	this.Data["uType"] = uType
+	this.TplName = "recommand.html"
+}
+
+// @router /Portal/dorecommand [POST]
+func (this *OrderController) DoRecommand () {
+	userId, _ := this.Ctx.GetSecureCookie("qyt", "qyt_id")
+	starNum, _ := this.GetInt("starNum")
+	mark := this.GetString("mark")
+	uType := this.GetString("uType") //乘客0 车主1
+	odid := this.GetString("odid")
+
+	code := 0
+	msg := ""
+
+	var dbOd models.Order_detail
+	var odInfo []*models.Order_detail
+
+	num := dbOd.GetOrderDetailFromId(odid, &odInfo)
+
+	if (num != 1) {
+		code = 1
+		msg = "系统错误，请重试"
+		this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
+		this.ServeJSON()
+		return
+	}
+
+	if (uType == "0") {
+		if (strconv.Itoa(odInfo[0].Passage.Id) != userId) {
+			code = 2
+			msg = "这个行程不属于你哦"
+			this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
+			this.ServeJSON()
+			return
+		}
+		if (dbOd.Recommand(odid, uType, starNum, mark, odInfo[0].Driver.Id)) {
+			code = 0
+			msg = "操作成功"
+		} else {
+			code = 4
+			msg = "系统错误，请重试"
+		}
+
+	} else {
+		if (strconv.Itoa(odInfo[0].Driver.Id) != userId) {
+			code = 3
+			msg = "这个行程不属于你哦"
+			this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
+			this.ServeJSON()
+			return
+		}
+		if (dbOd.Recommand(odid, uType, starNum, mark, odInfo[0].Passage.Id)) {
+			code = 0
+			msg = "操作成功"
+		} else {
+			code = 4
+			msg = "系统错误，请重试"
+		}
+	}
+
 	this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
 	this.ServeJSON()
 }

@@ -23,8 +23,6 @@ type UserLoginInfo struct {
 	Nickname string
 	OpenId string
 	IsPhoneVer bool
-	IsDriver int
-	OrderNumWV int
 	Token string
 	Phone string
 }
@@ -74,11 +72,9 @@ func (this *UserCenterController) Dologin () {
 				info := &UserLoginInfo{}
 				info.Name = inputName
 				info.IsPhoneVer = list[0].IsPhoneVer
-				info.IsDriver = list[0].IsDriver
 				info.Token = token
 				info.Nickname = list[0].Nickname
 				info.OpenId = list[0].OpenId
-				info.OrderNumWV = list[0].OrderNumWV
 				info.Phone = list[0].Phone
 
 				data, _ := json.Marshal(info)
@@ -132,6 +128,9 @@ func (this *UserCenterController) GetVerCode() {
 	userId := this.GetString("userId")
 	phoneNum := this.GetString("phoneNum")
 
+	code := 0
+	msg := ""
+
 	baseUrl := beego.AppConfig.String("smsBaseUrl")
 	//connectTimeout , _ := strconv.Atoi(beego.AppConfig.String("connectTimeout"))
 	//readWriteTimeout , _ := strconv.Atoi(beego.AppConfig.String("readWriteTimeout"))
@@ -165,9 +164,19 @@ func (this *UserCenterController) GetVerCode() {
 	req.Body(body)
 	result , err := req.String()
 
-	fmt.Println(result , err)
+	if (err != nil) {
+		code = 1
+		msg = "网络开小差了哦"
+		this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
+		this.ServeJSON()
+		return
+	}
 
-	this.Data["json"] = "[{\"code\": 1, \"userId\": " + userId + ", \"phoneNum\": " + phoneNum + "}]"
+	code = 0
+	msg = "操作成功"
+	logs.Debug(result)
+
+	this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
 	this.ServeJSON()
 	}
 
@@ -177,15 +186,21 @@ func (this *UserCenterController) VerPhone() {
 	phoneNum := this.GetString("phoneNum")
 	verCode := this.GetString("verCode")
 
+	code := 0
+	msg := ""
+
 	userIdInt64, _ := strconv.ParseInt(userId, 10, 64)
 
 	content := redisClient.GetKey(PhoneVerPrefix+userId)
 
 	if (content != verCode) {
-		fmt.Println(verCode , content)
 		logs.Error("input code %v is not equal redis code %v " , verCode , content)
 		//！！！这里提示不友好，验证不通过会直接再次跳转验证页面，怎是没有提示
-		this.Ctx.Redirect(302, "/Ver/phonever")
+		code = 1
+		msg = "验证码错误"
+		this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
+		this.ServeJSON()
+		return
 	}
 
 	logs.Debug("input code %v is equal redis code %v " , verCode , content)
@@ -200,7 +215,11 @@ func (this *UserCenterController) VerPhone() {
 	err := json.Unmarshal([]byte(userinfo), &info)
 	if (err != nil) {
 		logs.Error("get userinfo from redis fail %v " , err)
-		this.Ctx.Redirect(302, "/Login")
+		code = 2
+		msg = "网络开小差了哦"
+		this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
+		this.ServeJSON()
+		return
 	}
 
 	info.Phone = phoneNum
@@ -211,7 +230,10 @@ func (this *UserCenterController) VerPhone() {
 	redisClient.SetKey(LoginPrefix+userId , string(data))
 	redisClient.Setexpire(LoginPrefix+userId , LoginPeriod)
 
-	this.Ctx.Redirect(302, "/Portal/showdriverorder/")
+	code = 0
+	msg = "操作成功"
+	this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
+	this.ServeJSON()
 }
 
 func GetUserInfoFromRedis (uid string) (*UserLoginInfo) {
@@ -255,4 +277,25 @@ func (this *UserCenterController) UserInfo() {
 	this.Data["list"] = list[0]
 	fmt.Println(list[0].Id)
 	this.TplName = "userInfo.html"
+}
+
+// @router /Portal/help [GET]
+func (this *UserCenterController) Help() {
+	this.Data["tabIndex"] = 3
+
+	this.TplName = "help.html"
+}
+
+// @router /Portal/aboutus [GET]
+func (this *UserCenterController) AboutUs() {
+	this.Data["tabIndex"] = 3
+
+	this.TplName = "aboutUs.html"
+}
+
+// @router /Portal/disclaimer [GET]
+func (this *UserCenterController) Disclaimer() {
+	this.Data["tabIndex"] = 3
+
+	this.TplName = "disclaimer.html"
 }

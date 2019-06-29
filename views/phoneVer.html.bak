@@ -1,0 +1,392 @@
+<!doctype html>
+
+<head>
+    <meta charset="utf-8">
+    <title>长庆出行</title>
+    <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
+    <link rel="stylesheet" href="/css/base.css"/>
+    <link rel="stylesheet" href="/css/index.css"/>
+    <script type="text/javascript" src="/js/jquery.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            min-width: 320px;
+            font: normal 100%/1.5 "Microsoft YaHei", "Hei", "WenQuanYi Micro Hei", SimHei, tohoma, sabs-serif;
+            color: #333;
+            background-color: #E6E6E6;
+        }
+
+        .container {
+            margin: 0 auto 10px;
+            width: 93.125%;
+            max-width: 480px;
+        }
+
+        .ie6 .container {
+            width: 480px;
+        }
+
+        /* line */
+        .line-wrap {
+            margin-top: 20px;
+            float: left;
+            border: 1px solid #c5c5c5;
+            -webkit-border-radius: 5px;
+            -o-border-radius: 5px;
+            -moz-border-radius: 5px;
+            border-radius: 5px;
+            background-color: #fff;
+        }
+
+        .line, .line-first, .line-last, .line-agree {
+            float: left;
+            display: block;
+            margin: 2px 1em;
+            line-height: 40px;
+            overflow: hidden;
+        }
+
+        .line-wrap .line-first {
+            border-bottom: 1px solid #c5c5c5;
+        }
+
+        /* form */
+        .form {
+            margin-top: 10px;
+        }
+
+        .form p input[type=submit], .form p input[type=text] {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+        }
+
+        .form .line input, .form .line-first input, .form .line-last input {
+            float: left;
+            width: 100%;
+            height: 39px;
+            font-size: 18px;
+            border: none;
+            background: #fff;
+            outline: none;
+        }
+
+        .form .line label, .form .line-first label, .form .line-last label {
+            float: left;
+            margin-right: 2.96992481203007%;
+            letter-spacing: 0;
+            font-size: 24px;
+            color: #999;
+        }
+
+        .form .line-agree {
+            font-size: 11px;
+            margin-left: 20px;
+        }
+
+        .form .line-agree label {
+            margin-left: 5px;
+            line-height: 35px;
+            vertical-align: middle;
+        }
+
+        .form .line-agree a {
+            text-decoration: none;
+            color: #369ce8;
+            line-height: 35px;
+            font-size: 15px;
+            vertical-align: middle;
+        }
+
+        .js .form .line-first, .js .form .line-last {
+            position: relative;
+        }
+
+        .js .form .line-first input, .js .form .line-last input {
+            width: 100%;
+        }
+
+        .js .form .line-first label, .js .form .line-last label {
+            position: absolute;
+            top: 10px;
+            left: 5%;
+        }
+
+        .js .form .focus label {
+            display: none;
+        }
+
+        .form .form-do input {
+            font-size: 18px;
+            margin: 6px auto 30px auto;
+            height: 50px;
+            width: 100%;
+            display: block;
+            border-radius: 5px;
+            border: none;
+            color: white;
+            background-color: #36BC9B;
+            -webkit-border-radius: 5px;
+            -o-border-radius: 5px;
+            -moz-border-radius: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .form .form-do input:hover {
+            background-color: #ccc;
+        }
+
+        .form input:disabled {
+            background-color: #ccc;
+        }
+
+        .form .form-tip {
+            overflow: hidden;
+            font-size: 14px;
+            font-weight: normal;
+            margin: 10px 0;
+            padding: 10px;
+            background-color: #FFC;
+            color: #F11;
+            border-radius: 5px;
+            padding: 10px;
+        }
+
+        .form .form-tip span {
+            float: left;
+            width: 88%;
+        }
+
+        .form .form-tip .form-tip-pic {
+            float: left;
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            background-size: 20px 20px;
+            background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADQAAAA0CAMAAADypuvZAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAGNQTFRF/3R0/62t/2pq/1xc/wQE/7e3/9zc/w4O/y0t/6Cg/x8f/xIS/0ZG/8PD/1BQ/+bm/wEB/3Nz/ygo/0pK/5OT/zMz/6Wl//f3/7m5/6ur//T0/05O/4CA/56e/////wAA////xNWZ4AAAACF0Uk5T//////////////////////////////////////////8An8HQIQAAAVVJREFUeNqc1teSwjAMBVCld9I7rPj/r4QNkw2OJW9kvYXJYTIuuoKnVmPRuXmT+X7W5G5XjPobcP4hqHtUqq8DM1qSFYlak4VHzg2ZujkMCiE63vrZ6niOIKTQ1H7/9RkhtpOOhlg3qoqHM3qk+B/C9KGiQTU0wnT4RlOMVxDG04HCFq8hbMM/BHgVIezIia6jyPmghTgHLMLbsqEEJQiTDa0ytP6iAGUIgzeqpah+wthLUT9CgVKEBXRy1IErRy7kcpRDI0cNZHKUgS9Hvh2y+jyrhbBacqvNtTpGVgeWvhpoMO+rQV9CE6q5626qgGsshlrZFmaohG2WlTeX5exVbLMk2nJ1/yzEveLaMhEA3r5PHhsAetTMO5r5qNFCrdxRyYeaFp8MUuPzHNT0552D+jQSkAuhjwTq8EEtOTV8qGOOtrnMmGM3UFmObnZD4sVx9CXAAAiJONy7/YsnAAAAAElFTkSuQmCC);
+        }
+
+        /* h2 */
+        h2 {
+            margin-top: 50px;
+            height: 1em;
+            line-height: 1.5;
+            font-size: 0.8em;
+            color: #9ca5ac;
+            border-top: 1px #CCC solid;
+        }
+
+        h2 span {
+            margin: 0 auto;
+            width: 13em;
+            display: block;
+            margin-top: -10px;
+            text-align: center;
+            background-color: #E6E6E6;
+        }
+
+        .ie6 h2 span {
+            position: relative;
+        }
+
+        /* alias */
+        .alias {
+            margin-top: 15px;
+        }
+
+        .alias a {
+            margin: 0 0 7px;
+            border: 1px solid #c5c5c5;
+            -webkit-border-radius: 5px;
+            -o-border-radius: 5px;
+            -moz-border-radius: 5px;
+            border-radius: 5px;
+            color: #6c717c;
+            text-align: center;
+            text-decoration: none;
+            font-size: 1em;
+            background-color: #fff;
+        }
+
+        .alias a:hover {
+            background-color: #c5c5c5;
+        }
+
+        .alias a img {
+            margin-right: 10px;
+            height: 20px;
+            vertical-align: middle;
+            border: none;
+        }
+
+        .ie6 .alias a img {
+            display: none;
+        }
+
+        .alias .line, .alias .line-first, .alias .line-last {
+            padding-top: 0;
+            padding-bottom: 0;
+            height: 50px;
+            line-height: 50px;
+        }
+
+        .ie7 .alias span {
+            top: -50%;
+        }
+
+        @media only screen and (-webkit-min-device-pixel-ratio: 2), only screen and (min-device-pixel-ratio: 2) {
+
+        }
+
+        .error {
+            margin-top: 10px;
+            height: 40px;
+            line-height: 40px;
+            text-align: center;
+            color: #C43C3C;
+            background-color: #F9EBEB;
+            border: 1px solid #EDC6C6;
+            -webkit-border-radius: 10px;
+            -o-border-radius: 10px;
+            -moz-border-radius: 10px;
+            border-radius: 10px;
+        }
+
+        .getyanzhengma {
+            height: 45px;
+            width: 25%;
+            border: none;
+            float: left;
+            overflow: hidden;
+            margin-top: 20px;
+            margin-left: 3%;
+            background-color: #FB6E52;
+            color: #fff;
+            font-size: 0.7rem;
+            -webkit-border-radius: 5px;
+            -o-border-radius: 5px;
+            -moz-border-radius: 5px;
+            border-radius: 5px;
+        }
+
+    </style>
+</head>
+<body onload="init()">
+
+<div class="home-top">
+    手机绑定
+<div class="container">
+    <form method="POST" class="form" action="/Ver/verPhone">
+        <div class="line-wrap" style="width: 70%; ">
+            <p class="line-last">
+                <input type="text" value="" required="" oninput="clicker2();" onpropertychange="clicker2();"
+                       name="phoneNum" maxlength="40" id="phone" class="placeholder"
+                       placeholder="手机号">
+
+            </p>
+        </div>
+        <input class="getyanzhengma" id="getyanzhengma" type="button" value="获取验证码" onclick="getCode()"/>
+
+        <div class="line-wrap" style="width: 100%;">
+            <p class="line-last">
+                <input class="placeholder" id="captcha" oninput="clicker();" onpropertychange="clicker();" maxlength="6"
+                       name="verCode" placeholder="验证码" required
+                       type="text" value="">
+            </p>
+        </div>
+        <p class="line-agree">
+
+            <input type="checkbox" id="agree" checked></input><label for="agree">我已阅读并同意<a
+                        href="http://m.guokr.com/help/policy/">《用户服务协议》</a><a
+                        href="http://m.guokr.com/help/privacy/">《隐私条款》</a></label>
+
+        </p>
+
+        <input type="hidden" name="userId" id="userId" value="{{.userId}}">
+
+        <p class="form-do"><input id="btn-submit" type="submit" value="验证"></p>
+    </form>
+
+</div>
+    <label class="line-agree">手机号验证仅用来验证身份及后期乘车安全的保障，平台承若绝不对外公开用户隐私信息</label>
+</div>
+</body>
+
+<script>
+
+    function init() {
+
+        agree.addEventListener('click', clicker);
+        clicker();
+        clicker2();
+    }
+
+
+</script>
+<script>
+    var phone = document.getElementById('phone');
+    var btn_getyanzhengma = document.getElementById('getyanzhengma');
+    var agree = document.getElementById('agree');
+    var captcha = document.getElementById('captcha');
+    var btn_submit = document.getElementById('btn-submit');
+
+    var clicker = function (e) {
+        if (!agree.checked || !captcha.value || !phone.value) {
+            btn_submit.disabled = true;
+        } else {
+            btn_submit.disabled = false;
+        }
+    }
+
+    var clicker2 = function (e) {
+        var myreg = /^(((13[0-9]{1})|(15[0-9]{1})|(18[0-9]{1}))+\d{8})$/;
+        if (!myreg.test(phone.value)) {
+            btn_getyanzhengma.disabled = true;
+        }
+        else {
+            btn_getyanzhengma.disabled = false;
+        }
+    }
+
+    var fun1 = function (e) {
+
+        alert(e);
+    }
+
+    function getCode() {
+        var phoneNum = document.getElementById('phone')
+        var userId = document.getElementById('userId')
+
+        $.ajax({
+            type:"POST",
+            url:"/Ver/getvercode",
+            data:{"phoneNum":phoneNum.value,"userId":userId.value},
+            dataType:"json",
+            success : function(result) {
+                alert("验证码已发送至\"" + phoneNum.value + "\",请及时查看验证")
+                btn_getyanzhengma.disabled = true
+                var leftTime = 60;
+                var timer = setInterval(function(){  //倒计时
+                    btn_getyanzhengma.value = leftTime+"秒"
+                    leftTime--;
+                    if(leftTime==0){ //重新发送
+                        clearInterval(timer);
+                        btn_getyanzhengma.value = "重新获取";
+                        btn_getyanzhengma.disabled = false;
+                    }
+                },1000);
+            },
+            error : function(result) {
+                alert("网络繁忙，请重试");
+            }
+        });
+
+    }
+</script>
+
+</html>

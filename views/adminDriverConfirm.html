@@ -1,0 +1,28 @@
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>车主审核</title>
+</head>
+<body>
+{{if lt .num 1}}
+没有未审核的车主申请
+{{else}}
+<table border="1">
+    <tr>
+        <th>申请号</th>
+        <th>车主名</th>
+        <th>申请时间</th>
+        <th>操作</th>
+    </tr>
+    {{range .list}}
+    <tr>
+        <td>{{.Id}}</td>
+        <td>{{.RealName}}</td>
+        <td>{{.Time}}</td>
+        <td><a href="/admin/confirmDriverDetail/{{.Id}}">查看</a><td>
+    </tr>
+    {{end}}
+</table>
+{{end}}
+</body>
+</html>

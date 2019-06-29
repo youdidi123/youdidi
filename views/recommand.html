@@ -1,0 +1,188 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>长庆出行</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=0">
+    <link rel="stylesheet" href="/css/weui/weui.css"/>
+    <link rel="stylesheet" href="/css/weui/weuix.css"/>
+
+    <script src="/js/weui/zepto.min.js"></script>
+    <script src="/js/weui/zepto.weui.js"></script>
+    <script src="/js/weui/iscroll-lite.js"></script>
+    <script src="/js/weui/lrz.min.js"></script>
+    <script src="/js/weui/iscroll-lite.js"></script>
+    <script>
+        var START_NUM = 0;
+        function getByteLen(val) {
+            var len = 0;
+            for (var i = 0; i < val.length; i++) {
+                var a = val.charAt(i);
+                if (a.match(/[^\x00-\xff]/ig) != null)
+                {
+                    len += 2;
+                }
+                else
+                {
+                    len += 1;
+                }
+            }
+            return len;
+        }
+        $(function(){
+            $(".weui-rater a").click(function(){
+                var index = $(this).index();  //当前点击
+                START_NUM = index;
+                for(var i = 0;i <= index;i++){
+                    $(".weui-rater a").eq(i).addClass('on');
+                }
+                for(var j = index; j <=5;j++){
+                    $(".weui-rater a").eq(j).removeClass('on');
+                }
+                $(this).addClass('on');
+                $("#fen").html($(this).data('num')+"星");
+            })
+        });
+        function textarea(input) {
+            var content = $(input);
+            var max =  content.next().find('i') .text();
+            var value = content.val();
+            if (value.length>0) {
+
+                value = value.replace(/\n|\r/gi,"");
+                var len = value.length;
+                content.next().find('span').text(len) ;
+                if(len>max){
+                    content.next().addClass('f-red');
+                }else{
+                    content.next().removeClass('f-red');
+                }
+            }
+        }
+        function cleararea(obj){
+            $(obj).prev().find('.weui-textarea').val("");
+            return false;
+        }
+        function submit() {
+            var starNum = START_NUM + 1;
+            var mark = $("#travelCommit").val();
+            var uType = {{.uType}}
+            var odid = {{.odid}}
+
+            if (getByteLen(mark) > 50) {
+                $.alert("评价不能超过50个字哦","请修正行程单内容");
+                return
+            }
+            $(".loading2").show();
+            $.ajax({
+                type:"POST",
+                url:"/Portal/dorecommand",
+                data:{
+                    starNum:starNum ,
+                    mark:mark,
+                    uType:uType,
+                    odid:odid,
+                },
+                dataType:"json",
+                success : function(result) {
+                    console.log(result)
+                    if (result.code != 0) {
+                        $(".loading2").hide();
+                        $.alert(result.msg,"提交异常");
+                    }
+                    else {
+                        $(".loading2").hide();
+                        $.toast("提交成功", 30000);
+                        window.location.href = " /Portal/recommand/{{.odid}}/{{.uType}}";
+
+                    }
+                },
+                error : function(result) {
+                    $(".loading2").hide();
+                    $.alert("网络繁忙，请重试","行程发布有异常");
+                }
+            });
+        }
+    </script>
+</head>
+
+<body ontouchstart class="bg-gray">
+<div class="loading2 hide" data-text="提交中..."></div>
+{{template "sildePic.html" .}}
+{{if .isRecommand}}
+    <div class="page-bd-15  bg-gray">
+        <p class="page-hd-desc">星级评分</p>
+        <div class="weui-rater" aria-disabled="true">
+            {{if le 1 .starNum}}
+                <a data-num = "1" class="on"> <span>★</span> </a>
+            {{else}}
+                <a data-num = "1"> <span>★</span> </a>
+            {{end}}
+            {{if le 2 .starNum}}
+                <a data-num = "2" class="on"> <span>★</span> </a>
+            {{else}}
+                <a data-num = "2"> <span>★</span> </a>
+            {{end}}
+            {{if le 3 .starNum}}
+                <a data-num = "3" class="on"> <span>★</span> </a>
+            {{else}}
+                <a data-num = "3"> <span>★</span> </a>
+            {{end}}
+            {{if le 4 .starNum}}
+                <a data-num = "4" class="on"> <span>★</span> </a>
+            {{else}}
+                <a data-num = "4"> <span>★</span> </a>
+            {{end}}
+            {{if le 5 .starNum}}
+                <a data-num = "5" class="on"> <span>★</span> </a>
+            {{else}}
+                <a data-num = "5"> <span>★</span> </a>
+            {{end}}
+        </div>
+        <div id='fen' class="weui_cells_title">{{.starNum}}星</div>
+    </div>
+    <div class="page-bd-15  bg-gray">
+        <p class="page-hd-desc">行程感受</p>
+        <div class="weui-cells weui-cells_form">
+            <div class="weui-cell">
+                <div class="weui-cell__bd">
+                    <textarea id="travelCommit" class="weui-textarea" rows="4" disabled>{{.mark}}</textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+{{else}}
+    <div class="page-bd-15  bg-gray">
+        <p class="page-hd-desc">星级评分</p>
+        <div class="weui-rater">
+            <a data-num = "1" class="on"> <span>★</span> </a>
+            <a data-num = "2"> <span>★</span> </a>
+            <a data-num = "3"> <span>★</span> </a>
+            <a data-num = "4"> <span>★</span> </a>
+            <a data-num = "5"> <span>★</span> </a>
+        </div>
+        <div id='fen' class="weui_cells_title"></div>
+    </div>
+
+    <div class="page-bd-15  bg-gray">
+        <p class="page-hd-desc">行程感受</p>
+        <div class="weui-cells weui-cells_form">
+            <div class="weui-cell">
+                <div class="weui-cell__bd">
+                    <textarea id="travelCommit" class="weui-textarea" placeholder="描述一下本次行程的感受吧" rows="4" onkeyup="textarea(this);"></textarea>
+                    <div class="weui-textarea-counter"><span>0</span>/<i>50</i></div>
+                </div>
+                <i class="weui-icon-clear" onclick="cleararea(this)"></i>
+            </div>
+        </div>
+        <a href="javascript:;" class="weui-btn weui-btn_primary" onclick="submit()">提交评价</a>
+    </div>
+
+{{end}}
+{{template "bottomNav.html" .}}
+
+
+</body>
+
+</head>
+</html>
