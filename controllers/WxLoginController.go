@@ -111,10 +111,12 @@ func (c *WxLoginController) UserInfoCheck () {
 func (c *WxLoginController) WxDologon(userInfo *UserInfo) error {
 	var dbUser models.User
 	var list []*models.User
+	var user *models.User
 
 	num, err := dbUser.GetUserInfoFormOpenId(userInfo.Openid, &list)
 	if (err != nil) {
 		logs.Error("OpenId %s get user info from db error：%s!", userInfo.Openid, err)
+		return fmt.Errorf("OpenId %s get user info from db error：%s!", err)
 	}
 	if (num == 0) {
 		logs.Notice("OpenId %s not resgisted：%s!", userInfo.Openid, err)
@@ -128,22 +130,32 @@ func (c *WxLoginController) WxDologon(userInfo *UserInfo) error {
 		_, err = newUser.Insert()
 		if (err != nil){
 			logs.Error("OpenId %s creat user failed!", userInfo.Openid)
+			return fmt.Errorf("OpenId %s creat user failed! for:%s", err)
 		}
+		user = &newUser
 
 	} else if (num > 1) {
 		logs.Error("OpenId %s multiple registration!", userInfo.Openid)
+		return fmt.Errorf("OpenId %s multiple registration!")
+	} else {
+		user = list[0]
 	}
 
-	logs.Notice("%s", list[0])
+	logs.Notice("%s", user)
 
+	userLoginInfo, err := GenUserLoginInfo(list[0])
+	if (err != nil) {
+		logs.Error("Generate user login info failed!")
+		return fmt.Errorf("Generate user login info failed! for:%s", err)
+	}
 
-	token, idStr, err := CacheUserLoginInfo(list[0])
+	err = CacheUserLoginInfo(userLoginInfo)
 	if (err != nil) {
 		logs.Warn("Cache user login info failed!")
 	}
 
-	c.Ctx.SetSecureCookie("qyt", "qyt_id", idStr) //注入用户id，后续所有用户id都从cookie里获取
-	c.Ctx.SetSecureCookie("qyt", "qyt_token", token)
+	c.Ctx.SetSecureCookie("qyt", "qyt_id", userLoginInfo.idStr) //注入用户id，后续所有用户id都从cookie里获取
+	c.Ctx.SetSecureCookie("qyt", "qyt_token", userLoginInfo.Token)
 
 
 	return nil
