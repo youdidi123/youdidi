@@ -29,6 +29,7 @@ type UserLoginInfo struct {
 	IsDriver   int
 	OrderNumWV int
 	Token      string
+	idStr      string
 	Phone      string
 }
 
@@ -73,14 +74,19 @@ func (this *UserCenterController) Dologin() {
 				//msg = "登陆成功"
 				//reUrl = "index.html"
 
-				token, idStr, err := CacheUserLoginInfo(list[0])
+				userLoginInfo, err := GenUserLoginInfo(list[0])
+				if (err != nil) {
+					logs.Error("Generate user login info failed!")
+				}
+
+				err = CacheUserLoginInfo(userLoginInfo)
+
 				if (err != nil) {
 					logs.Warn("Cache user login info failed!")
 				}
-				idStr = strconv.Itoa(list[0].Id)
 
-				this.Ctx.SetSecureCookie("qyt", "qyt_id", idStr) //注入用户id，后续所有用户id都从cookie里获取
-				this.Ctx.SetSecureCookie("qyt", "qyt_token", token)
+				this.Ctx.SetSecureCookie("qyt", "qyt_id", userLoginInfo.idStr) //注入用户id，后续所有用户id都从cookie里获取
+				this.Ctx.SetSecureCookie("qyt", "qyt_token", userLoginInfo.Token)
 				//this.SetSession("qyt_id" , idStr)
 
 				this.Ctx.Redirect(302, "/Portal/showdriverorder/")
@@ -277,25 +283,31 @@ func (this *UserCenterController) UserInfo() {
 }
 
 // cache user info in redis
-func CacheUserLoginInfo(userInfo *models.User) (string, string, error) {
+func GenUserLoginInfo(userInfo *models.User) (*UserLoginInfo, error) {
 	token := getToken(userInfo.Name, userInfo.Passwd)
-	info := &UserLoginInfo{}
-	info.Name = userInfo.Name
-	info.IsPhoneVer = userInfo.IsPhoneVer
-	info.IsDriver = userInfo.IsDriver
-	info.Token = token
-	info.Nickname = userInfo.Nickname
-	info.OpenId = userInfo.OpenId
-	info.OrderNumWV = userInfo.OrderNumWV
-	info.Phone = userInfo.Phone
+	userLoginInfo := &UserLoginInfo{}
+	userLoginInfo.Name = userInfo.Name
+	userLoginInfo.IsPhoneVer = userInfo.IsPhoneVer
+	userLoginInfo.IsDriver = userInfo.IsDriver
+	userLoginInfo.Token = token
+	userLoginInfo.Nickname = userInfo.Nickname
+	userLoginInfo.OpenId = userInfo.OpenId
+	userLoginInfo.OrderNumWV = userInfo.OrderNumWV
+	userLoginInfo.Phone = userInfo.Phone
+	userLoginInfo.idStr = strconv.Itoa(userInfo.Id)
 
-	data, _ := json.Marshal(info)
+	return userLoginInfo, nil
+
+}
+
+func CacheUserLoginInfo(userLoginInfo *UserLoginInfo) error {
+
+	data, _ := json.Marshal(userLoginInfo)
 	fmt.Println("data: %v", string(data))
-	idStr := strconv.Itoa(userInfo.Id)
 
-	redisClient.SetKey(LoginPrefix+idStr, string(data))
-	redisClient.Setexpire(LoginPrefix+idStr, LoginPeriod)
+	redisClient.SetKey(LoginPrefix+userLoginInfo.idStr, string(data))
+	redisClient.Setexpire(LoginPrefix+userLoginInfo.idStr, LoginPeriod)
 
-	return token, idStr, nil
+	return nil
 
 }
