@@ -246,16 +246,15 @@ func (this *OrderController) SearchOrder () {
 
 	launchTime := this.GetString("launchTime")
 	launchTime = launchTime + " 00:00"
-
 	tmStart, _ := time.Parse("2006-01-02 15:04", launchTime)
-	tmEnd := tmStart.Unix() + (1*24*60*60)
+	tmEnd := tmStart.Unix() + (1*24*60*60) - (8 * 60 * 60) //不知道为什么算出来会多8个小时，需要减掉
 
 	logs.Debug("search order launchTime=%v start=%v end=%v", launchTime , startCode , endCode)
 	var dbOrder models.Order
 	var orderInfo []*models.Order
 
 	num := dbOrder.GetReadyOrders(&orderInfo , startCode64 , endCode64 ,
-		tmStart.Unix() , tmEnd , startCodeLocation , endCodeLocation)
+		tmStart.Unix() - (8 * 60 * 60) , tmEnd , startCodeLocation , endCodeLocation)
 
 	for i , v := range orderInfo{
 		launchTime64 , _ := strconv.ParseInt(v.LaunchTime, 10, 64)
