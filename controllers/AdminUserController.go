@@ -5,10 +5,10 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"github.com/astaxie/beego"
+	"github.com/astaxie/beego/logs"
 	"strconv"
 	"time"
 	"youdidi/models"
-	"github.com/astaxie/beego/logs"
 	"youdidi/redisClient"
 )
 
@@ -39,16 +39,19 @@ func (this *AdminUserController) Admin (){
 	this.TplName = "adminHomepage.html"
 }
 
-// @router /Admin/doLogin [POST]
+// @router /AdmindoLogin [POST]
 func (this *AdminUserController) AdminDoLogin (){
+	logs.Debug("wo zai zhe")
 	inputName := this.GetString("name")
 	inputPasswd := this.GetString("passwd")
 
 	var dbAdminUser models.Admin_user
 	var userInfo []*models.Admin_user
 
+
 	num := dbAdminUser.GetUserInfoFromName(inputName, &userInfo)
 	if (num < 1) {
+		logs.Debug("can not find user name=%v", inputName)
 		this.Redirect("/AdminLogin/", 302)
 		return
 	}
@@ -58,7 +61,7 @@ func (this *AdminUserController) AdminDoLogin (){
 	passwdMd5 := hex.EncodeToString(h.Sum(nil))
 
 	if (passwdMd5 != userInfo[0].Passwd) {
-		logs.Error("input passwd is not correct inputpasswd=%v md5=%v", inputPasswd, passwdMd5)
+		logs.Error("input passwd is not correct inputpasswd=%v md5=%v dbvalue=%v", inputPasswd, passwdMd5, userInfo[0].Passwd)
 		this.Redirect("/AdminLogin/", 302)
 		return
 	}
