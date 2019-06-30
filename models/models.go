@@ -46,6 +46,7 @@ type User struct {
 	Orders []*Order `orm:"reverse(many)"`
 	Order_details []*Order_detail `orm:"reverse(many)"`
 	Account_flows []*Account_flow `orm:"reverse(many)"`
+	Cash_flows []*Cash_flow `orm:"reverse(many)"`
 }
 
 type Order struct {
@@ -145,6 +146,15 @@ type Admin_user struct {
 
 }
 
+type Cash_flow struct {
+	Id int `orm:"auto;pk;column(id);" json:"id"`
+	Type int `column(type);" json:"type"` // 0:充值 1:提现
+	Money float64 `column(money);" json:"money"`
+	Status int `column(status);" json:"stauts"`
+	RefuseReason string `column(refuseReason);" json:"refuseReason"`
+	User *User `json:"user" orm:"rel(fk)"`
+}
+
 func init () {
 	mysqluser := beego.AppConfig.String("mysqluser")
 	mysqlpass := beego.AppConfig.String("mysqlpass")
@@ -161,6 +171,7 @@ func init () {
 		new(Account_flow),
 		new(Driver_confirm),
 		new(Admin_user),
+		new(Cash_flow),
 		)
 	orm.RegisterDriver("mysql", orm.DRMySQL)
 	orm.RegisterDataBase("default", "mysql", mysqluser+":"+mysqlpass+"@tcp("+mysqlurls+")/"+mysqldb+"?charset=utf8&loc=Asia%2FShanghai")

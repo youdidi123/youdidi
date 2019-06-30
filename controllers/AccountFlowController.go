@@ -19,7 +19,7 @@ var (
 )
 
 // @router /Portal/accountflow [GET]
-func (this *UserCenterController) GetAccountFlow (){
+func (this *AccountFlowController) GetAccountFlow (){
 	userId, _ := this.Ctx.GetSecureCookie("qyt", "qyt_id")
 
 	var dbAccountFlow models.Account_flow
@@ -41,3 +41,37 @@ func (this *UserCenterController) GetAccountFlow (){
 	this.TplName = "userAccountFlow.html"
 
 }
+
+
+// @router /Portal/invest [GET]
+func (this *AccountFlowController) Invest (){
+	this.Data["tabIndex"] = 3
+	this.TplName = "invest.html"
+}
+
+// @router /Portal/getOpenId [GET]
+func (this *AccountFlowController) GetOpenId () {
+	userId, _ := this.Ctx.GetSecureCookie("qyt", "qyt_id")
+
+	var dbUser models.User
+	var userInfo []*models.User
+
+	succ,num := dbUser.GetUserInfoFromId(userId, &userInfo)
+
+	code := 0
+	msg := ""
+
+	if (succ != "true" || num < 1) {
+		code = 1
+		msg = "支付失败，请重试"
+		this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
+		this.ServeJSON()
+		return
+	}
+
+	code = 0
+	msg = userInfo[0].OpenId
+	this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
+	this.ServeJSON()
+}
+

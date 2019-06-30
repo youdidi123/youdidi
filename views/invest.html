@@ -1,0 +1,95 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>长庆出行</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=0">
+    <link rel="stylesheet" href="/css/weui/weui.css"/>
+    <link rel="stylesheet" href="/css/weui/weuix.css"/>
+
+    <script src="/js/weui/zepto.min.js"></script>
+    <script src="/js/weui/zepto.weui.js"></script>
+    <script src="/js/weui/iscroll-lite.js"></script>
+    <script src="/js/weui/lrz.min.js"></script>
+    <script src="/js/weui/iscroll-lite.js"></script>
+    <script>
+        $(function(){
+            $(".weui-payselect-li").on('click',function(){
+                $(this).children().addClass("weui-payselect-on");
+                $(this).siblings().children().removeClass("weui-payselect-on");
+                $("#money").val($(this).val())
+                return false;
+            });
+        });
+
+        function chongzhi() {
+            $.ajax({
+                type:"GET",
+                url:"/Portal/getOpenId",
+                success : function(result) {
+                    console.log(result)
+                    if (result.code != 0) {
+                        $(".loading2").hide();
+                        $.alert(result.msg,"支付失败");
+                    }
+                    else {
+                        $(".loading2").hide();
+                        alert("openid:"+result.msg);
+
+                    }
+                },
+                error : function(result) {
+                    $(".loading2").hide();
+                    $.toast("网络繁忙，请重试" , "forbidden");
+                }
+            });
+        }
+
+
+    </script>
+</head>
+
+<body ontouchstart class="bg-gray">
+{{template "sildePic.html" .}}
+
+
+<div class="weui-pay">
+    <div class="weui-pay-inner">
+        <h1 class="weui-pay-title">预充金额(元)</h1>
+        <div class="weui-pay-input"> <strong class="weui-pay-strong">￥</strong>
+            <input type="number" id="money" name="money" class="weui-pay-inputs" placeholder="请输入金额">
+        </div>
+
+    </div>
+    <div class="weui-pay-btn">
+        <a href="javascript:;" class="weui-btn weui-btn_primary" onclick="chongzhi()">立即支付</a>
+    </div>
+    <ul class="weui-payselect-ul">
+        <li class="weui-payselect-li" value="1">
+            <a href="javascript:;" class="weui-payselect-a weui-payselect-on">1元</a>
+        </li>
+        <li class="weui-payselect-li" value="10">
+            <a href="javascript:;" class="weui-payselect-a">10元</a>
+        </li>
+        <li class="weui-payselect-li" value="100">
+            <a href="javascript:;" class="weui-payselect-a">100元</a>
+        </li>
+        <li class="weui-payselect-li" value="200">
+            <a href="javascript:;" class="weui-payselect-a">200元</a>
+        </li>
+        <li class="weui-payselect-li" value="300">
+            <a href="javascript:;" class="weui-payselect-a">300元</a>
+        </li>
+        <li class="weui-payselect-li" value="500">
+            <a href="javascript:;" class="weui-payselect-a">500元</a>
+        </li>
+    </ul>
+
+</div>
+
+{{template "bottomNav.html" .}}
+
+</body>
+
+</head>
+</html>
