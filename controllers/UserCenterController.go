@@ -255,6 +255,7 @@ func GetOnroadTypeFromId (uid string) int {
 	if (num == 0 ) {
 		logs.Error("get user onroad type err uid=%v" , uid)
 		dbUser.GetUserInfoFromId(uid, &userInfo)
+		return 0
 	}
 
 	return userInfo[0].OnRoadType
