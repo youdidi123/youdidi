@@ -163,7 +163,7 @@ func (this *UserCenterController) GetVerCode() {
 	req.Header("Content-Length", "256")
 	req.Header("Authorization", auth)
 
-	body := "{\"to\":\"" + phoneNum + "\",\"appId\":\"" + appId + "\",\"templateId\":\"1\",\"datas\":[\"" + randomCode + "\",\"" + strconv.Itoa(expireMin) + "\"]}"
+	body := "{\"to\":\"" + phoneNum + "\",\"appId\":\"" + appId + "\",\"templateId\":\"444610\",\"datas\":[\"" + randomCode + "\",\"" + strconv.Itoa(expireMin) + "\"]}"
 	fmt.Println(body)
 
 	//在这里发请求，发送验证码，钱不够，测试的时候再取消注释
@@ -180,7 +180,7 @@ func (this *UserCenterController) GetVerCode() {
 
 	code = 0
 	msg = "操作成功"
-	logs.Debug(result)
+	logs.Debug("sms result=%v",result)
 
 	this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
 	this.ServeJSON()

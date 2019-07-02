@@ -1,0 +1,59 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>长庆出行</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=0">
+    <link rel="stylesheet" href="/css/weui/weui.css"/>
+    <link rel="stylesheet" href="/css/weui/weuix.css"/>
+
+    <script src="/js/weui/zepto.min.js"></script>
+    <script src="/js/weui/zepto.weui.js"></script>
+    <script src="/js/weui/iscroll-lite.js"></script>
+    <script src="/js/weui/lrz.min.js"></script>
+    <script src="/js/weui/iscroll-lite.js"></script>
+    <script>
+
+    </script>
+</head>
+
+<body ontouchstart>
+{{template "sildePic.html" .}}
+
+<div class="weui-btn-area">
+    <a href="/portal/newcomplain" class="weui-btn weui-btn_primary">新建投诉</a>
+</div>
+
+<div class="weui-payrec">
+    {{if eq .num 0}}
+        <div class="weui-cells__title">您还未提交过投诉/建议</div>
+    {{else}}
+        {{range .list}}
+            <div class="weui-cells ">
+                <a class="weui-cell weui-cell_access" href="/portal/complaindetail/{{.Id}}/0">
+                    <div class="weui-cell__bd weui-cell_primary">
+                        <h2 class="weui_cell_title">{{.Title}}</h2>
+                        <div class="weui_cell_info">{{.Time}}</div>
+                    </div>
+                    <div class="weui-cell__ft">
+                        <div class="weui_cell_title">
+                            {{if eq .Status 0}}
+                                <font class="f-blue">处理中</font>
+                            {{else}}
+                                <font class="f-green">已处理</font>
+                            {{end}}
+                        </div>
+                    </div>
+                </a>
+            </div>
+            {{end}}
+    {{end}}
+
+</div>
+
+{{template "bottomNav.html" .}}
+
+</body>
+
+</head>
+</html>

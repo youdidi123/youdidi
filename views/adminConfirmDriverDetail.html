@@ -18,7 +18,6 @@
         }
         function refuse() {
             var refuseReason = $("#refuseReason").val();
-            alert("b"+refuseReason+"e");
             if (refuseReason == "") {
                 $.alert("拒绝请求必须填写拒绝原因","操作失败");
                 return;
@@ -27,12 +26,40 @@
         }
         //type:0 agree type:1 refuse
         function sendAction(type, mark) {
-            var oid = {{.list.Id}}
+            var oid = {{.list.Id}};
+            $(".loading2").show();
+            $.ajax({
+                type:"POST",
+                url:"/admin/doconfirmdriver",
+                data:{
+                    oid:oid,
+                    type:type,
+                    mark:mark
+                },
+                dataType:"json",
+                success : function(result) {
+                    console.log(result)
+                    if (result.code != 0) {
+                        $(".loading2").hide();
+                        $.alert(result.msg,"操作异常");
+                    }
+                    else {
+                        $(".loading2").hide();
+                        $.toast("操作成功", 30000);
+                        window.location.href = "/admin/dconfirm";
 
+                    }
+                },
+                error : function(result) {
+                    $(".loading2").hide();
+                    $.alert("网络繁忙，请重试","操作异常");
+                }
+            });
         }
     </script>
 </head>
 <body>
+<div class="loading2 hide" data-text="处理中..."></div>
 <div class="page-hd">
 <a href="javascript:;" class="weui-btn weui-btn_mini weui-btn_primary" onclick="agree()">通过</a>
 <br>
