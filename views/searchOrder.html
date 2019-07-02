@@ -30,7 +30,12 @@
                     console.log(result)
                     if (result.code != 0) {
                         $(".loading2").hide();
-                        $.alert(result.msg,"预约失败");
+                        $.alert(result.msg,"预约失败",function () {
+                            if (result.code == 6) {
+                               window.location.href = "/Portal/invest";
+                            }
+                        });
+
                     }
                     else {
                         $(".loading2").hide();

@@ -147,11 +147,13 @@ type Admin_user struct {
 }
 
 type Cash_flow struct {
-	Id int `orm:"auto;pk;column(id);" json:"id"`
+	Id string `orm:"pk;column(id);" json:"id"`
 	Type int `column(type);" json:"type"` // 0:充值 1:提现
 	Money float64 `column(money);" json:"money"`
-	Status int `column(status);" json:"stauts"`
+	Status int `column(status);" json:"stauts"` // 0:发起 1:成功 2:失败 3:拒绝
 	RefuseReason string `column(refuseReason);" json:"refuseReason"`
+	Time string `column(time);" json:"time"`
+	WechatOrderId string `column(wechatOrderId);" json:"wechatOrderId"`
 	User *User `json:"user" orm:"rel(fk)"`
 }
 

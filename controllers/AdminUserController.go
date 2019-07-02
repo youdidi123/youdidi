@@ -126,3 +126,23 @@ func (this *AdminUserController) ConfirmDriverDetail (){
 
 	this.TplName = "adminConfirmDriverDetail.html"
 }
+
+// @router /admin/userwithdrew [GET]
+func (this *AdminUserController) UserWithdrew () {
+	var dbCashFlow models.Cash_flow
+	var cfInfo []*models.Cash_flow
+
+	num := dbCashFlow.GetReadyOrder(&cfInfo)
+
+	for i, v := range cfInfo {
+		this.Data["launchTime"] = v.Time;
+		launchTime64, _ := strconv.ParseInt(v.Time, 10, 64)
+		tm := time.Unix(launchTime64, 0)
+		cfInfo[i].Time = tm.Format("2006-01-02 15:04")
+	}
+
+	this.Data["num"] = num
+	this.Data["list"] = cfInfo
+
+	this.TplName = "adminUserWithdrew.html"
+}

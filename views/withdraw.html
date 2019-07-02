@@ -1,0 +1,91 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>长庆出行</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=0">
+    <link rel="stylesheet" href="/css/weui/weui.css"/>
+    <link rel="stylesheet" href="/css/weui/weuix.css"/>
+
+    <script src="/js/weui/zepto.min.js"></script>
+    <script src="/js/weui/zepto.weui.js"></script>
+    <script src="/js/weui/iscroll-lite.js"></script>
+    <script src="/js/weui/lrz.min.js"></script>
+    <script src="/js/weui/iscroll-lite.js"></script>
+    <script>
+        function withdrew() {
+            checkMoney();
+            $(".loading2").show();
+            $.ajax({
+                type:"POST",
+                url:"/Portal/dowithdraw",
+                data:{
+                    money:$("#money").val(),
+                },
+                dataType:"json",
+                success : function(result) {
+                    console.log(result)
+                    if (result.code != 0) {
+                        $(".loading2").hide();
+                        $.alert(result.msg,"提交异常");
+                    }
+                    else {
+                        $(".loading2").hide();
+                        $.toast("提交成功", 30000);
+                        window.location.href = "/Portal/accountflow";
+
+                    }
+                },
+                error : function(result) {
+                    $(".loading2").hide();
+                    $.alert("网络繁忙，请重试","提交异常");
+                }
+            });
+        }
+
+        function checkMoney() {
+            var pattern = /^([1-9]{1}[0-9]{0,3}(\,[0-9]{3,4})*(\.[0-9]{0,2})?|[1-9]{1}\d*(\.[0-9]{0,2})?|0(\.[0-9]{0,2})?|(\.[0-9]{1,2})?)$/;
+
+            balance = {{.balance}};
+            money = $("#money").val();
+
+            if (money == "" || ! pattern.test(money)) {
+                $.alert("请输入正确的金额","数据错误");
+                return;
+            }
+            if (money > balance) {
+                $.alert("提现金额不能大于账户余额","数据错误");
+                return;
+            }
+        }
+
+
+    </script>
+</head>
+
+<body ontouchstart class="bg-gray">
+<div class="loading2 hide" data-text="请求提交中..."></div>
+
+{{template "sildePic.html" .}}
+
+<div class="weui-pay">
+    <div class="weui-pay-inner">
+        <h1 class="weui-pay-title">提现金额(元)</h1>
+        <div class="weui-pay-input"> <strong class="weui-pay-strong">￥</strong>
+            <input type="number" id="money" name="money" class="weui-pay-inputs" placeholder="请输入金额">
+        </div>
+        <div class="weui-pay-intro">账户当前余额 {{.balance}} 元</div>
+    </div>
+    <div class="weui-pay-btn">
+        <a href="javascript:;" class="weui-btn weui-btn_primary" onclick="withdrew()">发起提现请求</a>
+        <p class="page-hd-desc f12">**提现金额将在1～2个工作日内自动打款到您的微信钱包中</p>
+    </div>
+
+</div>
+
+{{template "bottomNav.html" .}}
+
+</body>
+
+</head>
+</html>

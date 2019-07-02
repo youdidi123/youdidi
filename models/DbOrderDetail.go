@@ -217,7 +217,7 @@ func (u *Order_detail) PassengerConfirm(odid string) bool {
 
 
 	balance := driverInfo[0].Balance + driverCost
-	//balance, _ = strconv.ParseFloat(fmt.Sprintf("%.2f", balance), 64)
+	balance, _ = strconv.ParseFloat(fmt.Sprintf("%.2f", balance), 64)
 	_, err6 := o.QueryTable(dbUser).Filter("Id", driverId).Update(orm.Params{
 		"Balance": balance,
 	})
@@ -392,7 +392,7 @@ func (u *Order_detail) PassengerCancle(odid string) bool {
 		if (launchTime - currentTime > passangerCancleTime) {
 			// 取消时间在30min以外，直接退款
 			passengerBalance += allCost
-			//passengerBalance, _ = strconv.ParseFloat(fmt.Sprintf("%.2f", passengerBalance), 64)
+			passengerBalance, _ = strconv.ParseFloat(fmt.Sprintf("%.2f", passengerBalance), 64)
 			_, err4 := o.QueryTable(dbUser).Filter("Id", odInfo[0].Passage.Id).Update(orm.Params{
 				"Balance": passengerBalance,
 				"OnRoadType": 0,
@@ -420,7 +420,7 @@ func (u *Order_detail) PassengerCancle(odid string) bool {
 
 			driverBalance = driverBalance + (allCost - infoCost)
 			//给司机加钱
-			//driverBalance, _ = strconv.ParseFloat(fmt.Sprintf("%.2f", driverBalance), 64)
+			driverBalance, _ = strconv.ParseFloat(fmt.Sprintf("%.2f", driverBalance), 64)
 			_, err4 := o.QueryTable(dbUser).Filter("Id", odInfo[0].Driver.Id).Update(orm.Params{
 				"Balance": driverBalance,
 			})

@@ -49,6 +49,44 @@ func (this *AccountFlowController) Invest (){
 	this.TplName = "invest.html"
 }
 
+// @router /Portal/withdraw [GET]
+func (this *AccountFlowController) Withdraw () {
+	userId, _ := this.Ctx.GetSecureCookie("qyt", "qyt_id")
+
+	var dbUser models.User
+	var userInfo []*models.User
+
+	dbUser.GetUserInfoFromId(userId, &userInfo)
+
+	this.Data["balance"] = userInfo[0].Balance
+	this.Data["tabIndex"] = 3
+	this.TplName = "withdraw.html"
+}
+
+// @router /Portal/dowithdraw [POST]
+func (this *AccountFlowController) DoWithdraw () {
+	userId, _ := this.Ctx.GetSecureCookie("qyt", "qyt_id")
+	userIdInt, _ := strconv.Atoi(userId)
+	money := this.GetString("money")
+
+	code := 0
+	msg := ""
+
+	var dbAc models.Account_flow
+	cacheFlowId := genOrderId(userIdInt)
+
+	if (dbAc.DoWithDrew(userId, money, cacheFlowId)) {
+		code = 0
+		msg = "操作成功"
+	} else {
+		code = 1
+		msg = "系统错误，请重试"
+	}
+
+	this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
+	this.ServeJSON()
+}
+
 // @router /Portal/getOpenId [GET]
 func (this *AccountFlowController) GetOpenId () {
 	userId, _ := this.Ctx.GetSecureCookie("qyt", "qyt_id")
