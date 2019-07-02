@@ -2,16 +2,44 @@
 <head>
     <meta charset="utf-8">
     <title>车主审核</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=0">
+    <link rel="stylesheet" href="/css/weui/weui.css"/>
+    <link rel="stylesheet" href="/css/weui/weuix.css"/>
+    <link rel="stylesheet" href="http://8.url.cn/edu/classroom/assets/lib/reset.css">
+    <link rel="stylesheet" href="/css/style.css">
+
+    <script src="/js/weui/zepto.min.js"></script>
+    <script src="/js/weui/zepto.weui.js"></script>
+    <script src="/js/weui/iscroll-lite.js"></script>
+    <script src="/js/weui/lrz.min.js"></script>
+    <script>
+        function agree() {
+            sendAction(0, "")
+        }
+        function refuse() {
+            var refuseReason = $("#refuseReason").val();
+            alert("b"+refuseReason+"e");
+            if (refuseReason == "") {
+                $.alert("拒绝请求必须填写拒绝原因","操作失败");
+                return;
+            }
+            sendAction(1, refuseReason)
+        }
+        //type:0 agree type:1 refuse
+        function sendAction(type, mark) {
+            var oid = {{.list.Id}}
+
+        }
+    </script>
 </head>
 <body>
-
-<input type="button" value="通过">
+<div class="page-hd">
+<a href="javascript:;" class="weui-btn weui-btn_mini weui-btn_primary" onclick="agree()">通过</a>
 <br>
-<input type="button" value="拒绝">
+<a href="javascript:;" class="weui-btn weui-btn_mini weui-btn_warn" onclick="refuse()">拒绝</a>
 <br>
-<textarea rows="3" placeholder="若拒绝，需写拒绝理由">
-
-</textarea>
+<textarea rows="3" cols="80" placeholder="若拒绝，需写拒绝理由" id="refuseReason"></textarea>
+</div>
 
 <table border="1">
     <tr>

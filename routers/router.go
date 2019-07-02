@@ -47,7 +47,8 @@ func init() {
 
 	var LoginFilter = func(ctx *context.Context)() {
 		id, isId := ctx.GetSecureCookie("qyt","qyt_id")
-		if (! isId) {
+		logs.Debug("debug cookie id=%v isId=%v",id, isId)
+		if (! isId || id == "") {
 			ctx.Redirect(302, "/Login")
 			logs.Debug("can not get id from cookie")
 		} else {
@@ -65,13 +66,14 @@ func init() {
 					info := &controllers.UserLoginInfo{}
 					err := json.Unmarshal([]byte(content), &info)
 					if (err != nil) {
-
 						ctx.Redirect(302, "/Login")
 					} else {
 						if (token != info.Token) {
 							logs.Debug("token did not match of cookie and cache")
 							ctx.Redirect(302, "/Login")
-						} else {
+						} else if(! info.IsPhoneVer){
+							ctx.Redirect(302, "/Ver/phonever")
+						}else {
 							redisClient.Setexpire(controllers.LoginPrefix+id , controllers.LoginPeriod)
 						}
 					}
@@ -80,7 +82,8 @@ func init() {
 		}
 	}
 
-	var PhoneVerFilter = func(ctx *context.Context)() {
+	/*var PhoneVerFilter = func(ctx *context.Context)() {
+		logs.Debug("into phonever filter")
 		id, isId := ctx.GetSecureCookie("qyt","qyt_id")
 		if (! isId) {
 			ctx.Redirect(302, "/Login")
@@ -101,7 +104,7 @@ func init() {
 			ctx.Redirect(302, "/Ver/phonever")
 		}
 
-	}
+	}*/
 
 	var ResetInfoFilter = func(ctx *context.Context)() {
 		id, _ := ctx.GetSecureCookie("qyt","qyt_id")
@@ -109,11 +112,11 @@ func init() {
 	}
 
 	beego.InsertFilter("/admin/*", beego.BeforeExec, AdminLoginFilter)
-	beego.InsertFilter("/Portal/*", beego.BeforeExec, LoginFilter)
-	beego.InsertFilter("/Portal/*", beego.BeforeExec, PhoneVerFilter)
-	beego.InsertFilter("/Portal/*", beego.AfterExec, ResetInfoFilter)
+	beego.InsertFilter("/portal/*", beego.BeforeExec, LoginFilter)
+	//beego.InsertFilter("/portal/*", beego.BeforeExec, PhoneVerFilter)
+	beego.InsertFilter("/portal/*", beego.AfterExec, ResetInfoFilter)
 	beego.InsertFilter("/", beego.BeforeExec, LoginFilter)
-	beego.InsertFilter("/", beego.BeforeExec, PhoneVerFilter)
+	//beego.InsertFilter("/", beego.BeforeExec, PhoneVerFilter)
 
 
     beego.Router("/wxverifytest", &controllers.WxVerifyTestController{})

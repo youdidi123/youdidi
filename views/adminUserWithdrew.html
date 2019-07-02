@@ -1,0 +1,36 @@
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>用户提现</title>
+</head>
+<body>
+{{if lt .num 1}}
+没有用户发起的提现需求
+{{else}}
+<table border="1">
+    <tr>
+        <th>申请号</th>
+        <th>用户ID</th>
+        <th>用户名</th>
+        <th>真名</th>
+        <th>申请时间</th>
+        <th>提现金额</th>
+        <th>账户余额</th>
+        <th>操作</th>
+    </tr>
+    {{range .list}}
+    <tr>
+        <td>{{.Id}}</td>
+        <td>{{.User.Id}}</td>
+        <td>{{.User.Nickname}}</td>
+        <td>{{.User.Name}}</td>
+        <td>{{.Time}}</td>
+        <td>{{.Money}}</td>
+        <td>{{.User.Balance}}</td>
+        <td><a href="/admin/confirmDriverDetail/{{.Id}}">查看</a><td>
+    </tr>
+    {{end}}
+</table>
+{{end}}
+</body>
+</html>

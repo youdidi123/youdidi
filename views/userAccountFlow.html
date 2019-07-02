@@ -20,30 +20,29 @@
 <body ontouchstart>
 {{template "sildePic.html" .}}
 
-<table>
-    <thead>
-    <tr><th>时间</th><th>交易额</th><th>交易类型</th><th>账户余额</th></tr>
-    </thead>
-    <tbody >
-    {{range .info}}
-    <tr>
-        <td title="时间">{{.Time}}</td>
-        <td title="交易额">{{.Money}}</td>
-        <td title="交易类型">
-            {{ $oType := .Type}}
-            {{range $ind, $elem := $.type}}
-                {{if eq $oType $ind}}
-                    {{$elem.Text}}
-                    </label>
-                {{end}}
-            {{end}}
-        </td>
-        <td title="账户余额">{{.Balance}}</td>
-    </tr>
-    {{end}}
-    </tbody>
-</table>
+<ul class="weui-payrec">
+{{range .info}}
+    <div class="weui-pay-m">
+        <li class="weui-pay-order">
+            <dl class="weui-pay-line">
+                <dd class="weui-pay-name">交易类型:
+                    {{ $oType := .Type}}
+                    {{range $ind, $elem := $.type}}
+                        {{if eq $oType $ind}}
+                            {{$elem.Text}}
+                            </label>
+                        {{end}}
+                    {{end}}
+                </dd>
+            </dl>
+            <dl class="weui-pay-line"><dt class="weui-pay-label">时间：</dt><dd class="weui-pay-e">{{.Time}}</dd></dl>
+            <dl class="weui-pay-line"><dt class="weui-pay-label">交易额：</dt><dd class="weui-pay-e">￥{{.Money}}</dd></dl>
+            <dl class="weui-pay-line"><dt class="weui-pay-label">账户余额：</dt><dd class="weui-pay-e">￥{{.Balance}}</dd></dl>
+        </li>
+    </div>
+{{end}}
 {{template "bottomNav.html" .}}
+</ul>
 
 </body>
 
