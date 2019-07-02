@@ -24,7 +24,14 @@ func init () {
 		MaxActive:   beego.AppConfig.DefaultInt("redis.maxactive", 1000),
 		IdleTimeout: 180 * time.Second,
 		Dial: func() (redis.Conn, error) {
-			c, err := redis.Dial("tcp", redisHost+":"+redisPort , redis.DialPassword(redisPass))
+			c, err := redis.Dial(
+				"tcp",
+				redisHost+":"+redisPort ,
+				redis.DialPassword(redisPass),
+				redis.DialConnectTimeout(1 * time.Second),
+				redis.DialReadTimeout(5*time.Second),
+				redis.DialWriteTimeout(2*time.Second),
+				)
 			if err != nil {
 				log.Println(err)
 			}

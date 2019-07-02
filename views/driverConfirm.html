@@ -386,8 +386,9 @@
 <div class="loading2 hide" data-text="资料提交中..."></div>
 
 
-<div class="page-hd-title">
+
 {{if gt .num 0}}
+<div class="page-hd-title">
     {{ $orderStatus := .list.Status}}
     {{if eq .list.Status 0}}
         <span class="f-blue">
@@ -401,9 +402,23 @@
             {{$elem.Text}}
         {{end}}
     {{end}}</span>
-
-{{end}}
 </div>
+{{if eq .list.Status 2}}
+    <div class="page-bd-15">
+        <p class="page-hd-desc">拒绝理由</p>
+        <div class="weui-cells weui-cells_form">
+            <div class="weui-cell">
+                <div class="weui-cell__bd">
+                    <textarea id="travelCommit" class="weui-textarea" placeholder="" rows="3" onkeyup="textarea(this);" disabled>{{.list.RejectReason}}</textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+{{end}}
+{{end}}
+
+
+
 
 <div class="weui-cells__title">驾驶员身份审核</div>
 <div class="weui-cells weui-cells_form">

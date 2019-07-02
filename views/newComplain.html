@@ -1,0 +1,153 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>长庆出行</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=0">
+    <link rel="stylesheet" href="/css/weui/weui.css"/>
+    <link rel="stylesheet" href="/css/weui/weuix.css"/>
+
+    <script src="/js/weui/zepto.min.js"></script>
+    <script src="/js/weui/zepto.weui.js"></script>
+    <script src="/js/weui/iscroll-lite.js"></script>
+    <script src="/js/weui/lrz.min.js"></script>
+    <script src="/js/weui/iscroll-lite.js"></script>
+
+    <script>
+        function getByteLen(val) {
+            var len = 0;
+            for (var i = 0; i < val.length; i++) {
+                var a = val.charAt(i);
+                if (a.match(/[^\x00-\xff]/ig) != null)
+                {
+                    len += 2;
+                }
+                else
+                {
+                    len += 1;
+                }
+            }
+            return len;
+        }
+        function textarea(input) {
+            var content = $(input);
+            var max =  content.next().find('i') .text();
+            var value = content.val();
+            if (value.length>0) {
+
+                value = value.replace(/\n|\r/gi,"");
+                var len = value.length;
+                content.next().find('span').text(len) ;
+                if(len>max){
+                    content.next().addClass('f-red');
+                }else{
+                    content.next().removeClass('f-red');
+                }
+            }
+        }
+        function cleararea(obj){
+            $(obj).prev().find('.weui-textarea').val("");
+            return false;
+        }
+
+        function checkTile() {
+            var content = $("#title").val();
+            if (content == "") {
+                $.alert("请输入标题","信息输入错误");
+                return false;
+            } else if (getByteLen(content) > 10) {
+                $.alert("标题不要超过10个字哦","信息输入错误");
+                return false;
+            } else {
+                return true;
+            }
+        }
+
+        function checkContent() {
+            var content = $("#content").val();
+            if (content == "") {
+                $.alert("请输入投诉\建议内容","信息输入错误");
+                return false;
+            } else if (getByteLen(content) > 50) {
+                $.alert("内容不要超过50个字哦","信息输入错误");
+                return false;
+            } else {
+                return true;
+            }
+        }
+
+        function submit() {
+            if (!checkTile()) {
+                return;
+            }
+            if (! checkContent()){
+                return;
+            }
+            $(".loading2").show();
+            $.ajax({
+                type:"POST",
+                url:"/portal/donewcomplain",
+                data:{
+                    content:$("#content").val() ,
+                    title:$("#title").val(),
+                },
+                dataType:"json",
+                success : function(result) {
+                    console.log(result)
+                    if (result.code != 0) {
+                        $(".loading2").hide();
+                        $.alert(result.msg,"提交异常");
+                    }
+                    else {
+                        $(".loading2").hide();
+                        $.toast("提交成功", 30000);
+                        window.location.href = "/portal/showcomplain";
+
+                    }
+                },
+                error : function(result) {
+                    $(".loading2").hide();
+                    $.alert("网络繁忙，请重试","提交异常");
+                }
+            });
+        }
+    </script>
+</head>
+
+<body ontouchstart>
+{{template "sildePic.html" .}}
+<div class="loading2 hide" data-text="提交中..."></div>
+<div class="page-bd">
+    <div class="weui-cells weui-cells_form">
+        <div class="weui-cell">
+            <div class="weui-cell__hd">
+                <label class="weui-label">标题</label>
+            </div>
+            <div class="weui-cell__bd">
+                <input class="weui-input" placeholder="请勿超过10个字" type="text" name="title" id="title" />
+            </div>
+
+        </div>
+        <div class="weui-cell">
+        <p class="page-hd-desc">投诉内容</p>
+        </div>
+        <div class="weui-cell">
+            <div class="weui-cell__bd">
+                <textarea id="content" class="weui-textarea" placeholder="单号：&#10;问题描述：" rows="6" onkeyup="textarea(this);"></textarea>
+                <div class="weui-textarea-counter"><span>0</span>/<i>50</i></div>
+            </div>
+            <i class="weui-icon-clear" onclick="cleararea(this)"></i>
+        </div>
+
+    </div>
+    <div class="weui-btn-area">
+        <a href="javascript:;" class="weui-btn weui-btn_primary" onclick="submit()">提交投诉/建议</a>
+    </div>
+</div>
+
+{{template "bottomNav.html" .}}
+
+</body>
+
+</head>
+</html>

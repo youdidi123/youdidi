@@ -157,6 +157,15 @@ type Cash_flow struct {
 	User *User `json:"user" orm:"rel(fk)"`
 }
 
+type Complain struct {
+	Id int `orm:"auto;pk;column(id);" json:"id"`
+	User *User `json:"user" orm:"rel(fk)"`
+	Status int `column(status);" json:"status"` //0:处理中 1:处理完成
+	Title string `column(title);" json:"title"`
+	Content string `column(content);" json:"content"`
+	Time string `column(time);" json:"time"`
+}
+
 func init () {
 	mysqluser := beego.AppConfig.String("mysqluser")
 	mysqlpass := beego.AppConfig.String("mysqlpass")
@@ -174,6 +183,7 @@ func init () {
 		new(Driver_confirm),
 		new(Admin_user),
 		new(Cash_flow),
+		new(Complain),
 		)
 	orm.RegisterDriver("mysql", orm.DRMySQL)
 	orm.RegisterDataBase("default", "mysql", mysqluser+":"+mysqlpass+"@tcp("+mysqlurls+")/"+mysqldb+"?charset=utf8&loc=Asia%2FShanghai")

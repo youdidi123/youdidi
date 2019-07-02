@@ -1,7 +1,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>后台主页</title>
+    <title>投诉处理</title>
     <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=0">
     <link rel="stylesheet" href="/css/weui/weui.css"/>
     <link rel="stylesheet" href="/css/weui/weuix.css"/>
@@ -14,16 +14,27 @@
     <script src="/js/weui/lrz.min.js"></script>
 </head>
 <body>
-<div class="page-hd">
-    <a href="/admin/dconfirm" class="weui-btn weui-btn_primary">车主身份审核</a>
-    <br>
-    <a href="/admin/userwithdrew" class="weui-btn weui-btn_primary">提现需求处理</a>
-    <br>
-    <a href="/admin/showcomplain" class="weui-btn weui-btn_primary">投诉处理</a>
-    <br>
-    <a href="">账单</a>
-    <br>
-</div>
-
+{{if lt .num 1}}
+没有未处理的投诉
+{{else}}
+<table border="1">
+    <tr>
+        <th>编号</th>
+        <th>乘客ID</th>
+        <th>标题</th>
+        <th>申请时间</th>
+        <th>操作</th>
+    </tr>
+    {{range .list}}
+    <tr>
+        <td>{{.Id}}</td>
+        <td>{{.User.Id}}</td>
+        <td>{{.Title}}</td>
+        <td>{{.Time}}</td>
+        <td><a href="/admin/complaindetail/{{.Id}}/1">查看</a><td>
+    </tr>
+    {{end}}
+</table>
+{{end}}
 </body>
 </html>

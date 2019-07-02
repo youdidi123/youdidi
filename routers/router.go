@@ -47,7 +47,6 @@ func init() {
 
 	var LoginFilter = func(ctx *context.Context)() {
 		id, isId := ctx.GetSecureCookie("qyt","qyt_id")
-		logs.Debug("debug cookie id=%v isId=%v",id, isId)
 		if (! isId || id == "") {
 			ctx.Redirect(302, "/Login")
 			logs.Debug("can not get id from cookie")
@@ -122,6 +121,8 @@ func init() {
     beego.Router("/wxverifytest", &controllers.WxVerifyTestController{})
     //beego.Router("/wxlogin", &controllers.WxLoginController{})
 	beego.Router("/", &controllers.OrderController{}, "GET:SearchInput")
+	beego.Router("/admin/complaindetail/:id/:utype", &controllers.ComplainController{}, "GET:ComplainDetail")
+	beego.Router("/admin/replycomplain", &controllers.ComplainController{}, "POST:ReplyComplain")
 	beego.Include(&controllers.WxLoginController{})
 	beego.Include(&controllers.UserCenterController{})
 	beego.Include(&controllers.MainController{})
@@ -130,4 +131,5 @@ func init() {
 	beego.Include(&controllers.ChatController{})
 	beego.Include(&controllers.AccountFlowController{})
 	beego.Include(&controllers.AdminUserController{})
+	beego.Include(&controllers.ComplainController{})
 }
