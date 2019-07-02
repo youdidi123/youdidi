@@ -13,6 +13,11 @@
     <script src="/js/weui/lrz.min.js"></script>
     <script src="/js/weui/axios.min.js"></script>
     <script>
+        $(function(){
+            $('input, textarea, select').on('blur',function(){
+                window.scroll(0, 0);
+            });
+        });
         function init() {
             var myDate = new Date(new Date().getTime() + 10 * 60 * 1000);
             var year = myDate.getFullYear();

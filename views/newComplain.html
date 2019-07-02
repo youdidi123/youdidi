@@ -14,6 +14,11 @@
     <script src="/js/weui/iscroll-lite.js"></script>
 
     <script>
+        $(function(){
+            $('input, textarea, select').on('blur',function(){
+                window.scroll(0, 0);
+            });
+        });
         function getByteLen(val) {
             var len = 0;
             for (var i = 0; i < val.length; i++) {
