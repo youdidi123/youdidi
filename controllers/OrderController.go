@@ -248,18 +248,18 @@ func (this *OrderController) PassengerOrderDetail () {
 	this.TplName = "passengerOrderDetail.html"
 }
 
-// @router /Portal/searchorder [POST,GET]
+// @router /Portal/searchorder/:startcode/:endcode/:launchtime [GET]
 func (this *OrderController) SearchOrder () {
 	//startCode := this.GetString("startCode")
 	//endCode := this.GetString("endCode")
-	startCode, _ := strconv.Atoi(this.GetString("startCode"))
-	endCode, _ := strconv.Atoi(this.GetString("endCode"))
+	startCode, _ := strconv.Atoi(this.GetString(":startcode"))
+	endCode, _ := strconv.Atoi(this.GetString(":endcode"))
 	//startCode64 , _ := strconv.ParseInt(startCode, 10, 64)
 	//endCode64 , _ := strconv.ParseInt(endCode, 10, 64)
 	startCodeLocation := startCode % 1000000
 	endCodeLocation := endCode % 1000000
 
-	launchTime := this.GetString("launchTime")
+	launchTime := this.GetString(":launchtime")
 	launchTime = launchTime + " 00:00:00"
 	tmStart, _ := time.ParseInLocation("2006-01-02 15:04:05", launchTime, time.Local)
 	tmEnd := tmStart.Unix() + (1*24*60*60)
