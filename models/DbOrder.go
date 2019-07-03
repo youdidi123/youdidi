@@ -36,7 +36,7 @@ func (u *Order) GetCurrentDriverOrderFromUserId (id string, list *[]*Order) int6
 	return num
 }
 
-func (u *Order) GetReadyOrders (list *[]*Order , startCode int64 , endCode int64 , tmStart int64 , tmEnd int64 , startLocation int64 , endLocation int64) int64 {
+func (u *Order) GetReadyOrders (list *[]*Order , startCode int , endCode int , tmStart int64 , tmEnd int64 , startLocation int , endLocation int) int64 {
 	var jqInfo []*Order
 	var mhInfo []*Order
 	var resultInfo []*Order
