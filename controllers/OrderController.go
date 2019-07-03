@@ -248,7 +248,7 @@ func (this *OrderController) PassengerOrderDetail () {
 	this.TplName = "passengerOrderDetail.html"
 }
 
-// @router /Portal/searchorder [GET]
+// @router /Portal/searchorder [POST,GET]
 func (this *OrderController) SearchOrder () {
 	//startCode := this.GetString("startCode")
 	//endCode := this.GetString("endCode")
