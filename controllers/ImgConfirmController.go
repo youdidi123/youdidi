@@ -28,7 +28,7 @@ func (c *ImgConfirmController) DriverConfirmInput() {
 	var dbDc models.Driver_confirm
 	var dcInfo []*models.Driver_confirm
 
-	num := dbDc.GetUserOrder(userId, &dcInfo)
+	num, _ := dbDc.GetUserOrder(userId, &dcInfo)
 	c.Data["num"] = num
 	if (num > 0) {
 		c.Data["list"] = dcInfo[0]
@@ -47,12 +47,10 @@ func (this *ImgConfirmController) DoDriverConfirm() {
 	idNum := this.GetString("idNum")
 	carType := this.GetString("carType")
 	carNum := this.GetString("carNum")
-	sfzSrc := this.GetString("sfzSrc")
-	driverLiscen := this.GetString("driverLiscen")
-	carLiscen := this.GetString("carLiscen")
 
 	code := 0
 	msg := ""
+
 	currentTime := strconv.FormatInt(time.Now().Unix(),10)
 
 	var confirmInfo models.Driver_confirm
@@ -66,16 +64,18 @@ func (this *ImgConfirmController) DoDriverConfirm() {
 	var dbDc models.Driver_confirm
 	var dcInfo []*models.Driver_confirm
 
-	num := dbDc.GetUserOrder(userId, &dcInfo)
+	num, err := dbDc.GetUserOrder(userId, &dcInfo)
+
+	if (err != nil) {
+		code = 7
+		msg = "您有正在处理的申请，请勿重复提交"
+		this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
+		this.ServeJSON()
+		return
+	}
 
 	if (num != 0) {
-		if (dcInfo[0].Status == 0) {
-			code = 5
-			msg = "您有正在处理的申请，请勿重复提交"
-			this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
-			this.ServeJSON()
-			return
-		} else if (dcInfo[0].Status == 1) {
+		if (dcInfo[0].Status == 1) {
 			code = 6
 			msg = "您已是认证车主啦，无需再次验证"
 			this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
@@ -84,37 +84,9 @@ func (this *ImgConfirmController) DoDriverConfirm() {
 		}
 	}
 
-	sfzFileName := "static/img/confirmImg/sfz_img_" + userId + "_" + currentTime
-	driverLiscenFileName := "static/img/confirmImg/dl_img_" + userId + "_" + currentTime
-	carLiscenFileName := "static/img/confirmImg/cl_img_" + userId + "_" + currentTime
+	succ, oid := confirmInfo.CreateDriverConfirm(userId, num)
 
-	if (! StoreImg(sfzSrc, sfzFileName)) {
-		code = 1
-		msg = "资料上传异常，请重试"
-		this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
-		this.ServeJSON()
-		return
-	}
-	if (! StoreImg(driverLiscen, driverLiscenFileName)) {
-		code = 2
-		msg = "资料上传异常，请重试"
-		this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
-		this.ServeJSON()
-		return
-	}
-	if (! StoreImg(carLiscen, carLiscenFileName)) {
-		code = 3
-		msg = "资料上传异常，请重试"
-		this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
-		this.ServeJSON()
-		return
-	}
-
-	confirmInfo.CarLiceseImg = "/img/confirmImg/cl_img_" + userId + "_" + currentTime + ".png"
-	confirmInfo.DriverLiceseImg = "/img/confirmImg/dl_img_" + userId + "_" + currentTime + ".png"
-	confirmInfo.SfzImg = "/img/confirmImg/sfz_img_" + userId + "_" + currentTime + ".png"
-
-	if (! confirmInfo.CreateDriverConfirm(userId, num)) {
+	if (! succ) {
 		code = 4
 		msg = "系统异常，请重试"
 		this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
@@ -122,9 +94,62 @@ func (this *ImgConfirmController) DoDriverConfirm() {
 		return
 	}
 
-	this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
+	if (num > 0) {
+		oid = dcInfo[0].Id
+	}
+
+	this.Data["json"] = map[string]interface{}{"code":code, "msg":msg, "id":oid};
 	this.ServeJSON()
 
+}
+
+// @router /Portal/loadimg [POST]
+func (this *ImgConfirmController) LoadImg() {
+	userId, _ := this.Ctx.GetSecureCookie("qyt", "qyt_id")
+	imgfile := this.GetString("imgfile")
+	iType := this.GetString("type")
+	oid := this.GetString("oid")
+
+	var dbDc models.Driver_confirm
+
+	fileName := ""
+	dbFileName := ""
+	currentTime := strconv.FormatInt(time.Now().Unix(),10)
+
+	if (iType == "sfz") {
+		fileName = "static/img/confirmImg/sfz_img_" + userId + "_" + currentTime
+		dbFileName = "/img/confirmImg/sfz_img_" + userId + "_" + currentTime + ".png"
+	} else if (iType == "jsz") {
+		fileName = "static/img/confirmImg/dl_img_" + userId + "_" + currentTime
+		dbFileName = "/img/confirmImg/dl_img_" + userId + "_" + currentTime + ".png"
+	} else {
+		fileName = "static/img/confirmImg/cl_img_" + userId + "_" + currentTime
+		dbFileName = "/img/confirmImg/cl_img_" + userId + "_" + currentTime + ".png"
+	}
+
+	code := 0
+	msg := ""
+
+	if (!StoreImg(imgfile, fileName)) {
+		code = 1
+		msg = "图片上传失败，请重试"
+		this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
+		this.ServeJSON()
+		return
+	}
+
+	_, err := dbDc.UpdateImgFile(oid, dbFileName, iType)
+
+	if (err != nil) {
+		code = 2
+		msg = "图片上传失败，请重试"
+		this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
+		this.ServeJSON()
+		return
+	}
+
+	this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
+	this.ServeJSON()
 }
 
 func StoreImg (src string, fileName string) bool {

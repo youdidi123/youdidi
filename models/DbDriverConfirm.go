@@ -10,10 +10,11 @@ func (u *Driver_confirm) TableName() string {
 }
 
 
-func (u *Driver_confirm) CreateDriverConfirm(userId string, num int64) bool {
+func (u *Driver_confirm) CreateDriverConfirm(userId string, num int64) (bool, int) {
 	o := orm.NewOrm()
 	o.Begin()
 	var dbUser User
+	oid := 0
 
 	_, err2 := o.QueryTable(dbUser).Filter("Id", userId).Update(orm.Params{
 		"IsDriver": 1,
@@ -21,15 +22,12 @@ func (u *Driver_confirm) CreateDriverConfirm(userId string, num int64) bool {
 	if (err2 != nil) {
 		o.Rollback()
 		logs.Error("update user info fail uid=%v", userId)
-		return false
+		return false, 0
 	}
 
 	if (num > 0) {
 		_, err3 := o.QueryTable(u).Filter("user_id", userId).Update(orm.Params{
 			"Status": 0,
-			"SfzImg":u.SfzImg,
-			"DriverLiceseImg":u.DriverLiceseImg,
-			"CarLiceseImg":u.CarLiceseImg,
 			"SfzNum":u.SfzNum,
 			"RealName":u.RealName,
 			"CarType":u.CarType,
@@ -40,15 +38,16 @@ func (u *Driver_confirm) CreateDriverConfirm(userId string, num int64) bool {
 		if (err3 != nil) {
 			o.Rollback()
 			logs.Error("insert driver confirm info fail", userId)
-			return false
+			return false, 0
 		}
 	} else {
 		_, err3 := o.Insert(u)
 		if (err3 != nil) {
 			o.Rollback()
 			logs.Error("insert driver confirm info fail", userId)
-			return false
+			return false, 0
 		}
+		oid = u.Id
 	}
 
 	errcommit := o.Commit()
@@ -56,18 +55,32 @@ func (u *Driver_confirm) CreateDriverConfirm(userId string, num int64) bool {
 	if (errcommit != nil) {
 		logs.Error("commit fail")
 		o.Rollback()
-		return false
+		return false, 0
 	}
-	return true
+	return true, oid
 }
 
-func (u *Driver_confirm) GetUserOrder(userId string, list *[]*Driver_confirm) int64 {
+func (u *Driver_confirm) UpdateImgFile(oid string, fileName string, iType string) (int64, error) {
+	col := ""
+	if (iType == "sfz") {
+		col = "SfzImg"
+	} else if (iType == "jsz") {
+		col = "DriverLiceseImg"
+	} else {
+		col = "CarLiceseImg"
+	}
+	return orm.NewOrm().QueryTable(u).Filter("Id", oid).Update(orm.Params{
+		col: fileName,
+	})
+}
+
+func (u *Driver_confirm) GetUserOrder(userId string, list *[]*Driver_confirm) (int64, error) {
 	num, err := orm.NewOrm().QueryTable(u).RelatedSel().Filter("user_id", userId).OrderBy("-time").All(list)
 
 	if(err != nil) {
 		logs.Error("get driver confirm order fail uid=&v", userId)
 	}
-	return num
+	return num, err
 }
 
 func (u *Driver_confirm) GetNoConfirm(list *[]*Driver_confirm) int64 {
