@@ -136,7 +136,7 @@ func (this *OrderController) DoCreateOrder () {
 	travelExplain := this.GetString("travelExplain")
 	travelCommit := this.GetString("travelCommit")
 
-	launchTimeUnix, _ := time.Parse("2006-01-02 15:04:05", launchTime)
+	launchTimeUnix, _ := time.ParseInLocation("2006-01-02 15:04:05", launchTime, time.Local)
 	logs.Debug("launchTime=%v launchTime=%v launchTime=%v", launchTimeUnix, launchTime, launchTimeUnix.Unix())
 
 	if (launchTimeUnix.Unix() - currentTime < 10 * 60) {
@@ -259,7 +259,7 @@ func (this *OrderController) SearchOrder () {
 
 	launchTime := this.GetString("launchTime")
 	launchTime = launchTime + " 00:00"
-	tmStart, _ := time.Parse("2006-01-02 15:04", launchTime)
+	tmStart, _ := time.ParseInLocation("2006-01-02 15:04", launchTime, time.Local)
 	tmEnd := tmStart.Unix() + (1*24*60*60)
 
 	logs.Debug("search order launchTime=%v start=%v end=%v", launchTime , startCode , endCode)
