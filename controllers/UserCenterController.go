@@ -293,6 +293,73 @@ func (this *UserCenterController) Help() {
 	this.TplName = "help.html"
 }
 
+// @router /Portal/help01 [GET]
+func (this *UserCenterController) Help01() {
+	this.Data["tabIndex"] = 3
+
+	this.TplName = "help01.html"
+}
+
+// @router /Portal/help02 [GET]
+func (this *UserCenterController) Help02() {
+	this.Data["tabIndex"] = 3
+
+	this.TplName = "help02.html"
+}
+
+// @router /Portal/help03 [GET]
+func (this *UserCenterController) Help03() {
+	this.Data["tabIndex"] = 3
+
+	this.TplName = "help03.html"
+}
+
+// @router /Portal/help11 [GET]
+func (this *UserCenterController) Help11() {
+	this.Data["tabIndex"] = 3
+
+	this.TplName = "help11.html"
+}
+// @router /Portal/help12 [GET]
+func (this *UserCenterController) Help12() {
+	this.Data["tabIndex"] = 3
+
+	this.TplName = "help12.html"
+}
+// @router /Portal/help13 [GET]
+func (this *UserCenterController) Help13() {
+	this.Data["tabIndex"] = 3
+
+	this.TplName = "help13.html"
+}
+// @router /Portal/help14 [GET]
+func (this *UserCenterController) Help14() {
+	this.Data["tabIndex"] = 3
+
+	this.TplName = "help14.html"
+}
+
+// @router /Portal/help21 [GET]
+func (this *UserCenterController) Help21() {
+	this.Data["tabIndex"] = 3
+
+	this.TplName = "help21.html"
+}
+
+// @router /Portal/help22 [GET]
+func (this *UserCenterController) Help22() {
+	this.Data["tabIndex"] = 3
+
+	this.TplName = "help22.html"
+}
+
+// @router /Portal/help23 [GET]
+func (this *UserCenterController) Help23() {
+	this.Data["tabIndex"] = 3
+
+	this.TplName = "help23.html"
+}
+
 // @router /Portal/aboutus [GET]
 func (this *UserCenterController) AboutUs() {
 	this.Data["tabIndex"] = 3
