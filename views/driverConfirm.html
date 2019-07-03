@@ -210,9 +210,6 @@
                         idNum:idNum,
                         carType:carType,
                         carNum:carNum,
-                        sfzSrc:sfzSrc,
-                        driverLiscen:driverLiscen,
-                        carLiscen:carLiscen,
                     },
                     dataType:"json",
                     async: false,
@@ -226,20 +223,13 @@
                             setTimeout(function(){},2000);
                             $(".loading2").hide();
                             var id = result.id;
-                            if (!sendImg(sfzSrc,"sfz", id)) {
-                                $(".loading2").hide();
-                                $.alert(result.msg,"操作异常");
-                            }else if (!sendImg(driverLiscen,"jsz", id)) {
-                                $(".loading2").hide();
-                                $.alert(result.msg,"操作异常");
-                            }
-                            else if (!sendImg(carLiscen,"xsz", id)) {
-                                $(".loading2").hide();
-                                $.alert(result.msg,"操作异常");
-                            } else {
-                                $.toast("操作成功", 30000);
-                                window.location.href = "/Portal/driverconfirminput";
-                            }
+                            $.post("/Portal/loadimg",{imgfile: sfzSrc,type:"sfz",oid:id},function(){},'json');
+                            $.post("/Portal/loadimg",{imgfile: driverLiscen,type:"jsz",oid:id},function(){},'json');
+                            $.post("/Portal/loadimg",{imgfile: carLiscen,type:"xsz",oid:id},function(){},'json');
+
+                            $.toast("操作成功", 30000);
+                            window.location.href = "/Portal/driverconfirminput";
+
                         }
                     },
                     error : function(result) {
@@ -295,7 +285,7 @@
 
         function sendImg (imgfile, type, oid) {
             var succ = true;
-            $.ajax({
+            /*$.ajax({
                 type:"POST",
                 url:"/Portal/loadimg",
                 data:{
@@ -313,8 +303,7 @@
                 error : function(result) {
                     succ = false;
                 }
-            });
-            return succ;
+            });*/
         }
 
         function genGUID() {
