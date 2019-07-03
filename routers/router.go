@@ -46,30 +46,37 @@ func init() {
 	}
 
 	var LoginFilter = func(ctx *context.Context)() {
+		runmode := beego.AppConfig.String("runmode")
+		var loginUrl string
+		if (runmode == "dev") {
+			loginUrl = "/Login"
+		} else {
+			loginUrl = "/WxLogin"
+		}
 		id, isId := ctx.GetSecureCookie("qyt","qyt_id")
 		if (! isId || id == "") {
-			ctx.Redirect(302, "/Login")
+			ctx.Redirect(302, loginUrl)
 			logs.Debug("can not get id from cookie")
 		} else {
 			logs.Debug("id of cookis : %v" , id)
 			token , isToken := ctx.GetSecureCookie("qyt" , "qyt_token")
 			if (! isToken) {
 				logs.Debug("can not get token from cookie")
-				ctx.Redirect(302, "/Login")
+				ctx.Redirect(302, loginUrl)
 			} else {
 				content := redisClient.GetKey(controllers.LoginPrefix+id)
 				if (content == "nil") {
 					logs.Debug("cache is empty")
-					ctx.Redirect(302, "/Login")
+					ctx.Redirect(302, loginUrl)
 				} else {
 					info := &controllers.UserLoginInfo{}
 					err := json.Unmarshal([]byte(content), &info)
 					if (err != nil) {
-						ctx.Redirect(302, "/Login")
+						ctx.Redirect(302, loginUrl)
 					} else {
 						if (token != info.Token) {
 							logs.Debug("token did not match of cookie and cache")
-							ctx.Redirect(302, "/Login")
+							ctx.Redirect(302, loginUrl)
 						} else if(! info.IsPhoneVer){
 							ctx.Redirect(302, "/Ver/phonever")
 						}else {

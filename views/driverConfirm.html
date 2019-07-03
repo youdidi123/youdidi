@@ -13,6 +13,10 @@
     <script src="/js/weui/lrz.min.js"></script>
     <script>
         $(function(){
+                $('input, textarea, select').on('blur',function(){
+                    window.scroll(0, 0);
+                });
+
             var tmpl = '<li class="weui-uploader__file" id="#ImgID#" style="background-image:url(#url#)"></li>'
             var $galleryImg = $(".weui-gallery__img");//相册图片地址
             var $gallery = $(".weui-gallery");

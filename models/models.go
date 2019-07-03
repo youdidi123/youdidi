@@ -4,6 +4,7 @@ import (
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
 	_ "github.com/go-sql-driver/mysql"
+	"time"
 )
 
 type User struct {
@@ -185,8 +186,9 @@ func init () {
 		new(Cash_flow),
 		new(Complain),
 		)
+	orm.DefaultTimeLoc = time.UTC
 	orm.RegisterDriver("mysql", orm.DRMySQL)
-	orm.RegisterDataBase("default", "mysql", mysqluser+":"+mysqlpass+"@tcp("+mysqlurls+")/"+mysqldb+"?charset=utf8&loc=Asia%2FShanghai")
+	orm.RegisterDataBase("default", "mysql", mysqluser+":"+mysqlpass+"@tcp("+mysqlurls+")/"+mysqldb+"?charset=utf8&loc=Local")
 	orm.RunSyncdb("default", false, true)
 	if beego.AppConfig.String("runmode") == "dev" {
 		orm.Debug = true

@@ -1,10 +1,6 @@
 ;(function($) {
     "use strict";
 
-    $('input, textarea, select').on('blur',function(){
-        window.scroll(0, 0);
-    });
-
     $.fn.transitionEnd = function(callback) {
         var events = ['webkitTransitionEnd', 'transitionend', 'oTransitionEnd', 'MSTransitionEnd', 'msTransitionEnd'],
             i, dom = this;
