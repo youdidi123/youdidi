@@ -8,6 +8,7 @@ import (
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/httplib"
 	"github.com/astaxie/beego/logs"
+	"github.com/astaxie/beego/context"
 	"strconv"
 	"time"
 	"youdidi/models"
@@ -242,31 +243,6 @@ func (this *UserCenterController) VerPhone() {
 	this.ServeJSON()
 }
 
-func GetUserInfoFromRedis(uid string) *UserLoginInfo {
-	userinfo := redisClient.GetKey(LoginPrefix + uid)
-
-	info := &UserLoginInfo{}
-	err := json.Unmarshal([]byte(userinfo), &info)
-	if err != nil {
-		logs.Error("get userinfo from redis fail %v ", err)
-	}
-	return info
-}
-
-func GetOnroadTypeFromId(uid string) int {
-	var dbUser models.User
-	var userInfo []*models.User
-	_ , num := dbUser.GetUserInfoFromId(uid, &userInfo)
-
-	if (num == 0 ) {
-		logs.Error("get user onroad type err uid=%v" , uid)
-		dbUser.GetUserInfoFromId(uid, &userInfo)
-		return 0
-	}
-
-	return userInfo[0].OnRoadType
-}
-
 // @router /Portal/userinfo [GET]
 func (this *UserCenterController) UserInfo() {
 	uid, _ := this.Ctx.GetSecureCookie("qyt", "qyt_id")
@@ -307,7 +283,33 @@ func (this *UserCenterController) Disclaimer() {
 	this.TplName = "disclaimer.html"
 }
 
-// generate user log info 
+// Get user info from redis
+func GetUserInfoFromRedis(uid string) *UserLoginInfo {
+	userinfo := redisClient.GetKey(LoginPrefix + uid)
+
+	info := &UserLoginInfo{}
+	err := json.Unmarshal([]byte(userinfo), &info)
+	if err != nil {
+		logs.Error("get userinfo from redis fail %v ", err)
+	}
+	return info
+}
+
+func GetOnroadTypeFromId(uid string) int {
+	var dbUser models.User
+	var userInfo []*models.User
+	_ , num := dbUser.GetUserInfoFromId(uid, &userInfo)
+
+	if (num == 0 ) {
+		logs.Error("get user onroad type err uid=%v" , uid)
+		dbUser.GetUserInfoFromId(uid, &userInfo)
+		return 0
+	}
+
+	return userInfo[0].OnRoadType
+}
+
+// generate user login info
 func GenUserLoginInfo(userInfo *models.User) (*UserLoginInfo, error) {
 	token := getToken(userInfo.Name, userInfo.Passwd)
 	userLoginInfo := &UserLoginInfo{}
@@ -332,4 +334,35 @@ func CacheUserLoginInfo(userLoginInfo *UserLoginInfo) error {
 	redisClient.SetKey(LoginPrefix+userLoginInfo.idStr, string(data))
 	redisClient.Setexpire(LoginPrefix+userLoginInfo.idStr, LoginPeriod)
 	return nil
+}
+
+
+
+func GetUserLoginInfoByCookie(ctx *context.Context) (*UserLoginInfo, error) {
+	info := &UserLoginInfo{}
+	id, isId := ctx.GetSecureCookie("qyt","qyt_id")
+	if (! isId) {
+		return nil, fmt.Errorf("can not get id from cookie:")
+	} else {
+		logs.Debug("id of cookis : %v" , id)
+		token, isToken := ctx.GetSecureCookie("qyt" , "qyt_token")
+		if (! isToken) {
+			return nil, fmt.Errorf("can not get token from cookie")
+		} else {
+			content := redisClient.GetKey(LoginPrefix+id)
+			if (content == "nil") {
+				return nil, fmt.Errorf("cache is empty")
+			} else {
+				err := json.Unmarshal([]byte(content), &info)
+				if (err != nil) {
+					return nil, fmt.Errorf("Userinfo Unmarshal error:%s", err)
+				} else {
+					if (token != info.Token) {
+						return nil, fmt.Errorf("token did not match of cookie and cache")
+					}
+				}
+			}
+		}
+	}
+	return info, nil
 }

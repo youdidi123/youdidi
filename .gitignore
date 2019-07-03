@@ -4,3 +4,6 @@ youdidi
 youdidi.tar.gz
 .idea/
 lastupdate.tmp
+controllers/wxpay/.git/
+controllers/wxpay/.gitignore
+controllers/.DS_Store

@@ -71,8 +71,8 @@ func init() {
 						if (token != info.Token) {
 							logs.Debug("token did not match of cookie and cache")
 							ctx.Redirect(302, "/Login")
-						} else if(! info.IsPhoneVer){
-							ctx.Redirect(302, "/Ver/phonever")
+						//} else if(! info.IsPhoneVer){
+						//	ctx.Redirect(302, "/Ver/phonever")
 						}else {
 							redisClient.Setexpire(controllers.LoginPrefix+id , controllers.LoginPeriod)
 						}
@@ -123,6 +123,7 @@ func init() {
     //beego.Router("/wxlogin", &controllers.WxLoginController{})
 	beego.Router("/", &controllers.OrderController{}, "GET:SearchInput")
 	beego.Include(&controllers.WxLoginController{})
+	beego.Include(&controllers.WxPayController{})
 	beego.Include(&controllers.UserCenterController{})
 	beego.Include(&controllers.MainController{})
 	beego.Include(&controllers.ImgConfirmController{})
