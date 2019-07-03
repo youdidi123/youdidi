@@ -13,6 +13,10 @@
     <script src="/js/weui/lrz.min.js"></script>
     <script>
         $(function(){
+                $('input, textarea, select').on('blur',function(){
+                    window.scroll(0, 0);
+                });
+
             var tmpl = '<li class="weui-uploader__file" id="#ImgID#" style="background-image:url(#url#)"></li>'
             var $galleryImg = $(".weui-gallery__img");//相册图片地址
             var $gallery = $(".weui-gallery");
@@ -211,6 +215,7 @@
                         carLiscen:carLiscen,
                     },
                     dataType:"json",
+                    async: false,
                     success : function(result) {
                         console.log(result)
                         if (result.code != 0) {
@@ -225,6 +230,7 @@
                         }
                     },
                     error : function(result) {
+                        alert(result);
                         $(".loading2").hide();
                         $.alert("网络繁忙，请重试","操作异常");
                     }
@@ -386,8 +392,9 @@
 <div class="loading2 hide" data-text="资料提交中..."></div>
 
 
-<div class="page-hd-title">
+
 {{if gt .num 0}}
+<div class="page-hd-title">
     {{ $orderStatus := .list.Status}}
     {{if eq .list.Status 0}}
         <span class="f-blue">
@@ -401,9 +408,23 @@
             {{$elem.Text}}
         {{end}}
     {{end}}</span>
-
-{{end}}
 </div>
+{{if eq .list.Status 2}}
+    <div class="page-bd-15">
+        <p class="page-hd-desc">拒绝理由</p>
+        <div class="weui-cells weui-cells_form">
+            <div class="weui-cell">
+                <div class="weui-cell__bd">
+                    <textarea id="travelCommit" class="weui-textarea" placeholder="" rows="3" onkeyup="textarea(this);" disabled>{{.list.RejectReason}}</textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+{{end}}
+{{end}}
+
+
+
 
 <div class="weui-cells__title">驾驶员身份审核</div>
 <div class="weui-cells weui-cells_form">

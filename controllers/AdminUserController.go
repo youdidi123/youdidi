@@ -146,3 +146,43 @@ func (this *AdminUserController) UserWithdrew () {
 
 	this.TplName = "adminUserWithdrew.html"
 }
+
+// @router /admin/doconfirmdriver [POST]
+func (this *AdminUserController) DoConfirmDriver () {
+	oid := this.GetString("oid")
+	aType := this.GetString("type")
+	mark := this.GetString("mark")
+
+	var dbDc models.Driver_confirm
+
+	code := 0
+	msg := ""
+
+	if (! dbDc.DoConfirmDriver(oid, aType, mark)) {
+		code = 1
+		msg = "系统异常，请重试"
+	}
+
+	this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
+	this.ServeJSON()
+
+}
+
+// @router /admin/showcomplain [GET]
+func (this *AdminUserController) ShowComplain () {
+	var dbC models.Complain
+	var cInfo []*models.Complain
+
+	num, _ := dbC.GetNoComplain(&cInfo)
+
+	for i, v := range cInfo {
+		this.Data["launchTime"] = v.Time;
+		launchTime64, _ := strconv.ParseInt(v.Time, 10, 64)
+		tm := time.Unix(launchTime64, 0)
+		cInfo[i].Time = tm.Format("2006-01-02 15:04")
+	}
+
+	this.Data["num"] = num
+	this.Data["list"] = cInfo
+	this.TplName = "adminShowComplain.html"
+}

@@ -1,0 +1,150 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>长庆出行</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=0">
+    <link rel="stylesheet" href="/css/weui/weui.css"/>
+    <link rel="stylesheet" href="/css/weui/weuix.css"/>
+
+    <script src="/js/weui/zepto.min.js"></script>
+    <script src="/js/weui/zepto.weui.js"></script>
+    <script src="/js/weui/iscroll-lite.js"></script>
+    <script src="/js/weui/lrz.min.js"></script>
+    <script src="/js/weui/iscroll-lite.js"></script>
+    <script>
+        $(function(){
+            $('input, textarea, select').on('blur',function(){
+                window.scroll(0, 0);
+            });
+        });
+        function getByteLen(val) {
+            var len = 0;
+            for (var i = 0; i < val.length; i++) {
+                var a = val.charAt(i);
+                if (a.match(/[^\x00-\xff]/ig) != null)
+                {
+                    len += 2;
+                }
+                else
+                {
+                    len += 1;
+                }
+            }
+            return len;
+        }
+
+        function checkContent() {
+            var content = $("#content").val();
+            if (content == "") {
+                $.alert("回复内容不能为空哦","信息输入错误");
+                return false;
+            } else if (getByteLen(content) > 50) {
+                $.alert("内容不要超过50个字哦","信息输入错误");
+                return false;
+            } else {
+                return true;
+            }
+        }
+
+        function submit() {
+            var id = {{.list.Id}};
+            var type = {{.uType}}; //0乘客 1客服
+
+            var url = "";
+            if (type == 0) {
+                url = "/portal/replycomplain";
+            } else {
+                url = "/admin/replycomplain";
+            }
+
+            if (!checkContent()){
+                return;
+            }
+            $(".loading2").show();
+            $.ajax({
+                type:"POST",
+                url:url,
+                data:{
+                    content:$("#content").val() ,
+                    type:type,
+                    id:id
+                },
+                dataType:"json",
+                success : function(result) {
+                    console.log(result)
+                    if (result.code != 0) {
+                        $(".loading2").hide();
+                        $.alert(result.msg,"提交异常");
+                    }
+                    else {
+                        $(".loading2").hide();
+                        $.toast("提交成功", 30000);
+                        if (type == "0") {
+                            window.location.href = "/portal/complaindetail/"+id+"/"+type;
+                        } else {
+                            window.location.href = "/admin/showcomplain";
+                        }
+
+
+                    }
+                },
+                error : function(result) {
+                    $(".loading2").hide();
+                    $.alert("网络繁忙，请重试","提交异常");
+                }
+            });
+        }
+    </script>
+</head>
+
+<body ontouchstart>
+<div class="loading2 hide" data-text="回复中..."></div>
+<div class="page-bd-15">
+    {{if eq .num 0}}
+        <div class="weui-cells__title">查询失败，请重试</div>
+    {{else}}
+        <div class="weui_cells_title">留言</div>
+        <ul class="weui-comment">
+            {{$imgPath := .list.User.WechatImg}}
+            {{$nickName := .list.User.Nickname}}
+        {{range .content}}
+                <li class="weui-comment-item">
+                    {{if eq .Utype 1}}
+                        <div class="userinfo"> <strong class="nickname">客服</strong> <img class="avatar" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAADs0lEQVRogcVa7ZHjIAx1CSkhJaSElJASXEJKcAcpwSWkhPwHHpTgElxC7sdJnOwQI2TvnmY8O5M16OmDJwHuugMlpXRKKZ2dc5cQwg3A3Xs/AOi999eU0vlIfYeIc+4C4B5jTABmAO/aE2N8AXh476//BXRK6QSgJ9AS3Ey/PQGMBHIAMMYYXwR8beQM4PFr4L331xXwGcCTUuSknYMMm6Qx3vvhx4A75y4SeIzxFUK4aUF/E+/9laLFhkwhhNtRuKWSWXj8vhf4WtYOOiwaAO4C/KMGPKV0CiHcOPfFc9csWtKXo7wX/EN6vQL8TO/XmGiqeZcizkYkK3j2xFzLSeL8nGJMkyGEG/2vXxsXY0xb0ZQp1RwJmfM18FQHZlZUK1Yt3iW6zumrAi8B1UKdUjqJhVddH2LcWYzbTE1psIqdKPwqiyk92PNNrERr5g1g1uqpvitf1ACiiqvzTHk883+v1bWZFcL7m2EVk04A3tYmjYlCw/kyYkV9wvuTNh20KfBNhM5RqW/8+j6HSBNOMWamCJiqsqBqFcMQK306TdCVKvdZmEmcc5dG7F3XdR1V66a2QaR5n38UoXy2AODJrH09p0QLCVBRXKaRlU1Eq9G3jFvrbXFAMY2sbNJCgyWxRpDx5tRl9jEASDtTiCOoom0xbsx6mV8tXd8BLMT53LSlXBjOvYal9z6KhVojsGCv4qpWijUFWHgNtJLHogC2VsPSRJboUddrquQLp4t2takGdF2mtMlIwWNOg0ZZVHDmVev+U3hD7QDpfQsBiLXTf+8vlGIZb638LB8VfC8dttaDPelD46eFvr0VVeRklQjkPteyj5ARzw7fQ6XrSWvvHpA+n2tu7zqgiVX9lLVxrI4XpwS9ZWJtY2ZtHLsubyvL+xYRmuamjsarWmNhwB76LKdfa1FKKZ2oEOZTt5pnOVL0V31ILHeNX3svzflLCTSP0XSVNHZxLxBjfHnvhy3j8W/Pvq1DrIVFmAToovLWjpScJe8F3jIyK/D5nLYaMXH+8sbfy7lhfZVkBd1qDIDn6uBY1/XK80jxTEeCNhjTdo8mwvYG0B99I1MTygRO16dJ/8oTpk2LReRCr90jaCYbzGE0CMSVluXUuyjrSwlrtVboeEpnHZq2tAmZpCFHXIcW7tbmn3BQFgqxrAUTGj8bcM5dBD3/6PXtVykYkrkbwOi9H2j93MnD/LnBx+cJlC7nXwG+Fv5soABs65kAPJxzl9+m56qIT216isADdMlNgM9H6vsDQwYeNVuvb4wAAAAASUVORK5CYII="> </div>
+                        <div class="weui-comment-msg">
+                            <span class="status"></span> {{.Content}}
+                        </div>
+                        <p class="time">{{.Time}}</p>
+                    {{else}}
+                        <div class="userinfo"> <strong class="nickname">{{$nickName}}</strong> <img class="avatar" src="{{$imgPath}}"> </div>
+                        <div class="weui-comment-msg">
+                            <span class="status"></span> {{.Content}}
+                        </div>
+                        <p class="time">{{.Time}}</p>
+                    {{end}}
+                </li>
+
+        {{end}}
+        </ul>
+    {{end}}
+</div>
+
+<div class="weui-cell">
+    <p class="page-hd-desc">回复内容</p>
+</div>
+<div class="weui-cell">
+    <div class="weui-cell__bd">
+        <textarea id="content" class="weui-textarea" placeholder="回复内容" rows="4"></textarea>
+    </div>
+</div>
+<div class="weui-btn-area">
+    <a href="javascript:;" class="weui-btn weui-btn_primary" onclick="submit()">回复</a>
+</div>
+
+{{template "bottomNav.html" .}}
+
+</body>
+
+</head>
+</html>

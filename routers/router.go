@@ -46,33 +46,39 @@ func init() {
 	}
 
 	var LoginFilter = func(ctx *context.Context)() {
+		runmode := beego.AppConfig.String("runmode")
+		var loginUrl string
+		if (runmode == "dev") {
+			loginUrl = "/Login"
+		} else {
+			loginUrl = "/WxLogin"
+		}
 		id, isId := ctx.GetSecureCookie("qyt","qyt_id")
-		logs.Debug("debug cookie id=%v isId=%v",id, isId)
 		if (! isId || id == "") {
-			ctx.Redirect(302, "/Login")
+			ctx.Redirect(302, loginUrl)
 			logs.Debug("can not get id from cookie")
 		} else {
 			logs.Debug("id of cookis : %v" , id)
 			token , isToken := ctx.GetSecureCookie("qyt" , "qyt_token")
 			if (! isToken) {
 				logs.Debug("can not get token from cookie")
-				ctx.Redirect(302, "/Login")
+				ctx.Redirect(302, loginUrl)
 			} else {
 				content := redisClient.GetKey(controllers.LoginPrefix+id)
 				if (content == "nil") {
 					logs.Debug("cache is empty")
-					ctx.Redirect(302, "/Login")
+					ctx.Redirect(302, loginUrl)
 				} else {
 					info := &controllers.UserLoginInfo{}
 					err := json.Unmarshal([]byte(content), &info)
 					if (err != nil) {
-						ctx.Redirect(302, "/Login")
+						ctx.Redirect(302, loginUrl)
 					} else {
 						if (token != info.Token) {
 							logs.Debug("token did not match of cookie and cache")
-							ctx.Redirect(302, "/Login")
-						//} else if(! info.IsPhoneVer){
-						//	ctx.Redirect(302, "/Ver/phonever")
+							ctx.Redirect(302, loginUrl)
+						} else if(! info.IsPhoneVer){
+							ctx.Redirect(302, "/Ver/phonever")
 						}else {
 							redisClient.Setexpire(controllers.LoginPrefix+id , controllers.LoginPeriod)
 						}
@@ -122,6 +128,8 @@ func init() {
     beego.Router("/wxverifytest", &controllers.WxVerifyTestController{})
     //beego.Router("/wxlogin", &controllers.WxLoginController{})
 	beego.Router("/", &controllers.OrderController{}, "GET:SearchInput")
+	beego.Router("/admin/complaindetail/:id/:utype", &controllers.ComplainController{}, "GET:ComplainDetail")
+	beego.Router("/admin/replycomplain", &controllers.ComplainController{}, "POST:ReplyComplain")
 	beego.Include(&controllers.WxLoginController{})
 	beego.Include(&controllers.WxPayController{})
 	beego.Include(&controllers.UserCenterController{})
@@ -131,4 +139,5 @@ func init() {
 	beego.Include(&controllers.ChatController{})
 	beego.Include(&controllers.AccountFlowController{})
 	beego.Include(&controllers.AdminUserController{})
+	beego.Include(&controllers.ComplainController{})
 }

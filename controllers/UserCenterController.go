@@ -164,7 +164,7 @@ func (this *UserCenterController) GetVerCode() {
 	req.Header("Content-Length", "256")
 	req.Header("Authorization", auth)
 
-	body := "{\"to\":\"" + phoneNum + "\",\"appId\":\"" + appId + "\",\"templateId\":\"1\",\"datas\":[\"" + randomCode + "\",\"" + strconv.Itoa(expireMin) + "\"]}"
+	body := "{\"to\":\"" + phoneNum + "\",\"appId\":\"" + appId + "\",\"templateId\":\"444610\",\"datas\":[\"" + randomCode + "\",\"" + strconv.Itoa(expireMin) + "\"]}"
 	fmt.Println(body)
 
 	//在这里发请求，发送验证码，钱不够，测试的时候再取消注释
@@ -181,7 +181,7 @@ func (this *UserCenterController) GetVerCode() {
 
 	code = 0
 	msg = "操作成功"
-	logs.Debug(result)
+	logs.Debug("sms result=%v",result)
 
 	this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
 	this.ServeJSON()
@@ -267,6 +267,73 @@ func (this *UserCenterController) Help() {
 	this.Data["tabIndex"] = 3
 
 	this.TplName = "help.html"
+}
+
+// @router /Portal/help01 [GET]
+func (this *UserCenterController) Help01() {
+	this.Data["tabIndex"] = 3
+
+	this.TplName = "help01.html"
+}
+
+// @router /Portal/help02 [GET]
+func (this *UserCenterController) Help02() {
+	this.Data["tabIndex"] = 3
+
+	this.TplName = "help02.html"
+}
+
+// @router /Portal/help03 [GET]
+func (this *UserCenterController) Help03() {
+	this.Data["tabIndex"] = 3
+
+	this.TplName = "help03.html"
+}
+
+// @router /Portal/help11 [GET]
+func (this *UserCenterController) Help11() {
+	this.Data["tabIndex"] = 3
+
+	this.TplName = "help11.html"
+}
+// @router /Portal/help12 [GET]
+func (this *UserCenterController) Help12() {
+	this.Data["tabIndex"] = 3
+
+	this.TplName = "help12.html"
+}
+// @router /Portal/help13 [GET]
+func (this *UserCenterController) Help13() {
+	this.Data["tabIndex"] = 3
+
+	this.TplName = "help13.html"
+}
+// @router /Portal/help14 [GET]
+func (this *UserCenterController) Help14() {
+	this.Data["tabIndex"] = 3
+
+	this.TplName = "help14.html"
+}
+
+// @router /Portal/help21 [GET]
+func (this *UserCenterController) Help21() {
+	this.Data["tabIndex"] = 3
+
+	this.TplName = "help21.html"
+}
+
+// @router /Portal/help22 [GET]
+func (this *UserCenterController) Help22() {
+	this.Data["tabIndex"] = 3
+
+	this.TplName = "help22.html"
+}
+
+// @router /Portal/help23 [GET]
+func (this *UserCenterController) Help23() {
+	this.Data["tabIndex"] = 3
+
+	this.TplName = "help23.html"
 }
 
 // @router /Portal/aboutus [GET]

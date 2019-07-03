@@ -85,3 +85,64 @@ func (u *Driver_confirm) GetOrderFromId(id string , list *[]*Driver_confirm) int
 	}
 	return num
 }
+
+func (u *Driver_confirm) DoConfirmDriver(oid string, aType string, mark string) bool {
+	o := orm.NewOrm()
+	o.Begin()
+
+	if (aType == "0") { //agree
+		_, err1 := o.QueryTable(u).Filter("Id", oid).Update(orm.Params{
+			"Status": 1,
+		})
+		if (err1 != nil) {
+			logs.Error("update driver confirm order fail id=%v", oid)
+			o.Rollback()
+			return false
+		}
+		var dcInfo []*Driver_confirm
+
+		num2, err2 := o.QueryTable(u).Filter("Id", oid).All(&dcInfo)
+		if (num2 < 1 || err2 != nil) {
+			logs.Error("get driver confirm order fail id=%v", oid)
+			o.Rollback()
+			return false
+		}
+
+		var dbUser User
+		_, err3 := o.QueryTable(dbUser).Filter("Id", dcInfo[0].User.Id).Update(orm.Params{
+			"IsDriver": 2,
+			"SfzNum": dcInfo[0].SfzNum,
+			"SfzImg": dcInfo[0].SfzImg,
+			"DriverLiceseImg": dcInfo[0].DriverLiceseImg,
+			"CarNum": dcInfo[0].CarNum,
+			"CarLiceseImg": dcInfo[0].CarLiceseImg,
+			"RealName": dcInfo[0].RealName,
+			"CarType": dcInfo[0].CarType,
+		})
+		if (err3 != nil) {
+			logs.Error("update user info fail id=%v uid=%v", oid, dcInfo[0].User.Id)
+			o.Rollback()
+			return false
+		}
+	} else {
+		_, err1 := o.QueryTable(u).Filter("Id", oid).Update(orm.Params{
+			"Status": 2,
+			"RejectReason": mark,
+		})
+		if (err1 != nil) {
+			logs.Error("update driver confirm order fail id=%v", oid)
+			o.Rollback()
+			return false
+		}
+	}
+
+	errcommit := o.Commit()
+
+	if (errcommit != nil) {
+		logs.Error("commit fail id=%v" , oid)
+		o.Rollback()
+		return false
+	}
+
+	return true
+}
