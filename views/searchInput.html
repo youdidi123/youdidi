@@ -55,7 +55,7 @@
             $("#startCode").val(startCode);
             $("#endCode").val(endCode);
             $(".loading2").show();
-            $("form[name='search']").submit();
+            window.location.href = "/Portal/searchorder?startCode="+startCode+"&endCode="+endCode+"&launchTime="+launchTime;
         }
     </script>
 </head>
