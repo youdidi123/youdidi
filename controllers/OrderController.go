@@ -90,6 +90,7 @@ func (this *OrderController) DoCreateOrder () {
 	var dbUser models.User
 	var userInfo []*models.User
 
+
 	userIdS := this.GetString("uid")
 
 	_, num := dbUser.GetUserInfoFromId(userIdS, &userInfo)
@@ -103,9 +104,9 @@ func (this *OrderController) DoCreateOrder () {
 	}
 	onRoadType := userInfo[0].OnRoadType
 	disableTime := userInfo[0].DisableTime
+	currentTime := time.Now().Unix()
 
 	if (disableTime != "") {
-		currentTime := time.Now().Unix()
 		disableTime64, _ := strconv.ParseInt(disableTime, 10, 64)
 		if (disableTime64 > currentTime) {
 			tm := time.Unix(disableTime64, 0)
@@ -135,14 +136,26 @@ func (this *OrderController) DoCreateOrder () {
 	travelExplain := this.GetString("travelExplain")
 	travelCommit := this.GetString("travelCommit")
 
+	launchTimeUnix, _ := time.Parse("2006-01-02 15:04:05", launchTime)
+	logs.Debug("launchTime=%v launchTime=%v launchTime=%v", launchTimeUnix, launchTime, launchTimeUnix.Unix())
+
+	if (launchTimeUnix.Unix() - currentTime < 10 * 60) {
+		logs.Debug("launchTime=%v currentTime=%v", launchTimeUnix, currentTime)
+		code = 2
+		msg = "请选择至少10分钟后的出发时间"
+		this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
+		this.ServeJSON()
+		return
+	}
+
 	orderId := genOrderId(userId)
 
 	var dbOrder models.Order
 
 	dbOrder.Id = orderId
 	dbOrder.User  = &models.User{Id:userId}
-	dbOrder.LaunchTime = launchTime
-	dbOrder.CreateTime = strconv.FormatInt(time.Now().Unix(),10)
+	dbOrder.LaunchTime = strconv.FormatInt(launchTimeUnix.Unix(),10)
+	dbOrder.CreateTime = strconv.FormatInt(currentTime,10)
 	dbOrder.SrcId  = &models.Location{Id:int64(startCode)}
 	dbOrder.DestId  = &models.Location{Id:int64(endCode)}
 	dbOrder.SrcLocationId = dbOrder.SrcId.Id % 1000000
@@ -247,14 +260,14 @@ func (this *OrderController) SearchOrder () {
 	launchTime := this.GetString("launchTime")
 	launchTime = launchTime + " 00:00"
 	tmStart, _ := time.Parse("2006-01-02 15:04", launchTime)
-	tmEnd := tmStart.Unix() + (1*24*60*60) - (8 * 60 * 60) //不知道为什么算出来会多8个小时，需要减掉
+	tmEnd := tmStart.Unix() + (1*24*60*60)
 
 	logs.Debug("search order launchTime=%v start=%v end=%v", launchTime , startCode , endCode)
 	var dbOrder models.Order
 	var orderInfo []*models.Order
 
 	num := dbOrder.GetReadyOrders(&orderInfo , startCode64 , endCode64 ,
-		tmStart.Unix() - (8 * 60 * 60) , tmEnd , startCodeLocation , endCodeLocation)
+		tmStart.Unix(), tmEnd , startCodeLocation , endCodeLocation)
 
 	for i , v := range orderInfo{
 		launchTime64 , _ := strconv.ParseInt(v.LaunchTime, 10, 64)

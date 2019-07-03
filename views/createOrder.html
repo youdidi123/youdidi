@@ -14,12 +14,12 @@
     <script src="/js/weui/axios.min.js"></script>
     <script>
         $(function(){
-            $('input, textarea, select').on('blur',function(){
+                $('input, textarea, select').on('blur',function(){
                 window.scroll(0, 0);
             });
         });
         function init() {
-            var myDate = new Date(new Date().getTime() + 10 * 60 * 1000);
+            var myDate = new Date(new Date().getTime());
             var year = myDate.getFullYear();
             var mouth = myDate.getMonth() + 1;
             var day = myDate.getDate();
@@ -78,18 +78,11 @@
             launchTime = launchTime.replace(/[\u4e00-\u9fa5|,]+/g,'');
             launchTime = launchTime.replace(/ /g,'');
             launchTimeArr = launchTime.split('');
-            launchTime = launchTimeArr[0] + launchTimeArr[1] + launchTimeArr[2] +launchTimeArr[3] + "/"
-                + launchTimeArr[4] + launchTimeArr[5] + "/"
+            launchTime = launchTimeArr[0] + launchTimeArr[1] + launchTimeArr[2] +launchTimeArr[3] + "-"
+                + launchTimeArr[4] + launchTimeArr[5] + "-"
                 + launchTimeArr[6] + launchTimeArr[7] + " "
                 + launchTimeArr[8] + launchTimeArr[9] + ":"
                 + launchTimeArr[10] + launchTimeArr[11] + ":00";
-            var nowDate = Date.now();
-            launchTime = new Date(Date.parse(launchTime)).getTime();
-            if (launchTime - nowDate < (10 * 60 * 1000)) {
-                $.alert("至少需要发布10分钟后的行程哦","请修正行程单内容");
-                return
-            }
-            launchTime = launchTime/1000;
 
             if (charge == "") {
                 $.alert("您还没有填写定价","请修正行程单内容");
