@@ -947,10 +947,12 @@ func (this *OrderController) PassengerCancle () {
 	this.ServeJSON()
 }
 
-// @router /Portal/recommand/:odid/:uType [GET]
+// @router /Portal/recommand/:odid/:utype [GET]
 func (this *OrderController) Recommand () {
 	odid := this.GetString(":odid")
-	uType := this.GetString(":uType")
+	uType := this.GetString(":utype")
+
+	logs.Debug("tType=%v", uType)
 
 	var dbOd models.Order_detail
 	var odInfo []*models.Order_detail
