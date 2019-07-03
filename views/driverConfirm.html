@@ -215,7 +215,7 @@
                         carLiscen:carLiscen,
                     },
                     dataType:"json",
-                    async: true,
+                    async: false,
                     success : function(result) {
                         console.log(result)
                         if (result.code != 0) {
@@ -223,10 +223,23 @@
                             $.alert(result.msg,"操作异常");
                         }
                         else {
+                            setTimeout(function(){},2000);
                             $(".loading2").hide();
-                            $.toast("操作成功", 30000);
-                            window.location.href = "/Portal/driverconfirminput";
-
+                            var id = result.id;
+                            if (!sendImg(sfzSrc,"sfz", id)) {
+                                $(".loading2").hide();
+                                $.alert(result.msg,"操作异常");
+                            }else if (!sendImg(driverLiscen,"jsz", id)) {
+                                $(".loading2").hide();
+                                $.alert(result.msg,"操作异常");
+                            }
+                            else if (!sendImg(carLiscen,"xsz", id)) {
+                                $(".loading2").hide();
+                                $.alert(result.msg,"操作异常");
+                            } else {
+                                $.toast("操作成功", 30000);
+                                window.location.href = "/Portal/driverconfirminput";
+                            }
                         }
                     },
                     error : function(result) {
@@ -278,105 +291,31 @@
                     return false;
                 }
             }
-
         });
-        $(function(){
 
-            var tmpl = '<li class="weui-uploader__file" id="#ImgID#" style="background-image:url(#url#)"></li>'
-            //var tmpll = '<li  onclick="removeimg(this)" class="weui-uploader__file" style="background-image:url(\'+evt.target.result+\')"><input value="\'+rs.src+\'"  type="hidden"  name="files" /></li>'
-            var      $uploaderInput = $("#uploaderInput"); //上传按钮+
-            var       $uploaderFiles = $("#uploaderFiles");    //图片列表
-            var $galleryImg = $(".weui-gallery__img");//相册图片地址
-            var $gallery = $(".weui-gallery");
-            var maxWidth = 1900
-            var maxCount = 3
-            var maxSize = 1024 * 1024*10; // 10240KB，也就是 10MB
-            var allowTypes = ['image/jpg', 'image/jpeg', 'image/png'];
-
-            $uploaderInput.on("change", function(e){
-                var src, url = window.URL || window.webkitURL || window.mozURL, files = e.target.files;
-                for (var i = 0, len = files.length; i < len; ++i) {
-                    var file = files[i];
-                    var imgID = genGUID();
-                    var reader = new FileReader();
-                    var fileType = file.type;
-
-                    if ($('.weui-uploader__file').length >= maxCount) {
-                        $.toast('最多只能上传' + maxCount + '张图片', "forbidden");
-                        return;
+        function sendImg (imgfile, type, oid) {
+            var succ = true;
+            $.ajax({
+                type:"POST",
+                url:"/Portal/loadimg",
+                data:{
+                    imgfile:imgfile ,
+                    type:type,
+                    oid:oid,
+                },
+                dataType:"json",
+                async: false,
+                success : function(result) {
+                    if (result.code != 0) {
+                        succ = false;
                     }
-
-                    if (allowTypes.indexOf(file.type) === -1) {
-
-                        $.toast('该类型不允许上传' + fileType + ' 仅允许png/jpg/jpeg' , "forbidden");
-                        continue;
-                    }
-
-                    if (file.size > maxSize) {
-                        $.toast("图片太大，不允许上传", "forbidden");
-                        continue;
-                    }
-
-                    reader.onload = function (e) {
-                        var img = new Image();
-                        img.onload = function () {
-                            // 不要超出最大宽度
-                            var w = Math.min(maxWidth, img.width);
-                            // 高度按比例计算
-                            var h = img.height * (w / img.width);
-                            var canvas = document.createElement('canvas');
-                            var ctx = canvas.getContext('2d');
-                            // 设置 canvas 的宽度和高度
-                            canvas.width = w;
-                            canvas.height = h;
-                            ctx.drawImage(img, 0, 0, w, h);
-                            var base64 = canvas.toDataURL(fileType,0.8); //0.8指的是压缩80%
-
-                            // 插入到预览区
-                            $uploaderFiles.append($(tmpl.replace('#url#', base64).replace('#ImgID#', imgID)));
-
-                            var num = $('.weui-uploader__file').length;
-                            $('#uploadCount').text(num);
-
-                        };
-
-                        img.src = e.target.result;
-
-                        //上传
-                        $.ajax({
-                            type:"POST",
-                            url:"/Imgloader",
-                            data:{"imgId":imgID,"base64":img.src},
-                            dataType:"json",
-                            success : function(result) {
-
-                            },
-                            error : function(result) {
-                                alert("网络繁忙，请重试");
-                            }
-                        });
-                    };
-                    reader.readAsDataURL(file);
-
+                },
+                error : function(result) {
+                    succ = false;
                 }
             });
-            var index; //第几张图片
-            $uploaderFiles.on("click", "li", function () {
-                index = $(this).index();
-                $galleryImg.attr("style", this.getAttribute("style"));
-                $gallery.fadeIn(100);
-            });
-            $gallery.on("click", function () {
-                $gallery.fadeOut(100);
-            });
-
-            $(".weui-gallery__del").click(function () {
-                $uploaderFiles.find("li").eq(index).remove();
-                var num = $('.weui-uploader__file').length;
-                $('#uploadCount').text(num);
-            });
-
-        });
+            return succ;
+        }
 
         function genGUID() {
             var G1 = (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1) + (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1);
@@ -389,9 +328,7 @@
 </head>
 
 <body ontouchstart>
-<div class="loading2 hide" data-text="资料提交中..."></div>
-
-
+<div class="loading2 hide" data-text="请求提交中..."></div>
 
 {{if gt .num 0}}
 <div class="page-hd-title">

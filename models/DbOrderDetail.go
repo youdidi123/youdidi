@@ -13,6 +13,20 @@ func (u *Order_detail) TableName() string {
 	return "Order_detail"
 }
 
+func (u *Order_detail) TableIndex() [][]string {
+	return [][]string{
+		[]string{"Driver", "Passage"},
+	}
+}
+
+func (u *Order_detail) TableUnique() [][]string {
+	return [][]string{
+		[]string{"Order", "Driver"},{"Order", "Passage"},
+	}
+}
+
+
+
 func (u *Order_detail) GetOrderDetailFromPassengerId (id string , list *[]*Order_detail) int64 {
 	num , err := orm.NewOrm().QueryTable(u).RelatedSel().Filter("passage_id", id).OrderBy("Status").All(list)
 
