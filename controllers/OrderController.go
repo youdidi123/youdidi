@@ -250,12 +250,14 @@ func (this *OrderController) PassengerOrderDetail () {
 
 // @router /Portal/searchorder [GET,POST]
 func (this *OrderController) SearchOrder () {
-	startCode := this.GetString("startCode")
-	endCode := this.GetString("endCode")
-	startCode64 , _ := strconv.ParseInt(startCode, 10, 64)
-	endCode64 , _ := strconv.ParseInt(endCode, 10, 64)
-	startCodeLocation := startCode64 % 1000000
-	endCodeLocation := endCode64 % 1000000
+	//startCode := this.GetString("startCode")
+	//endCode := this.GetString("endCode")
+	startCode, _ := strconv.Atoi(this.GetString("startCode"))
+	endCode, _ := strconv.Atoi(this.GetString("endCode"))
+	//startCode64 , _ := strconv.ParseInt(startCode, 10, 64)
+	//endCode64 , _ := strconv.ParseInt(endCode, 10, 64)
+	startCodeLocation := startCode % 1000000
+	endCodeLocation := endCode % 1000000
 
 	launchTime := this.GetString("launchTime")
 	launchTime = launchTime + " 00:00:00"
@@ -266,7 +268,7 @@ func (this *OrderController) SearchOrder () {
 	var dbOrder models.Order
 	var orderInfo []*models.Order
 
-	num := dbOrder.GetReadyOrders(&orderInfo , startCode64 , endCode64 ,
+	num := dbOrder.GetReadyOrders(&orderInfo , startCode , endCode ,
 		tmStart.Unix(), tmEnd , startCodeLocation , endCodeLocation)
 
 	for i , v := range orderInfo{
