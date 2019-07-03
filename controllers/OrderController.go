@@ -258,8 +258,8 @@ func (this *OrderController) SearchOrder () {
 	endCodeLocation := endCode64 % 1000000
 
 	launchTime := this.GetString("launchTime")
-	launchTime = launchTime + " 00:00"
-	tmStart, _ := time.ParseInLocation("2006-01-02 15:04", launchTime, time.Local)
+	launchTime = launchTime + " 00:00:00"
+	tmStart, _ := time.ParseInLocation("2006-01-02 15:04:05", launchTime, time.Local)
 	tmEnd := tmStart.Unix() + (1*24*60*60)
 
 	logs.Debug("search order launchTime=%v start=%v end=%v", launchTime , startCode , endCode)
