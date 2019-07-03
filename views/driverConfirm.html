@@ -215,7 +215,7 @@
                         carLiscen:carLiscen,
                     },
                     dataType:"json",
-                    async: false,
+                    async: true,
                     success : function(result) {
                         console.log(result)
                         if (result.code != 0) {
@@ -230,7 +230,7 @@
                         }
                     },
                     error : function(result) {
-                        alert(result.toString());
+                        //alert(result.toString());
                         $(".loading2").hide();
                         $.alert("网络繁忙，请重试","操作异常");
                     }
