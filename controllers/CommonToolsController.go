@@ -35,7 +35,7 @@ var (
 // @router /Portal/sdkpara [POST]
 func (this *CommonToolsController) Sdkpara() {
 	url := this.GetString("url")
-	url = "http://wwww.youdidi.vip" + url
+	url = "http://www.youdidi.vip" + url
 	appId := beego.AppConfig.String("weixin::AppId")
 	noncestr := "Wm3WZYTPz0wzccnW"
 	timestamp := strconv.FormatInt(time.Now().Unix(),10)
@@ -70,7 +70,7 @@ func (this *CommonToolsController) Sdkpara() {
 	logs.Debug("jsapi_ticket=%v noncestr=%v timestamp=%v url=%v sign=%v", jsapi_ticket, noncestr, timestamp, url, signature)
 	logs.Debug("str=%v", string1)
 
-	this.Data["json"] = map[string]interface{}{"appId":appId, "timestamp":timestamp, "nonceStr":noncestr, "signature":signature};
+	this.Data["json"] = map[string]interface{}{"appId":appId, "timeStamp":timestamp, "nonceStr":noncestr, "signature":signature};
 	this.ServeJSON()
 }
 
