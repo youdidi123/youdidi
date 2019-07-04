@@ -82,6 +82,7 @@ func (c *WxPayController) WxInvest () {
     cashFlowOrder.RefuseReason = ""
     cashFlowOrder.Time = timeStart
     cashFlowOrder.WechatOrderId = jsapiParams.GetString("prepay_id")
+    cashFlowOrder.User = nil
     _, err = cashFlowOrder.Insert()
     if (err != nil) {
         err := fmt.Errorf("Insert cashFlowOrder to DB error:%s", err)
