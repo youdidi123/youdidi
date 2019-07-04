@@ -56,6 +56,7 @@ func GetKey (key string) (re string) {
 	value, err := redis.String(rc.Do("get", key))
 	if err != nil {
 		fmt.Println(err)
+		logs.Error("get redis fail err=%v", err.Error())
 		return "nil"
 	}
 	return value
