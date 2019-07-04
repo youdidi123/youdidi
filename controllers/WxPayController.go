@@ -95,7 +95,7 @@ func (c *WxPayController) WxInvest () {
     return
 }
 
-// @router /Portal/WxInvestSuccess/ [POST]
+// @router /WxInvestSuccess/ [POST, GET]
 func (c *WxPayController) WxInvestSuccess () {
     appId := beego.AppConfig.String("weixin::AppId")
     mchId := beego.AppConfig.String("weixin::MchId")
@@ -114,8 +114,11 @@ func (c *WxPayController) WxInvestSuccess () {
 
     //if
     //investOrderId := params.GetString("appid	")
-
-
+    resPonse := make(wxpay.Params)
+    resPonse.SetString("return_code", "SUCCESS").
+        SetString("return_msg", "OK")
+    c.Ctx.WriteString(wxpay.MapToXml(resPonse))
+    return
 }
 
 // return Json result
