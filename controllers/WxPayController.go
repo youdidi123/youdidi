@@ -111,6 +111,7 @@ func (c *WxPayController) WxInvestSuccess() {
 	if err != nil {
 		logs.Info("wxpay callback:%s", params)
 	}
+	//在这里入库
 
 	//if
 	//investOrderId := params.GetString("appid	")

@@ -225,14 +225,14 @@
                             var id = result.id;
                             if (!sendImg(sfzSrc,"sfz", id)) {
                                 $(".loading2").hide();
-                                $.alert(result.msg,"操作异常");
+                                $.alert("网络繁忙，请重试","操作异常");
                             }else if (!sendImg(driverLiscen,"jsz", id)) {
                                 $(".loading2").hide();
-                                $.alert(result.msg,"操作异常");
+                                $.alert("网络繁忙，请重试","操作异常");
                             }
                             else if (!sendImg(carLiscen,"xsz", id)) {
                                 $(".loading2").hide();
-                                $.alert(result.msg,"操作异常");
+                                $.alert("网络繁忙，请重试","操作异常");
                             } else {
                                 $.toast("操作成功", 30000);
                                 window.location.href = "/Portal/driverconfirminput";
@@ -242,9 +242,9 @@
                     error : function(XMLHttpRequest, textStatus, errorThrown) {
                         //alert(result.toString());
                         $(".loading2").hide();
-                        alert(XMLHttpRequest.status);
-                        alert(XMLHttpRequest.readyState);
-                        alert(textStatus);
+                        //alert(XMLHttpRequest.status);
+                        //alert(XMLHttpRequest.readyState);
+                        //alert(textStatus);
 
                         $.alert("网络繁忙，请重试","操作异常");
                     }
@@ -312,9 +312,9 @@
                     }
                 },
                 error : function(XMLHttpRequest, textStatus, errorThrown) {
-                    alert(XMLHttpRequest.status);
-                    alert(XMLHttpRequest.readyState);
-                    alert(textStatus);
+                    //alert(XMLHttpRequest.status);
+                    //alert(XMLHttpRequest.readyState);
+                    //alert(textStatus);
                     succ = false;
                 }
             });

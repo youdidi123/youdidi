@@ -68,6 +68,7 @@
             var siteNum = $("#siteNum").val();
             var travelExplain = $("#travelExplain").val();
             var travelCommit = $("#travelCommit").val();
+            var pattern = /^([1-9]{1}[0-9]{0,3}(\,[0-9]{3,4})*(\.[0-9]{0,2})?|[1-9]{1}\d*(\.[0-9]{0,2})?|0(\.[0-9]{0,2})?|(\.[0-9]{1,2})?)$/;
 
             if (startCode == endCode) {
                 $.alert("出发地和目的地不能相同哦","请修正行程单内容");
@@ -86,6 +87,11 @@
 
             if (charge == "") {
                 $.alert("您还没有填写定价","请修正行程单内容");
+                return
+            }
+
+            if (! pattern.test(charge)) {
+                $.alert("定价金额格式错误","请修正行程单内容");
                 return
             }
 
