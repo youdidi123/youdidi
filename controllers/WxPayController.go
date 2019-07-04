@@ -43,8 +43,8 @@ func (c *WxPayController) WxInvest () {
     logs.Debug("WxInvest userLoginInfo is:%s", userLoginInfo)
 
     //Get 订单信息
-    id, _ := strconv.Atoi(userLoginInfo.idStr)
-    investOrderId := genOrderId(id)
+    userId, _ := strconv.Atoi(userLoginInfo.idStr)
+    investOrderId := genOrderId(userId)
     timeStart := time.Now().Format("20060102150401")
     hh, _ := time.ParseDuration("1h")
     timeExpire := time.Now().Add(hh).Format("20060102150401")
@@ -82,7 +82,7 @@ func (c *WxPayController) WxInvest () {
     cashFlowOrder.RefuseReason = ""
     cashFlowOrder.Time = timeStart
     cashFlowOrder.WechatOrderId = jsapiParams.GetString("prepay_id")
-    cashFlowOrder.User = nil
+    cashFlowOrder.User = &models.User{Id:userId}
     _, err = cashFlowOrder.Insert()
     if (err != nil) {
         err := fmt.Errorf("Insert cashFlowOrder to DB error:%s", err)
