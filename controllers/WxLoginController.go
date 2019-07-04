@@ -97,7 +97,12 @@ func (c *WxLoginController) UserInfoCheck () {
 
     //数据库注册微信登陆信息
 	c.WxDologon(userInfo)
-	c.Ctx.Redirect(302, "http://www.youdidi.vip/Portal/showdriverorder/")
+    urlself, succ := c.GetSecureCookie("qyt", "qyt_urlself")
+
+    if (!succ) {
+		urlself = "http://www.youdidi.vip/Portal/searchinput"
+	}
+	c.Ctx.Redirect(302, urlself)
     //c.Ctx.ResponseWriter.Header().Set("Content-Type", "text/html;charset=utf-8")
 	//c.Ctx.WriteString("<img src=\""+userInfo.Headimgurl+"\" alt=\"test\" /><br />")
 	//c.Ctx.WriteString(userInfo.Nickname+"\n")
