@@ -200,6 +200,7 @@ func (this *OrderController) DriverOrderDetail () {
 		if (uid != strconv.Itoa(orderInfo[0].User.Id)) {
 			this.Data["isDriver"] = 0
 		} else {
+			tmDay := ""
 			this.Data["isDriver"] = 1
 			var dbOrderDetail models.Order_detail
 			var orderDetailInfo []*models.Order_detail
@@ -211,8 +212,10 @@ func (this *OrderController) DriverOrderDetail () {
 				launchTime64, _ := strconv.ParseInt(v.LaunchTime, 10, 64)
 				tm := time.Unix(launchTime64, 0)
 				orderInfo[i].LaunchTime = tm.Format("2006-01-02 15:04")
+				tmDay = tm.Format("2006-01-02")
 			}
 
+			this.Data["time"] = tmDay
 			this.Data["odnum"] = odnum
 			this.Data["odlist"] = orderDetailInfo
 			this.Data["oinfo"] = orderInfo[0]
