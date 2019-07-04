@@ -47,6 +47,9 @@ func init() {
 
 	var LoginFilter = func(ctx *context.Context)() {
 		runmode := beego.AppConfig.String("runmode")
+		urlself := ctx.Request.URL.String()
+		urlself = "http://www.youdidi.vip" + urlself
+		ctx.SetSecureCookie("qyt", "qyt_urlself", urlself)
 		var loginUrl string
 		if (runmode == "dev") {
 			loginUrl = "/Login"
