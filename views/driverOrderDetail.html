@@ -335,7 +335,7 @@
             wx.updateAppMessageShareData({
                 title: '有一个和您匹配的拼车行程，点击查看详情哦',
                 desc: '出发地：{{.oinfo.SrcId.Name}} | 目的地：{{.oinfo.DestId.Name}} | 出发时间：{{.oinfo.LaunchTime}}',
-                link: 'http://www.youdidi.vip/Portal/{{.oinfo.SrcId.Id}}/{{.oinfo.DestId.Id}}/{{.time}}',
+                link: 'http://www.youdidi.vip/Portal/searchorder/{{.oinfo.SrcId.Id}}/{{.oinfo.DestId.Id}}/{{.time}}',
                 imgUrl: 'http://www.youdidi.vip/img/logo.jpg',
                 success: function () {
                     // 设置成功
@@ -344,7 +344,7 @@
             wx.updateTimelineShareData({
                 title: '有一个和您匹配的拼车行程，点击查看详情哦',
                 desc: '出发地：{{.oinfo.SrcId.Name}} | 目的地：{{.oinfo.DestId.Name}} | 出发时间：{{.oinfo.LaunchTime}}',
-                link: 'http://www.youdidi.vip/Portal/{{.oinfo.SrcId.Id}}/{{.oinfo.DestId.Id}}/{{.time}}',
+                link: 'http://www.youdidi.vip/Portal/searchorder/{{.oinfo.SrcId.Id}}/{{.oinfo.DestId.Id}}/{{.time}}',
                 imgUrl: 'http://www.youdidi.vip/img/logo.jpg',
                 success: function () {
                     // 设置成功
