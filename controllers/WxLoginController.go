@@ -162,7 +162,6 @@ func (c *WxLoginController) WxDologon(userInfo *UserInfo) error {
 
 }
 
-
 func GetWechatGZAccessToken(code string)  (*AccessToken, error) {
 	appId := beego.AppConfig.String("weixin::AppId")
 	appSecret := beego.AppConfig.String("weixin::AppSecret")

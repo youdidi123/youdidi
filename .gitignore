@@ -7,3 +7,4 @@ lastupdate.tmp
 controllers/wxpay/.git/
 controllers/wxpay/.gitignore
 controllers/.DS_Store
+routers/commentsRouter_controllers.go
