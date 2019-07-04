@@ -4,10 +4,11 @@ import (
     "fmt"
     "github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
-    "github.com/objcoding/wxpay"
+    "youdidi/controllers/wxpay"
     "strconv"
     "time"
     "math"
+    "youdidi/models"
 )
 
 type WxPayController struct {
@@ -16,31 +17,18 @@ type WxPayController struct {
 
 type  PotalReturn struct {
     Code  int
-    Msg   error
+    Msg   string
     Data  wxpay.Params
 }
 
-// @router /Portal/WxInvest/ [POST,GET]
+// @router /Portal/WxInvest/ [POST, GET]
 func (c *WxPayController) WxInvest () {
 
     // 获取充值金额
-    moneyStr := c.GetString("money")
-    moneyFloat, err := strconv.ParseFloat(moneyStr,64)
-    if (err != nil) {
+    moneyInt, err := moneyCHeck(c.GetString("money"))
+    if (err != nil ) {
         logs.Notice("Money input error :%s", err)
-        err := fmt.Errorf("Money input error :%s", err)
-        returnJson := &PotalReturn{-1, err, nil}
-        c.Data["json"] = returnJson
-        c.ServeJSON()
-        return
-    }
-    moneyInt := int64(math.Floor(moneyFloat * 100 + 0.5))
-    if (moneyInt <=  0) {
-        logs.Notice("Money input error :Money can't be less than zero!")
-        err := fmt.Errorf("Money can't be less than zero")
-        returnJson := &PotalReturn{-1, err, nil}
-        c.Data["json"] = returnJson
-        c.ServeJSON()
+        c.jsonPotalReturn(-1, err.Error(), nil)
         return
     }
 
@@ -49,16 +37,14 @@ func (c *WxPayController) WxInvest () {
     if (err != nil) {
         logs.Notice("Get User Info by Cookie Failed for:%s", err)
         err := fmt.Errorf("Get User Info by Cookie Failed for:%s", err)
-        returnJson := &PotalReturn{-2, err, nil}
-        c.Data["json"] = returnJson
-        c.ServeJSON()
+        c.jsonPotalReturn(-2, err.Error(), nil)
         return
     }
     logs.Debug("WxInvest userLoginInfo is:%s", userLoginInfo)
 
     //Get 订单信息
     id, _ := strconv.Atoi(userLoginInfo.idStr)
-    payOrderId := genOrderId(id)
+    investOrderId := genOrderId(id)
     timeStart := time.Now().Format("20060102150401")
     hh, _ := time.ParseDuration("1h")
     timeExpire := time.Now().Add(hh).Format("20060102150401")
@@ -67,7 +53,7 @@ func (c *WxPayController) WxInvest () {
     params.SetString("body", "长庆出行").
         SetString("device_info", "WEB").
         SetString("openid", userLoginInfo.OpenId).
-        SetString("out_trade_no", payOrderId).
+        SetString("out_trade_no", investOrderId).
         SetString("time_start", timeStart).
         SetString("time_expire", timeExpire).
         SetInt64("total_fee", moneyInt).
@@ -75,30 +61,40 @@ func (c *WxPayController) WxInvest () {
         SetString("notify_url", "http://www.youdidi.vip/Portal/WxInvestSuccess").
         SetString("trade_type", "JSAPI")
 
-
-    // 日志答应订单信息
+    // 日志打印订单信息
     logs.Info("Order Info:%s", params)
 
-    // 调用统一下单
+    // 调用微信统一下单
     jsapiParams, err:= WxUnifiedOrder(params)
     if (err != nil) {
         logs.Notice("Get WxUnifiedOrder Failed:%s", err)
         err := fmt.Errorf("Get WxUnifiedOrder Failed:%s", err)
-        returnJson := &PotalReturn{-3, err, nil}
-        c.Data["json"] = returnJson
-        c.ServeJSON()
+        c.jsonPotalReturn(-3, err.Error(), nil)
         return
     }
 
+    // 商户系统录入订单
+    var cashFlowOrder models.Cash_flow
+    cashFlowOrder.Id = investOrderId
+    cashFlowOrder.Type = 0 // 0:充值
+    cashFlowOrder.Money = float64(moneyInt)/100
+    cashFlowOrder.Status = 0 // 0:发起 1:成功 2:失败 3:拒绝
+    cashFlowOrder.RefuseReason = ""
+    cashFlowOrder.Time = timeStart
+    cashFlowOrder.WechatOrderId = jsapiParams.GetString("prepay_id")
+    _, err = cashFlowOrder.Insert()
+    if (err != nil) {
+        err := fmt.Errorf("Insert cashFlowOrder to DB error:%s", err)
+        logs.Notice(err.Error())
+        c.jsonPotalReturn(-3, err.Error(), nil)
+        return
+    }
 
-    returnJson := &PotalReturn{0, nil, *jsapiParams}
-    c.Data["json"] = returnJson
-    c.ServeJSON()
+    c.jsonPotalReturn(0, "", jsapiParams)
     return
 }
 
-/*
-// @router /Portal/WxInvestSuccess/ [POST,GET]
+// @router /Portal/WxInvestSuccess/ [POST]
 func (c *WxPayController) WxInvestSuccess () {
     appId := beego.AppConfig.String("weixin::AppId")
     mchId := beego.AppConfig.String("weixin::MchId")
@@ -110,37 +106,40 @@ func (c *WxPayController) WxInvestSuccess () {
     // 新建微信支付客户端
     client := wxpay.NewClient(account)
 
-    params, err := client.processResponseXml()
-
-    //Get 用户信息
-    userLoginInfo, err := GetUserLoginInfoByCookie(c.Ctx)
+    params, err := client.ProcessResponseXml(string(c.Ctx.Input.RequestBody))
     if (err != nil) {
+        logs.Info("wxpay callback:%s", params)
     }
+
+    //if
+    //investOrderId := params.GetString("appid	")
+
+
 }
 
-
-func (c *Client) processResponseXml(xmlStr string) (Params, error) {
-    var returnCode string
-    params := XmlToMap(xmlStr)
-    if params.ContainsKey("return_code") {
-        returnCode = params.GetString("return_code")
-    } else {
-        return nil, errors.New("no return_code in XML")
-    }
-    if returnCode == Fail {
-        return params, nil
-    } else if returnCode == Success {
-        if c.ValidSign(params) {
-            return params, nil
-        } else {
-            return nil, errors.New("invalid sign value in XML")
-        }
-    } else {
-        return nil, errors.New("return_code value is invalid in XML")
-    }
+// return Json result
+func (c *WxPayController) jsonPotalReturn (code int, msg string,
+    mapData *wxpay.Params) {
+    returnJson := &PotalReturn{code, msg, *mapData}
+    c.Data["json"] = returnJson
+    c.ServeJSON()
 }
-*/
 
+// 支付金额校验转换
+func moneyCHeck(moneyStr string) (int64, error){
+    moneyFloat, err := strconv.ParseFloat(moneyStr, 64)
+    if (err != nil) {
+        return 0, err
+    }
+    moneyInt := int64(math.Floor(moneyFloat*100 + 0.5))
+    if (moneyInt <= 0) {
+        return 0, fmt.Errorf("Money can't be less than zero!")
+    }
+
+    return moneyInt, err
+}
+
+// 微信支付统一下单接口
 func WxUnifiedOrder (params wxpay.Params) (*wxpay.Params, error){
     appId := beego.AppConfig.String("weixin::AppId")
     mchId := beego.AppConfig.String("weixin::MchId")
