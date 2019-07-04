@@ -9,6 +9,12 @@ func (u *User) TableName() string {
 	return "User"
 }
 
+func (u *User) TableUnique() [][]string {
+	return [][]string{
+		[]string{"OpenId", "Phone"},
+	}
+}
+
 func (u *User) Query() orm.QuerySeter {
 	return orm.NewOrm().QueryTable(u).RelatedSel()
 }

@@ -8,6 +8,12 @@ func (u *Chat) TableName() string {
 	return "Chat"
 }
 
+func (u *Chat) TableIndex() [][]string {
+	return [][]string{
+		[]string{"Order"},
+	}
+}
+
 func (u *Chat) Insert() (int64, error) {
 	return orm.NewOrm().Insert(u)
 }

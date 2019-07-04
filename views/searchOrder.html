@@ -17,7 +17,16 @@
             $('input, textarea, select').on('blur',function(){
                 window.scroll(0, 0);
             });
+            $(document.body).pullToRefresh({
+                distance: 10,
+                onRefresh:function() {
+                    window.location.reload()
+                    $(document.body).pullToRefreshDone();
+
+                }
+            });
         });
+
         function doRequire(oid) {
             $(".loading2").show();
             var count = $("#"+oid+"-number").val()
@@ -58,7 +67,14 @@
     </script>
 </head>
 
-<div ontouchstart >
+<body ontouchstart >
+    <div class="weui-pull-to-refresh__layer">
+        <div class='weui-pull-to-refresh__arrow'></div>
+        <div class='weui-pull-to-refresh__preloader'></div>
+        <div class="down">下拉刷新</div>
+        <div class="up">释放刷新</div>
+        <div class="refresh">正在刷新</div>
+    </div>
 {{template "sildePic.html" .}}
 
 <div class="loading2 hide" data-text="位置锁定中..."></div>
@@ -236,7 +252,6 @@
     }
 </script>
 {{template "bottomNav.html" .}}
-</div>
 </body>
 
 </head>
