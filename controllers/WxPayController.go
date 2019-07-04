@@ -95,7 +95,7 @@ func (c *WxPayController) WxInvest() {
 	return
 }
 
-// @router /WxInvestSuccess [POST, GET]
+// @router /WxInvestSuccess [POST,GET]
 func (c *WxPayController) WxInvestSuccess() {
 	appId := beego.AppConfig.String("weixin::AppId")
 	mchId := beego.AppConfig.String("weixin::MchId")
