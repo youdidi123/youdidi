@@ -2,16 +2,17 @@ package controllers
 
 import (
 	"crypto/md5"
+	"crypto/sha1"
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
 	"github.com/astaxie/beego"
+	"github.com/astaxie/beego/logs"
 	"math/rand"
 	"strconv"
 	"strings"
 	"time"
 	"youdidi/redisClient"
-	"github.com/astaxie/beego/logs"
 )
 
 type CommonToolsController struct {
@@ -30,6 +31,48 @@ var (
 	retryNum = 20
 	retryTime = 1
 )
+
+// @router /Portal/sdkpara [POST]
+func (this *CommonToolsController) Sdkpara() {
+	url := this.GetString("url")
+	url = "http://wwww.youdidi.vip" + url
+	appId := beego.AppConfig.String("weixin::AppId")
+	noncestr := "Wm3WZYTPz0wzccnW"
+	timestamp := strconv.FormatInt(time.Now().Unix(),10)
+	jsapi_ticket := redisClient.GetKey("JSSDK_TICKET")
+	/*m := make(map[string]string)
+
+	m[jsapi_ticket] = "jsapi_ticket"
+	m[noncestr] = "noncestr"
+	m[timestamp] = "timestamp"
+	m[url] = "url"
+
+	var s []string
+	for k := range m {
+		s = append(s, k)
+	}
+
+	sort.Strings(s)
+
+	str := ""
+
+	for _, k := range s {
+		str = str + m[k] + "=" + k + "&"
+	}
+
+	newStr := str[0:len(str)-1]*/
+
+	string1 := "jsapi_ticket="+jsapi_ticket+"&noncestr="+noncestr+"&timestamp="+timestamp+"&url="+url
+
+	sha1 := sha1.New()
+	sha1.Write([]byte(string1))
+	signature := hex.EncodeToString(sha1.Sum([]byte("")))
+	logs.Debug("jsapi_ticket=%v noncestr=%v timestamp=%v url=%v sign=%v", jsapi_ticket, noncestr, timestamp, url, signature)
+	logs.Debug("str=%v", string1)
+
+	this.Data["json"] = map[string]interface{}{"appId":appId, "timestamp":timestamp, "nonceStr":noncestr, "signature":signature};
+	this.ServeJSON()
+}
 
 func SetOrderLock (oid string) bool {
 	i := 0
