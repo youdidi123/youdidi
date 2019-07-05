@@ -27,43 +27,46 @@
 
         function chongzhi() {
             var money =$("#money").val();
-            $.ajax({
-                type:"GET",
-                url:"/Portal/WxInvest?money="+money,
-                success : function(result) {
-                    console.log(result)
-                    console.log(result.Code)
-                    if (result.Code != 0) {
-                        $(".loading2").hide();
-                        $.alert(result.Msg,"支付失败");
-                    }
-                    else {
-                        appId = result.Data.appId;
-                        timeStamp = result.Data.timeStamp;
-                        nonceStr = result.Data.nonceStr;
-                        package = result.Data.package;
-                        signType = result.Data.signType;
-                        paySign = result.Data.paySign;
-                        if (typeof WeixinJSBridge == "undefined") {
-                            if (document.addEventListener) {
-                                document.addEventListener('WeixinJSBridgeReady',
-                                    onBridgeReady, false);
-                            } else if (document.attachEvent) {
-                                document.attachEvent('WeixinJSBridgeReady',
-                                    onBridgeReady);
-                                document.attachEvent('onWeixinJSBridgeReady',
-                                    onBridgeReady);
-                            }
+            if(typeof money == "undefined" || money == null || money == "" || money <= "0" ){
+                $.alert("支付金额错误", "支付失败");
+            } else {
+                $.ajax({
+                    type:"GET",
+                    url:"/Portal/WxInvest?money=" + money,
+                    success : function (result) {
+                        console.log(result)
+                        console.log(result.Code)
+                        if (result.Code != 0) {
+                            $(".loading2").hide();
+                            $.alert(result.Msg, "支付失败");
                         } else {
-                            onBridgeReady();
+                            appId = result.Data.appId;
+                            timeStamp = result.Data.timeStamp;
+                            nonceStr = result.Data.nonceStr;
+                            package = result.Data.package;
+                            signType = result.Data.signType;
+                            paySign = result.Data.paySign;
+                            if (typeof WeixinJSBridge == "undefined") {
+                                if (document.addEventListener) {
+                                    document.addEventListener('WeixinJSBridgeReady',
+                                        onBridgeReady, false);
+                                } else if (document.attachEvent) {
+                                    document.attachEvent('WeixinJSBridgeReady',
+                                        onBridgeReady);
+                                    document.attachEvent('onWeixinJSBridgeReady',
+                                        onBridgeReady);
+                                }
+                            } else {
+                                onBridgeReady();
+                            }
                         }
+                    },
+                    error : function(result) {
+                        $(".loading2").hide();
+                        $.toast("网络繁忙，请重试" , "forbidden");
                     }
-                },
-                error : function(result) {
-                    $(".loading2").hide();
-                    $.toast("网络繁忙，请重试" , "forbidden");
-                }
-            });
+                });
+            };
         }
 
         function onBridgeReady(){
@@ -79,12 +82,18 @@
                     console.log(res)
                     if(res.err_msg == "get_brand_wcpay_request:ok" ) {
                         console.log('支付成功');
+                        $.alert('支付成功');
+                        window.location.href("/Portal/accountflow");
                         //支付成功后跳转的页面
                     }else if(res.err_msg == "get_brand_wcpay_request:cancel"){
                         console.log('支付取消');
+                        $.alert('支付成功');
+                        window.location.href("/Portal/accountflow");
                     }else if(res.err_msg == "get_brand_wcpay_request:fail"){
                         console.log('支付失败');
-                        WeixinJSBridge.call('closeWindow');
+                        $.alert('支付成功');
+                        window.location.href("/Portal/accountflow");
+                        //WeixinJSBridge.call('closeWindow');
                     } //使用以上方式判断前端返回,微信团队郑重提示：res.err_msg将在用户支付成功后返回ok,但并不保证它绝对可靠。
                 });
         }
