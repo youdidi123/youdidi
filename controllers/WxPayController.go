@@ -43,11 +43,12 @@ func (c *WxPayController) WxInvest() {
 	logs.Debug("WxInvest userLoginInfo is:%s", userLoginInfo)
 
 	//Get 订单信息
-	userId, _ := strconv.Atoi(userLoginInfo.idStr)
+	userId, _ := strconv.Atoi(userLoginInfo.IdStr)
 	investOrderId := genOrderId(userId)
-	timeStart := time.Now().Format("20060102150401")
+	timeNow := time.Now()
+	timeStart := timeNow.Format("20060102150401")
 	hh, _ := time.ParseDuration("1h")
-	timeExpire := time.Now().Add(hh).Format("20060102150401")
+	timeExpire := timeNow.Add(hh).Format("20060102150401")
 
 	params := make(wxpay.Params)
 	params.SetString("body", "长庆出行").
@@ -80,7 +81,7 @@ func (c *WxPayController) WxInvest() {
 	cashFlowOrder.Money = float64(moneyInt) / 100
 	cashFlowOrder.Status = 0 // 0:发起 1:成功 2:失败 3:拒绝
 	cashFlowOrder.RefuseReason = ""
-	cashFlowOrder.Time = timeStart
+	cashFlowOrder.Time = strconv.Itoa(int(timeNow.Unix()))
 	cashFlowOrder.WechatOrderId = jsapiParams.GetString("prepay_id")
 	cashFlowOrder.User = &models.User{Id: userId}
 	_, err = cashFlowOrder.Insert()

@@ -27,7 +27,7 @@ type UserLoginInfo struct {
 	IsDriver   int
 	OrderNumWV int
 	Token      string
-	idStr      string
+	IdStr      string
 	Phone      string
 }
 
@@ -83,7 +83,7 @@ func (this *UserCenterController) Dologin() {
 					logs.Warn("Cache user login info failed!")
 				}
 
-				this.Ctx.SetSecureCookie("qyt", "qyt_id", userLoginInfo.idStr) //注入用户id，后续所有用户id都从cookie里获取
+				this.Ctx.SetSecureCookie("qyt", "qyt_id", userLoginInfo.IdStr) //注入用户id，后续所有用户id都从cookie里获取
 				this.Ctx.SetSecureCookie("qyt", "qyt_token", userLoginInfo.Token)
 
 				//this.SetSession("qyt_id" , idStr)
@@ -388,7 +388,7 @@ func GenUserLoginInfo(userInfo *models.User) (*UserLoginInfo, error) {
 	userLoginInfo.OpenId = userInfo.OpenId
 	userLoginInfo.OrderNumWV = userInfo.OrderNumWV
 	userLoginInfo.Phone = userInfo.Phone
-	userLoginInfo.idStr = strconv.Itoa(userInfo.Id)
+	userLoginInfo.IdStr = strconv.Itoa(userInfo.Id)
 
 	return userLoginInfo, nil
 }
@@ -398,8 +398,8 @@ func CacheUserLoginInfo(userLoginInfo *UserLoginInfo) error {
 	data, _ := json.Marshal(userLoginInfo)
 	fmt.Println("data: %v", string(data))
 
-	redisClient.SetKey(LoginPrefix+userLoginInfo.idStr, string(data))
-	redisClient.Setexpire(LoginPrefix+userLoginInfo.idStr, LoginPeriod)
+	redisClient.SetKey(LoginPrefix+userLoginInfo.IdStr, string(data))
+	redisClient.Setexpire(LoginPrefix+userLoginInfo.IdStr, LoginPeriod)
 	return nil
 }
 
@@ -417,6 +417,7 @@ func GetUserLoginInfoByCookie(ctx *context.Context) (*UserLoginInfo, error) {
 			return nil, fmt.Errorf("can not get token from cookie")
 		} else {
 			content := redisClient.GetKey(LoginPrefix+id)
+			logs.Debug("token of cookis : %s" , content)
 			if (content == "nil") {
 				return nil, fmt.Errorf("cache is empty")
 			} else {
