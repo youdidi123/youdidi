@@ -107,7 +107,7 @@ type Account_flow struct {
 	Id int `orm:"auto;pk;column(id);" json:"id"`
 	Time string `column(time);" json:"time"`
 	User *User `json:"order" orm:"rel(fk)"`
-	Type int `column(type);" json:"type"` //0:用户充值 1:用户提现 2:预付款 3:确认付款 4:退款 5:收款 6:付违约款 7:收违约款 8:用户提现到账 9:平台信息费
+	Type int `column(type);" json:"type"` //0:用户充值 1:用户提现 2:预付款 3:确认付款 4:退款 5:收款 6:付违约款 7:收违约款 8:用户提现到账 9:平台信息费 10:用户充值失败
 	Oid string `column(oid);" json:"oid"` //0，1,8对应Cash_flow ID 其余对应Order ID
 	Money float64 `column(money);" json:"money"`
 	Balance float64 `column(balance);" json:"balance"` //记录每一次操作后的用户余额；type为3，6，8,9此字段不填
