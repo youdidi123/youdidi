@@ -21,13 +21,17 @@
             var $galleryImg = $(".weui-gallery__img");//相册图片地址
             var $gallery = $(".weui-gallery");
             var maxWidth = 1900
-            var maxSize = 1024 * 1024*10; // 10240KB，也就是 10MB
+            var maxSize = 1024 * 1024 * 5; // 5MB
             var allowTypes = ['image/jpg', 'image/jpeg', 'image/png'];
             var sfzSrc = "";
             var driverLiscen = "";
             var carLiscen = "";
             $("#sfzInput").on("change", function(e){
                 var src, url = window.URL || window.webkitURL || window.mozURL, files = e.target.files;
+                if (files.length >1 ){
+                    $.toast('一次仅能添加一张照片' , "forbidden");
+                    return;
+                }
                 for (var i = 0, len = files.length; i < len; ++i) {
                     var file = files[i];
                     var imgID = genGUID();
@@ -72,6 +76,10 @@
             });
             $("#driverLiscenInput").on("change", function(e){
                 var src, url = window.URL || window.webkitURL || window.mozURL, files = e.target.files;
+                if (files.length >1 ){
+                    $.toast('一次仅能添加一张照片' , "forbidden");
+                    return;
+                }
                 for (var i = 0, len = files.length; i < len; ++i) {
                     var file = files[i];
                     var imgID = genGUID();
@@ -115,6 +123,10 @@
             });
             $("#carLiscenInput").on("change", function(e){
                 var src, url = window.URL || window.webkitURL || window.mozURL, files = e.target.files;
+                if (files.length >1 ){
+                    $.toast('一次仅能添加一张照片' , "forbidden");
+                    return;
+                }
                 for (var i = 0, len = files.length; i < len; ++i) {
                     var file = files[i];
                     var imgID = genGUID();
@@ -332,7 +344,7 @@
 </head>
 
 <body ontouchstart>
-<div class="loading2 hide" data-text="请求提交中..."></div>
+
 
 {{if gt .num 0}}
 <div class="page-hd-title">
@@ -366,7 +378,7 @@
 
 
 
-
+<div class="loading2 hide" data-text="请求提交中..."></div>
 <div class="weui-cells__title">驾驶员身份审核</div>
 <div class="weui-cells weui-cells_form">
 {{if gt .num 0}}
