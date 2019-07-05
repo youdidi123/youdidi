@@ -18,7 +18,7 @@ type WxPayController struct {
 type PotalReturn struct {
 	Code int
 	Msg  string
-	Data wxpay.Params
+	Data *wxpay.Params
 }
 
 // @router /Portal/WxInvest/ [POST, GET]
@@ -125,7 +125,7 @@ func (c *WxPayController) WxInvestSuccess() {
 // return Json result
 func (c *WxPayController) jsonPotalReturn(code int, msg string,
 	mapData *wxpay.Params) {
-	returnJson := &PotalReturn{code, msg, *mapData}
+	returnJson := &PotalReturn{code, msg, mapData}
 	c.Data["json"] = returnJson
 	c.ServeJSON()
 }
