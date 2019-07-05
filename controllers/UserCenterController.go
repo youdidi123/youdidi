@@ -239,7 +239,13 @@ func (this *UserCenterController) VerPhone() {
 
 	code = 0
 	msg = "操作成功"
-	this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
+	urlself, succ := this.GetSecureCookie("qyt", "qyt_urlself")
+
+	if (!succ) {
+		urlself = "http://www.youdidi.vip/Portal/searchinput"
+	}
+
+	this.Data["json"] = map[string]interface{}{"code":code, "msg":msg, "url":urlself};
 	this.ServeJSON()
 }
 
