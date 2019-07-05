@@ -159,7 +159,7 @@ func (c *WxLoginController) WxDologon(userInfo *UserInfo) error {
 		logs.Warn("Cache user login info failed!")
 	}
 
-	c.Ctx.SetSecureCookie("qyt", "qyt_id", userLoginInfo.idStr) //注入用户id，后续所有用户id都从cookie里获取
+	c.Ctx.SetSecureCookie("qyt", "qyt_id", userLoginInfo.IdStr) //注入用户id，后续所有用户id都从cookie里获取
 	c.Ctx.SetSecureCookie("qyt", "qyt_token", userLoginInfo.Token)
 
 
