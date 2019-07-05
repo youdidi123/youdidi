@@ -109,9 +109,12 @@ func (c *WxPayController) WxInvestSuccess() {
 	client := wxpay.NewClient(account)
 
 	params, err := client.ProcessResponseXml(string(c.Ctx.Input.RequestBody))
+	logs.Info("wxpay callback:%s", params)
 	if err != nil {
-		logs.Info("wxpay callback:%s", params)
+		logs.Info("wxpay callback error :%s ", err)
 	}
+
+
 	//在这里入库
 
 	//if
