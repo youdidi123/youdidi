@@ -180,7 +180,7 @@ func (this *OrderController) DoCreateOrder () {
 	}
 	//fmt.Println(userId)
 
-	this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
+	this.Data["json"] = map[string]interface{}{"code":code, "msg":msg, "oid":orderId};
 	this.ServeJSON()
 }
 

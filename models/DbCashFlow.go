@@ -37,6 +37,12 @@ func (u *Cash_flow) DealWxPayRe(result_code string, err_code string, err_code_de
 		return false
 	}
 
+	if (orderInfo[0].Status != 0) {
+		logs.Info("order is already deal id=%v", cfId)
+		o.Rollback()
+		return true
+	}
+
 	if (orderInfo[0].User.OpenId != openid) {
 		logs.Info("openid is not match reopenId=%v dbopenId=%v oid=%v", openid, orderInfo[0].User.OpenId, cfId)
 		o.Rollback()
