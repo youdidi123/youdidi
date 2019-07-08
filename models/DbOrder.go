@@ -131,10 +131,11 @@ func (u *Order) DoRequire (od *Order_detail, pid string, siteNum int , mark stri
 	o := orm.NewOrm()
 	o.Begin()
 
-	//想order detail里插入一条记录
-	_ , err := o.Insert(od)
-	if (err != nil) {
-		logs.Error("insert order detail fail oid=%v pid=%v" , u.Id , pid)
+	var orderInfo []*Order
+	numorder, errorder := o.QueryTable(u).Filter("Id", u.Id).RelatedSel().ForUpdate().All(&orderInfo)
+
+	if (numorder < 1 || errorder != nil) {
+		logs.Error("get order info fail oid=%v" , u.Id)
 		o.Rollback()
 		return false
 	}
@@ -145,20 +146,15 @@ func (u *Order) DoRequire (od *Order_detail, pid string, siteNum int , mark stri
 		o.Rollback()
 		return false
 	}
-	balance, err := strconv.ParseFloat(fmt.Sprintf("%.2f",userInfos[0].Balance - u.Price * float64(siteNum)), 64)
-
-	//将乘客的状态改为行程中
-	_ , err1 := o.QueryTable(userInfo).Filter("id", pid).Update(orm.Params{
-		"onRoadType": 1,"balance":balance,
-	})
-	if (err1 != nil) {
-		logs.Error("set user stauts to 1 fail oid=%v pid=%v" , u.Id , pid)
+	balance, _ := strconv.ParseFloat(fmt.Sprintf("%.2f",userInfos[0].Balance - orderInfo[0].Price * float64(siteNum)), 64)
+	if (balance < 0) {
+		logs.Error("user balance is not enough uid=%v balance=%v" , u.Id , balance)
 		o.Rollback()
 		return false
 	}
 
 	//订单中讲requestPnum+座位数
-	if ((u.PNum - u.RequestPnum) < od.SiteNum) {
+	if ((orderInfo[0].PNum - orderInfo[0].RequestPnum) < od.SiteNum) {
 		logs.Error("siteNum is not enough")
 		o.Rollback()
 		return false
@@ -170,6 +166,27 @@ func (u *Order) DoRequire (od *Order_detail, pid string, siteNum int , mark stri
 		o.Rollback()
 		return false
 	}
+
+
+	//想order detail里插入一条记录
+	_ , err := o.Insert(od)
+	if (err != nil) {
+		logs.Error("insert order detail fail oid=%v pid=%v" , u.Id , pid)
+		o.Rollback()
+		return false
+	}
+
+
+	//将乘客的状态改为行程中
+	_ , err1 := o.QueryTable(userInfo).Filter("id", pid).Update(orm.Params{
+		"onRoadType": 1,"balance":balance,
+	})
+	if (err1 != nil) {
+		logs.Error("set user stauts to 1 fail oid=%v pid=%v" , u.Id , pid)
+		o.Rollback()
+		return false
+	}
+	
 
 	var chatInfo Chat
 	chatInfo.Order = &Order{Id:u.Id}
@@ -211,7 +228,7 @@ func (u *Order) DoRequire (od *Order_detail, pid string, siteNum int , mark stri
 	}
 	moneyStr := strconv.FormatFloat(accountFlow.Money, 'G' , -1,64)
 	balanceStr := strconv.FormatFloat(accountFlow.Balance, 'G' , -1,64)
-	commonLib.SendMsg5(od.Passage.OpenId,
+	commonLib.SendMsg5(userInfos[0].OpenId,
 		4, "", "#173177", "", "", "",
 		"预扣车费", "预扣成功", moneyStr, balanceStr)
 	return true
