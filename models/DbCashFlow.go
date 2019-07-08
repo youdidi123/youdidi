@@ -1,8 +1,11 @@
 package models
 
 import (
+	"fmt"
 	"github.com/astaxie/beego/orm"
 	"github.com/astaxie/beego/logs"
+	"strconv"
+	"time"
 )
 
 
@@ -30,6 +33,7 @@ func (u *Cash_flow) DealWxPayRe(result_code string, err_code string, err_code_de
 	var dbUser User
 	var userInfo []*User
 	var afInfo Account_flow
+	currentTime := strconv.FormatInt(time.Now().Unix(),10)
 	num1, err1 := o.QueryTable(u).RelatedSel().Filter("Id", cfId).ForUpdate().All(&orderInfo)
 	if (num1 < 1 && err1 != nil) {
 		logs.Info("get cashflow info fail id=%v", cfId)
@@ -65,11 +69,13 @@ func (u *Cash_flow) DealWxPayRe(result_code string, err_code string, err_code_de
 
 	afInfo.User = userInfo[0]
 	afInfo.Money = orderInfo[0].Money
-	afInfo.Time = orderInfo[0].Time
+	afInfo.Time = currentTime
 	afInfo.Oid = cfId
 
 	if (result_code == "SUCCESS") {
 		balance = balance + orderInfo[0].Money
+		balance, _ := strconv.ParseFloat(fmt.Sprintf("%.2f", balance), 64)
+
 		_, err3 := o.QueryTable(dbUser).Filter("Id", orderInfo[0].User.Id).Update(orm.Params{
 			"Balance": balance,
 		})
@@ -80,6 +86,7 @@ func (u *Cash_flow) DealWxPayRe(result_code string, err_code string, err_code_de
 		}
 		_, err4 := o.QueryTable(u).Filter("Id", cfId).Update(orm.Params{
 			"Status": 1,
+			"FinishTime":currentTime,
 		})
 		if (err4 != nil) {
 			logs.Info("update cf status to 1 fail oid=%v", cfId)
@@ -91,6 +98,7 @@ func (u *Cash_flow) DealWxPayRe(result_code string, err_code string, err_code_de
 		_, err4 := o.QueryTable(u).Filter("Id", cfId).Update(orm.Params{
 			"Status": 2,
 			"RefuseReason": err_code_des,
+			"FinishTime":currentTime,
 		})
 		if (err4 != nil) {
 			logs.Info("update cf status to 1 fail oid=%v", cfId)
