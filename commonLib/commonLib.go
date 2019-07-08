@@ -2,12 +2,9 @@ package commonLib
 
 import (
 	"encoding/json"
-	"errors"
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/httplib"
 	"github.com/astaxie/beego/logs"
-	"github.com/astaxie/beego/orm"
-	"youdidi/models"
 	"youdidi/redisClient"
 )
 
@@ -100,7 +97,7 @@ func init () {
 	ItemMap[4] = 5//乘客取消推送
 }
 
-func SendMsg5 (uid int, templateId int, url string, firstColor string, first string, remark string, key1 string, key2 string, key3 string, key4 string, key5 string) bool {
+func SendMsg5 (openId string, templateId int, url string, firstColor string, first string, remark string, key1 string, key2 string, key3 string, key4 string, key5 string) bool {
 	if (templateId == 4) {
 		url = "http://www.youdidi.vip/Portal/accountflow"
 		remark = "本消息不作为交易凭证，具体交易信息请登陆评查查看"
@@ -150,10 +147,10 @@ func SendMsg5 (uid int, templateId int, url string, firstColor string, first str
 
 	logs.Debug("msg content=", string(msgDataStr))
 
-	return SendMsg(uid, templateId, string(msgDataStr) , url)
+	return SendMsg(openId, templateId, string(msgDataStr) , url)
 }
 
-func SendMsg (uid int, templateId int, data string, url string) bool{
+func SendMsg (openId string, templateId int, data string, url string) bool{
 	wxUrl := "https://api.weixin.qq.com/cgi-bin/message/template/send?access_token="
 	reqBody := ""
 	accessToken := GetAccessToken()
@@ -163,12 +160,6 @@ func SendMsg (uid int, templateId int, data string, url string) bool{
 	}
 	wxUrl = wxUrl + accessToken
 
-	openId, err := GetUserOpenId(uid)
-
-	if (err != nil) {
-		logs.Emergency("get user openId fail uid=%v err=%v", uid, err.Error())
-		return false
-	}
 
 	itemNum := ItemMap[templateId]
 
@@ -250,23 +241,4 @@ func SendMsg (uid int, templateId int, data string, url string) bool{
 
 func GetAccessToken () string {
 	return redisClient.GetKey(AccessTokenKey)
-}
-
-func GetUserOpenId (uid int) (string, error) {
-	var dbUser models.User
-	var userInfo []*models.User
-
-	num, err := orm.NewOrm().QueryTable(dbUser).Filter("Id", uid).All(&userInfo)
-
-	if (num < 1 || err != nil) {
-		logs.Error("get user info fail uid=%v", uid)
-		return "", errors.New("can not get user info")
-	}
-
-	if (userInfo[0].OpenId == "") {
-		logs.Error("openid of uid=%v is empty", uid)
-		return "", errors.New("openid is empty")
-	}
-
-	return userInfo[0].OpenId, nil
 }

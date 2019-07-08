@@ -417,7 +417,7 @@ func (this *OrderController) DoRequire () {
 		launchTime64, _ := strconv.ParseInt(orderInfo[0].LaunchTime, 10, 64)
 		tm := time.Unix(launchTime64, 0)
 
-		if (! commonLib.SendMsg5(orderInfo[0].User.Id,
+		if (! commonLib.SendMsg5(orderInfo[0].User.OpenId,
 			0,
 			msgUrl,
 			"#22c32e",
