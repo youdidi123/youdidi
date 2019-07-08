@@ -195,6 +195,14 @@ func (this *OrderController) DriverOrderDetail () {
 	onum := dbOrder.GetOrderFromId(oid, &orderInfo)
 	this.Data["onum"] = onum
 
+	show_num, succ := this.GetSecureCookie("qyt", "show_num")
+	if (! succ || show_num != "show") {
+		this.SetSecureCookie("qyt", "show_num", "show")
+		this.Data["show"] = "show"
+	} else {
+		this.Data["show"] = "noshow"
+	}
+
 	if (onum > 0) {
 		uid, _ := this.Ctx.GetSecureCookie("qyt", "qyt_id")
 		if (uid != strconv.Itoa(orderInfo[0].User.Id)) {
@@ -398,7 +406,7 @@ func (this *OrderController) DoRequire () {
 	od.Driver = &models.User{Id:orderInfo[0].User.Id}
 	od.SiteNum = count
 
-	if (orderInfo[0].DoRequire(od, userIdS, count , mark)) {
+	if (orderInfo[0].DoRequire(&od, userIdS, count , mark)) {
 		DelOrderLock(oid)
 		code = 0
 		msg = "预约成功"
@@ -451,7 +459,7 @@ func (this *OrderController) DoRequire () {
 			logs.Error("send msg to driver fail")
 		}
 
-		this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
+		this.Data["json"] = map[string]interface{}{"code":code, "msg":msg, "pid":od.Id};
 		this.ServeJSON()
 	} else {
 		DelOrderLock(oid)
