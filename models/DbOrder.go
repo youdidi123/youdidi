@@ -124,14 +124,14 @@ func (u *Order) GetOrderFromId (oid string , list *[]*Order) int64 {
 	return num
 }
 
-func (u *Order) DoRequire (od Order_detail, pid string, siteNum int , mark string) bool{
+func (u *Order) DoRequire (od *Order_detail, pid string, siteNum int , mark string) bool{
 	var userInfo User
 	var userInfos []*User
 	o := orm.NewOrm()
 	o.Begin()
 
 	//想order detail里插入一条记录
-	_ , err := o.Insert(&od)
+	_ , err := o.Insert(od)
 	if (err != nil) {
 		logs.Error("insert order detail fail oid=%v pid=%v" , u.Id , pid)
 		o.Rollback()

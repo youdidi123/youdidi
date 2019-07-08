@@ -363,7 +363,10 @@
                     // 设置成功
                 }
             })
-            share()
+            if ({{.show}} == "show") {
+                share()
+            }
+
         });
     </script>
 </head>
