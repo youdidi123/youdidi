@@ -7,6 +7,7 @@ import (
 	"github.com/astaxie/beego/orm"
 	"strconv"
 	"time"
+	"youdidi/commonLib"
 )
 
 func (u *Order) TableName() string {
@@ -208,6 +209,11 @@ func (u *Order) DoRequire (od *Order_detail, pid string, siteNum int , mark stri
 		o.Rollback()
 		return false
 	}
+	moneyStr := strconv.FormatFloat(accountFlow.Money, 'G' , -1,64)
+	balanceStr := strconv.FormatFloat(accountFlow.Balance, 'G' , -1,64)
+	commonLib.SendMsg5(od.Passage.OpenId,
+		4, "", "#173177", "", "", "",
+		"预扣车费", "预扣成功", moneyStr, balanceStr)
 	return true
 }
 
