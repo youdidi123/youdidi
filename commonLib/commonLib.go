@@ -1,19 +1,12 @@
-package controllers
+package commonLib
 
 import (
 	"encoding/json"
-	"errors"
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/httplib"
 	"github.com/astaxie/beego/logs"
-	"github.com/astaxie/beego/orm"
-	"youdidi/models"
 	"youdidi/redisClient"
 )
-
-type WxSendMsgController struct {
-	beego.Controller
-}
 
 var (
 	AccessTokenKey string
@@ -85,7 +78,7 @@ type MsgTemplateItems5 struct {
 	Data *Items5 `json:"data"`
 }
 
-func InitData () {
+func init () {
 	Appid =  beego.AppConfig.String("weixin::AppId")
 	AppSecret = beego.AppConfig.String("weixin::AppSecret")
 	AccessTokenKey = "APP_ACCESS_TOKEN"
@@ -95,19 +88,69 @@ func InitData () {
 
 	TemplateMap[0] = "SdyfFNTfGFGpxLXz9Es4xeNpToywPMsBC4r1NsftPg4" //乘客发起乘车申请推送 [接单成功通知]
 	TemplateMap[1] = "WVpWH0teca_PwxBjiq7Im_hIcjIjsFC0MrH_gFVNb5Q" //车主拒绝请求推送 [拼车拒绝通知]
-	TemplateMap[2] = "WVpWH0teca_PwxBjiq7Im_hIcjIjsFC0MrH_gFVNb5Q" //车主同意请求推送 [拼车拒绝通知]
-	TemplateMap[3] = "NOFOaBaJYYZGa2feSuMWjmDeZR6Zqzg9DHV6N4jyRCs" //充值结果推送 [充值成功提醒]
-	TemplateMap[4] = "GVZfbzaycoJdmB-zvjFDW1BW30b2ajn4lzoPdEIHhB8" //乘客取消推送 [订单取消提醒]
+	TemplateMap[3] = "GVZfbzaycoJdmB-zvjFDW1BW30b2ajn4lzoPdEIHhB8" //乘客取消推送 [订单取消提醒]
+	TemplateMap[4] = "K-_rjXpu3Mly7-9F93Zh7n5FYiCpjfsiJ3HtsG_Ip7A" //账户变动通知 [账户余额变动通知]
 
 	ItemMap[0] = 5//乘客发起乘车申请推送
 	ItemMap[1] = 3 //车主拒绝请求推送
-	ItemMap[2] = 3 //车主同意请求推送
-	ItemMap[3] = 3//充值结果推送
+	ItemMap[3] = 5//乘客取消推送
 	ItemMap[4] = 5//乘客取消推送
 }
 
-func SendMsg (uid int, templateId int, data string, url string) bool{
-	InitData()
+func SendMsg5 (openId string, templateId int, url string, firstColor string, first string, remark string, key1 string, key2 string, key3 string, key4 string, key5 string) bool {
+	if (templateId == 4) {
+		url = "http://www.youdidi.vip/Portal/accountflow"
+		remark = "本消息不作为交易凭证，具体交易信息请登陆评查查看"
+		first = "尊敬的用户您好，您的平台账户发生资金变动，具体信息如下:"
+		key1 = "平台个人账户"
+	}
+	defaultColor := "#173177"
+	msgData :=  &Items5{}
+	firstItem := &Item{}
+
+	firstItem.Value = first
+	firstItem.Color = firstColor
+	msgData.First = firstItem
+
+	Keyword1 := &Item{}
+	Keyword1.Value = key1
+	Keyword1.Color = defaultColor
+	msgData.Keyword1 = Keyword1
+
+	Keyword2 := &Item{}
+	Keyword2.Value = key2
+	Keyword2.Color = defaultColor
+	msgData.Keyword2 = Keyword2
+
+
+	Keyword3 := &Item{}
+	Keyword3.Value = key3
+	Keyword3.Color = defaultColor
+	msgData.Keyword3 = Keyword3
+
+	Keyword4 := &Item{}
+	Keyword4.Value = key4
+	Keyword4.Color = defaultColor
+	msgData.Keyword4 = Keyword4
+
+	Keyword5 := &Item{}
+	Keyword5.Value = key5
+	Keyword5.Color = defaultColor
+	msgData.Keyword5 = Keyword5
+
+	Remark := &Item{}
+	Remark.Value = remark
+	Remark.Color = defaultColor
+	msgData.Remark = Remark
+
+	msgDataStr, _ := json.Marshal(&msgData)
+
+	logs.Debug("msg content=", string(msgDataStr))
+
+	return SendMsg(openId, templateId, string(msgDataStr) , url)
+}
+
+func SendMsg (openId string, templateId int, data string, url string) bool{
 	wxUrl := "https://api.weixin.qq.com/cgi-bin/message/template/send?access_token="
 	reqBody := ""
 	accessToken := GetAccessToken()
@@ -117,12 +160,6 @@ func SendMsg (uid int, templateId int, data string, url string) bool{
 	}
 	wxUrl = wxUrl + accessToken
 
-	openId, err := GetUserOpenId(uid)
-
-	if (err != nil) {
-		logs.Emergency("get user openId fail uid=%v err=%v", uid, err.Error())
-		return false
-	}
 
 	itemNum := ItemMap[templateId]
 
@@ -204,23 +241,4 @@ func SendMsg (uid int, templateId int, data string, url string) bool{
 
 func GetAccessToken () string {
 	return redisClient.GetKey(AccessTokenKey)
-}
-
-func GetUserOpenId (uid int) (string, error) {
-	var dbUser models.User
-	var userInfo []*models.User
-
-	num, err := orm.NewOrm().QueryTable(dbUser).Filter("Id", uid).All(&userInfo)
-
-	if (num < 1 || err != nil) {
-		logs.Error("get user info fail uid=%v", uid)
-		return "", errors.New("can not get user info")
-	}
-
-	if (userInfo[0].OpenId == "") {
-		logs.Error("openid of uid=%v is empty", uid)
-		return "", errors.New("openid is empty")
-	}
-
-	return userInfo[0].OpenId, nil
 }

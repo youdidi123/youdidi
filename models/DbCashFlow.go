@@ -2,10 +2,11 @@ package models
 
 import (
 	"fmt"
-	"github.com/astaxie/beego/orm"
 	"github.com/astaxie/beego/logs"
+	"github.com/astaxie/beego/orm"
 	"strconv"
 	"time"
+	"youdidi/commonLib"
 )
 
 
@@ -127,5 +128,13 @@ func (u *Cash_flow) DealWxPayRe(result_code string, err_code string, err_code_de
 		o.Rollback()
 		return false
 	}
+	moneyStr := strconv.FormatFloat(orderInfo[0].Money, 'G' , -1,64)
+	balanceStr := strconv.FormatFloat(balance, 'G' , -1,64)
+	if (result_code == "SUCCESS") {
+		commonLib.SendMsg5(userInfo[0].OpenId, 4, "", "#173177", "", "", "", "账户充值", "充值成功", moneyStr, balanceStr)
+	} else {
+		commonLib.SendMsg5(userInfo[0].OpenId, 4, "", "#173177", "", "", "", "账户失败", "充值成功", moneyStr, balanceStr)
+	}
+
 	return true
 }
