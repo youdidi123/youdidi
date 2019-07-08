@@ -1,13 +1,13 @@
 package controllers
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/astaxie/beego"
+	"github.com/astaxie/beego/logs"
 	"strconv"
 	"time"
+	"youdidi/commonLib"
 	"youdidi/models"
-	"github.com/astaxie/beego/logs"
 )
 type OrderController struct {
 	beego.Controller
@@ -411,51 +411,24 @@ func (this *OrderController) DoRequire () {
 		code = 0
 		msg = "预约成功"
 		//推送给司机有人预定的消息
-		msgData :=  &Items5{}
-		first := &Item{}
 
-		first.Value = "乘客预约申请通知"
-		first.Color = "#22c32e"
-		msgData.First = first
 
-		Keyword1 := &Item{}
-		Keyword1.Value = orderInfo[0].SrcId.Name
-		Keyword1.Color = "#173177"
-		msgData.Keyword1 = Keyword1
-
-		Keyword2 := &Item{}
-		Keyword2.Value = orderInfo[0].DestId.Name
-		Keyword2.Color = "#173177"
-		msgData.Keyword2 = Keyword2
-
+		msgUrl := "http://www.youdidi.vip/Portal/driverorderdetail/" + orderInfo[0].Id
 		launchTime64, _ := strconv.ParseInt(orderInfo[0].LaunchTime, 10, 64)
 		tm := time.Unix(launchTime64, 0)
-		Keyword3 := &Item{}
-		Keyword3.Value = tm.Format("2006-01-02 15:04")
-		Keyword3.Color = "#173177"
-		msgData.Keyword3 = Keyword3
 
-		Keyword4 := &Item{}
-		Keyword4.Value = strconv.Itoa(count) + "人"
-		Keyword4.Color = "#173177"
-		msgData.Keyword4 = Keyword4
-
-		Keyword5 := &Item{}
-		Keyword5.Value = userInfo[0].Phone
-		Keyword5.Color = "#173177"
-		msgData.Keyword5 = Keyword5
-
-		Remark := &Item{}
-		Remark.Value = "请点击详情，尽快处理乘客请求"
-		Remark.Color = "#173177"
-		msgData.Remark = Remark
-
-		msgDataStr, _ := json.Marshal(&msgData)
-		url := "http://www.youdidi.vip/Portal/driverorderdetail/" + orderInfo[0].Id
-
-		logs.Debug("msg content=", string(msgDataStr))
-
-		if (! SendMsg(orderInfo[0].User.Id, 0, string(msgDataStr), url)) {
+		if (! commonLib.SendMsg5(orderInfo[0].User.Id,
+			0,
+			msgUrl,
+			"#22c32e",
+			"乘客预约申请通知",
+			"请点击详情，尽快处理乘客请求",
+			orderInfo[0].SrcId.Name,
+			orderInfo[0].DestId.Name,
+			tm.Format("2006-01-02 15:04"),
+			strconv.Itoa(count) + "人",
+			userInfo[0].Phone,
+			)) {
 			logs.Error("send msg to driver fail")
 		}
 
