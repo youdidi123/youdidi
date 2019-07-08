@@ -154,6 +154,7 @@ type Cash_flow struct {
 	Status int `column(status);" json:"stauts"` // 0:发起 1:成功 2:失败 3:拒绝
 	RefuseReason string `column(refuseReason);" json:"refuseReason"`
 	Time string `column(time);" json:"time"`
+	FinishTime string `column(finishTime);" json:"finishTime"`
 	WechatOrderId string `column(wechatOrderId);" json:"wechatOrderId"`
 	User *User `json:"user" orm:"rel(fk)"`
 }
