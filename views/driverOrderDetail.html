@@ -107,7 +107,7 @@
                 ]
             });
         }
-        function chatOption(pid) {
+        function chatOption(pid, odid) {
             var oid = {{.oinfo.Id}};
             $.actions({
                 title: "选择操作",
@@ -115,6 +115,43 @@
                     console.log("close");
                 },
                 actions: [
+                    {
+                        text: "取消该乘客预约",
+                        className: "color-danger",
+                        onClick: function() {
+                            $.confirm("取消后行程费用将全部退回给乘客", "确认操作?", function() {
+                                $(".loading2").show();
+                                $.ajax({
+                                    type:"POST",
+                                    url:"/Portal/canclesinglep",
+                                    data:{
+                                        odid:odid ,
+                                        pid:pid,
+                                    },
+                                    dataType:"json",
+                                    success : function(result) {
+                                        console.log(result)
+                                        if (result.code != 0) {
+                                            $(".loading2").hide();
+                                            $.alert(result.msg,"操作异常");
+                                        }
+                                        else {
+                                            $(".loading2").hide();
+                                            $.toast("操作成功", 30000);
+                                            window.location.href = "/Portal/driverorderdetail/"+oid;
+
+                                        }
+                                    },
+                                    error : function(result) {
+                                        $(".loading2").hide();
+                                        $.alert("网络繁忙，请重试","操作异常");
+                                    }
+                                });
+                            }, function() {
+                                //取消操作
+                            });
+                        }
+                    },
                     {
                         text: "查看留言",
                         onClick: function() {
@@ -131,30 +168,6 @@
             });
         }
 
-        function chatAndCommentOption(pid, odid) {
-            var oid = {{.oinfo.Id}};
-            $.actions({
-                title: "选择操作",
-                onClose: function() {
-                    console.log("close");
-                },
-                actions: [
-                    {
-                        text: "点评乘客",
-                        className: "color-primary",
-                        onClick: function() {
-                            window.location.href = "/Portal/recommand/"+odid+"/1";
-                        }
-                    },
-                    {
-                        text: "查看留言",
-                        onClick: function() {
-                            window.location.href = "/Portal/chat/"+pid+"/"+oid+"/driver";
-                        }
-                    }
-                ]
-            });
-        }
 
         function commentOption(odid) {
             $.actions({
@@ -461,7 +474,7 @@
                 {{if eq .Status 0}}
                 <div class="weui-media-box__bd" onclick="allOption({{.Passage.Id}} , {{.Id}})">
                 {{else if eq .Status 1 2 3}}
-                    <div class="weui-media-box__bd" onclick="chatOption({{.Passage.Id}})">
+                    <div class="weui-media-box__bd" onclick="chatOption({{.Passage.Id}}, {{.Id}})">
                         {{else if eq .Status 4}}
                         <div class="weui-media-box__bd" onclick="commentOption({{.Id}})">
                 {{else}}
@@ -494,7 +507,7 @@
                     {{if eq .Status 0}}
                     <li class="weui-media-box__info__meta weui-media-box__info__meta_extra" onclick="allOption({{.Passage.Id}} , {{.Id}})"><span class="f-blue">更多操作<i class="icon icon-108"></i></span></li>
                     {{else if eq .Status 1 2 3}}
-                        <li class="weui-media-box__info__meta weui-media-box__info__meta_extra" onclick="chatOption({{.Passage.Id}})"><span class="f-blue">更多操作<i class="icon icon-108"></i></span></li>
+                        <li class="weui-media-box__info__meta weui-media-box__info__meta_extra" onclick="chatOption({{.Passage.Id}}, {{.Id}})"><span class="f-blue">更多操作<i class="icon icon-108"></i></span></li>
                     {{else if eq .Status 4}}
                         <li class="weui-media-box__info__meta weui-media-box__info__meta_extra" onclick="commentOption({{.Id}})"><span class="f-blue">更多操作<i class="icon icon-108"></i></span></li>
                     {{else}}

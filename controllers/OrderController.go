@@ -1075,3 +1075,44 @@ func (this *OrderController) DoRecommand () {
 	this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
 	this.ServeJSON()
 }
+
+// @router /Portal/canclesinglep [POST]
+func (this *OrderController) CancleSingleP () {
+	userId, _ := this.Ctx.GetSecureCookie("qyt", "qyt_id")
+	pid := this.GetString("pid")
+	odid := this.GetString("odid")
+
+	code := 0
+	msg := ""
+
+	var dbOd models.Order_detail
+	var odInfo []*models.Order_detail
+
+	num := dbOd.GetOrderDetailFromId(odid, &odInfo)
+
+	if (num != 1) {
+		code = 1
+		msg = "系统错误，请重试"
+		this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
+		this.ServeJSON()
+		return
+	}
+
+	if (strconv.Itoa(odInfo[0].Driver.Id) != userId) {
+		code = 2
+		msg = "这个行程不属于你哦"
+		this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
+		this.ServeJSON()
+		return
+	}
+	if (dbOd.CancleSingP(odid, pid)) {
+		code = 0
+		msg = "操作成功"
+	} else {
+		code = 4
+		msg = "系统错误，请重试"
+	}
+	this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
+	this.ServeJSON()
+
+}
