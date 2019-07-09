@@ -630,3 +630,99 @@ func (u *Order_detail) Recommand(odid string, uType string, starNum int, mark st
 	}
 	return true
 }
+
+func (u *Order_detail) CancleSingP(odid string, pid string) bool {
+	o := orm.NewOrm()
+	o.Begin()
+	var dbUser User
+	var userInfo []*User
+	var odidInfo []*Order_detail
+	var dbOrder Order
+	var orderInfo []*Order
+
+	num1, err1 := o.QueryTable(u).RelatedSel().Filter("Id", odid).Filter("Status__lt", 4).ForUpdate().All(&odidInfo)
+	if (num1 < 1 || err1 != nil) {
+		logs.Error("get odid info fail odid=%V" , odid)
+		o.Rollback()
+		return false
+	}
+
+	num2, err2 := o.QueryTable(dbOrder).RelatedSel().Filter("Id", odidInfo[0].Order.Id).ForUpdate().All(&orderInfo)
+	if (num2 < 1 || err2 != nil) {
+		logs.Error("get order info fail oid=%v" , odidInfo[0].Order.Id)
+		o.Rollback()
+		return false
+	}
+
+	num3, err3 := o.QueryTable(dbUser).RelatedSel().Filter("Id", odidInfo[0].Passage.Id).ForUpdate().All(&userInfo)
+	if (num3 < 1 || err3 != nil) {
+		logs.Error("get user info fail uid=%v" , odidInfo[0].Passage.Id)
+		o.Rollback()
+		return false
+	}
+
+	balance := userInfo[0].Balance
+	money, _ := strconv.ParseFloat(fmt.Sprintf("%.2f", orderInfo[0].Price * float64(odidInfo[0].SiteNum)), 64)
+	balance = balance + money
+
+	_,err4 := o.QueryTable(dbUser).Filter("Id", odidInfo[0].Passage.Id).Update(orm.Params{
+		"Balance": balance,
+		"OnRoadType" : 0,
+	})
+	if (err4 != nil) {
+		logs.Error("update user info fail uid=%v" , odidInfo[0].Passage.Id)
+		o.Rollback()
+		return false
+	}
+
+	_, err5 := o.QueryTable(u).Filter("Id", odid).Update(orm.Params{
+		"Status": 7,
+	})
+	if (err5 != nil) {
+		logs.Error("update odid info fail odid=%v" , odid)
+		o.Rollback()
+		return false
+	}
+
+	confirmNum := orderInfo[0].ConfirmPnum
+
+	if (odidInfo[0].Status > 0) {
+		confirmNum = confirmNum - odidInfo[0].SiteNum
+	}
+
+	_, err6 := o.QueryTable(dbOrder).Filter("Id", odidInfo[0].Order.Id).Update(orm.Params{
+		"RequestPnum": orderInfo[0].RequestPnum - odidInfo[0].SiteNum,
+		"ConfirmPnum": confirmNum,
+		"CanclePnum" : orderInfo[0].CanclePnum + odidInfo[0].SiteNum,
+	})
+	if (err6 != nil) {
+		logs.Error("update order info fail odid=%v" , odid)
+		o.Rollback()
+		return false
+	}
+
+	var dbAf Account_flow
+	dbAf.Balance = balance
+	dbAf.Money = money
+	dbAf.User = odidInfo[0].Passage
+	dbAf.Oid = orderInfo[0].Id
+	dbAf.Type = 4
+	dbAf.Time = strconv.FormatInt(time.Now().Unix(),10)
+
+	_, err7 := o.Insert(&dbAf)
+	if (err7 != nil) {
+		logs.Error("insert account flow fail")
+		o.Rollback()
+		return false
+	}
+
+
+	errcommit := o.Commit()
+
+	if (errcommit != nil) {
+		logs.Error("commit fail odid=%v" , odid)
+		o.Rollback()
+		return false
+	}
+	return true
+}

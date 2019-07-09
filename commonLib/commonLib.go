@@ -88,13 +88,18 @@ func init () {
 
 	TemplateMap[0] = "SdyfFNTfGFGpxLXz9Es4xeNpToywPMsBC4r1NsftPg4" //乘客发起乘车申请推送 [接单成功通知]
 	TemplateMap[1] = "WVpWH0teca_PwxBjiq7Im_hIcjIjsFC0MrH_gFVNb5Q" //车主拒绝请求推送 [拼车拒绝通知]
-	TemplateMap[3] = "GVZfbzaycoJdmB-zvjFDW1BW30b2ajn4lzoPdEIHhB8" //乘客取消推送 [订单取消提醒]
+	TemplateMap[3] = "GVZfbzaycoJdmB-zvjFDW1BW30b2ajn4lzoPdEIHhB8" //乘客取消推送，车主取消也用这个 [订单取消提醒]
 	TemplateMap[4] = "K-_rjXpu3Mly7-9F93Zh7n5FYiCpjfsiJ3HtsG_Ip7A" //账户变动通知 [账户余额变动通知]
+	TemplateMap[5] = "SHpmsTu3klHhJeZsZGYlgpsVi99B_1Fsa6BWxIIhTqo" //接受请求 [用车提醒]
+	TemplateMap[6] = "fFSVikipMD_hD6un3yTIR4LaW4t6XTDOjFdC5RC30pU" //行程状态变更 [用户订单变更状态提醒]
+
 
 	ItemMap[0] = 5//乘客发起乘车申请推送
 	ItemMap[1] = 3 //车主拒绝请求推送
 	ItemMap[3] = 5//乘客取消推送
 	ItemMap[4] = 5//乘客取消推送
+	ItemMap[5] = 5//乘客取消推送
+	ItemMap[6] = 4//乘客取消推送
 }
 
 func SendMsg5 (openId string, templateId int, url string, firstColor string, first string, remark string, key1 string, key2 string, key3 string, key4 string, key5 string) bool {

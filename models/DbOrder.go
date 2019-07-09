@@ -186,7 +186,7 @@ func (u *Order) DoRequire (od *Order_detail, pid string, siteNum int , mark stri
 		o.Rollback()
 		return false
 	}
-	
+
 
 	var chatInfo Chat
 	chatInfo.Order = &Order{Id:u.Id}
