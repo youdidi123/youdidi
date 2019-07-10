@@ -7,6 +7,7 @@ import (
 	"github.com/astaxie/beego/orm"
 	"strconv"
 	"time"
+	"youdidi/commonLib"
 )
 
 func (u *Order_detail) TableName() string {
@@ -170,6 +171,18 @@ func (u *Order_detail) RefuseRequest(odid string , oid string , pid string , req
 		o.Rollback()
 		return false
 	}
+
+
+
+	moneyStr := strconv.FormatFloat(accountFlow.Money, 'G' , -1,64)
+	balanceStr := strconv.FormatFloat(accountFlow.Balance, 'G' , -1,64)
+	commonLib.SendMsg5(userInfos[0].OpenId,
+		4, "", "#173177", "", "",
+		"#173177", "",
+		"#22c32e","车费退回",
+		"#22c32e", "退回成功",
+		"#173177", moneyStr,
+		"#173177", balanceStr)
 
 	return true
 }
@@ -378,6 +391,8 @@ func (u *Order_detail) PassengerCancle(odid string) bool {
 
 	currentTime := time.Now().Unix()
 
+
+
 	if (odInfo[0].Status == 0) {
 		passengerBalance += allCost
 		passengerBalance, _ = strconv.ParseFloat(fmt.Sprintf("%.2f", passengerBalance), 64)
@@ -557,6 +572,8 @@ func (u *Order_detail) PassengerCancle(odid string) bool {
 		}
 	}
 
+
+
 	errcommit := o.Commit()
 
 	if (errcommit != nil) {
@@ -564,6 +581,14 @@ func (u *Order_detail) PassengerCancle(odid string) bool {
 		o.Rollback()
 		return false
 	}
+
+	commonLib.SendMsg5(odInfo[0].Driver.OpenId, 3, "http://www.youdidi.vip/Portal/driverorderdetail/"+odInfo[0].Order.Id,
+		"#ff0000", "抱歉，乘客已操作取消行程", "系统以释放作为，请关注新乘客的预约",
+		"#173177", odInfo[0].Passage.Nickname,
+		"#173177", odInfo[0].Order.SrcId.Level1 + "-" + odInfo[0].Order.SrcId.Level2 + "-" + odInfo[0].Order.SrcId.Name,
+		"#173177", odInfo[0].Order.DestId.Level1 + "-" + odInfo[0].Order.DestId.Level2 + "-" + odInfo[0].Order.DestId.Name,
+		"#173177", "抱歉，行程临时有变",
+		"#173177", time.Now().Format("2006-01-02 15:04"))
 
 	return true
 }

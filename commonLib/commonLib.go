@@ -102,7 +102,12 @@ func init () {
 	ItemMap[6] = 4//乘客取消推送
 }
 
-func SendMsg5 (openId string, templateId int, url string, firstColor string, first string, remark string, key1 string, key2 string, key3 string, key4 string, key5 string) bool {
+func SendMsg5 (openId string, templateId int, url string, firstColor string, first string, remark string,
+	key1color string, key1 string,
+	key2color string, key2 string,
+	key3color string, key3 string,
+	key4color string, key4 string,
+	key5color string, key5 string) bool {
 	if (templateId == 4) {
 		url = "http://www.youdidi.vip/Portal/accountflow"
 		remark = "本消息不作为交易凭证，具体交易信息请登陆评查查看"
@@ -110,6 +115,8 @@ func SendMsg5 (openId string, templateId int, url string, firstColor string, fir
 		key1 = "平台个人账户"
 	}
 	defaultColor := "#173177"
+	//#173177 蓝 #ff0000 红 #22c32e 绿
+
 	msgData :=  &Items5{}
 	firstItem := &Item{}
 
@@ -119,29 +126,122 @@ func SendMsg5 (openId string, templateId int, url string, firstColor string, fir
 
 	Keyword1 := &Item{}
 	Keyword1.Value = key1
-	Keyword1.Color = defaultColor
+	Keyword1.Color = key1color
 	msgData.Keyword1 = Keyword1
 
 	Keyword2 := &Item{}
 	Keyword2.Value = key2
-	Keyword2.Color = defaultColor
+	Keyword2.Color = key2color
 	msgData.Keyword2 = Keyword2
 
 
 	Keyword3 := &Item{}
 	Keyword3.Value = key3
-	Keyword3.Color = defaultColor
+	Keyword3.Color = key3color
 	msgData.Keyword3 = Keyword3
 
 	Keyword4 := &Item{}
 	Keyword4.Value = key4
-	Keyword4.Color = defaultColor
+	Keyword4.Color = key4color
 	msgData.Keyword4 = Keyword4
 
 	Keyword5 := &Item{}
 	Keyword5.Value = key5
-	Keyword5.Color = defaultColor
+	Keyword5.Color = key5color
 	msgData.Keyword5 = Keyword5
+
+	Remark := &Item{}
+	Remark.Value = remark
+	Remark.Color = defaultColor
+	msgData.Remark = Remark
+
+	msgDataStr, _ := json.Marshal(&msgData)
+
+	logs.Debug("msg content=", string(msgDataStr))
+
+	return SendMsg(openId, templateId, string(msgDataStr) , url)
+}
+
+func SendMsg4 (openId string, templateId int, url string, firstColor string, first string, remark string,
+	key1color string, key1 string,
+	key2color string, key2 string,
+	key3color string, key3 string,
+	key4color string, key4 string) bool {
+
+	defaultColor := "#173177"
+	//#173177 蓝 #ff0000 红 #22c32e 绿
+
+	msgData :=  &Items4{}
+	firstItem := &Item{}
+
+	firstItem.Value = first
+	firstItem.Color = firstColor
+	msgData.First = firstItem
+
+	Keyword1 := &Item{}
+	Keyword1.Value = key1
+	Keyword1.Color = key1color
+	msgData.Keyword1 = Keyword1
+
+	Keyword2 := &Item{}
+	Keyword2.Value = key2
+	Keyword2.Color = key2color
+	msgData.Keyword2 = Keyword2
+
+
+	Keyword3 := &Item{}
+	Keyword3.Value = key3
+	Keyword3.Color = key3color
+	msgData.Keyword3 = Keyword3
+
+	Keyword4 := &Item{}
+	Keyword4.Value = key4
+	Keyword4.Color = key4color
+	msgData.Keyword4 = Keyword4
+
+
+	Remark := &Item{}
+	Remark.Value = remark
+	Remark.Color = defaultColor
+	msgData.Remark = Remark
+
+	msgDataStr, _ := json.Marshal(&msgData)
+
+	logs.Debug("msg content=", string(msgDataStr))
+
+	return SendMsg(openId, templateId, string(msgDataStr) , url)
+}
+
+func SendMsg3 (openId string, templateId int, url string, firstColor string, first string, remark string,
+	key1color string, key1 string,
+	key2color string, key2 string,
+	key3color string, key3 string) bool {
+
+	defaultColor := "#173177"
+	//#173177 蓝 #ff0000 红 #22c32e 绿
+
+	msgData :=  &Items3{}
+	firstItem := &Item{}
+
+	firstItem.Value = first
+	firstItem.Color = firstColor
+	msgData.First = firstItem
+
+	Keyword1 := &Item{}
+	Keyword1.Value = key1
+	Keyword1.Color = key1color
+	msgData.Keyword1 = Keyword1
+
+	Keyword2 := &Item{}
+	Keyword2.Value = key2
+	Keyword2.Color = key2color
+	msgData.Keyword2 = Keyword2
+
+
+	Keyword3 := &Item{}
+	Keyword3.Value = key3
+	Keyword3.Color = key3color
+	msgData.Keyword3 = Keyword3
 
 	Remark := &Item{}
 	Remark.Value = remark
