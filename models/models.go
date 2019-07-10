@@ -149,13 +149,14 @@ type Admin_user struct {
 
 type Cash_flow struct {
 	Id string `orm:"pk;column(id);" json:"id"`
-	Type int `column(type);" json:"type"` // 0:充值 1:提现
+	Type int `column(type);" json:"type"` // 0:充值 1:提现 2:退款
 	Money float64 `column(money);" json:"money"`
 	Status int `column(status);" json:"stauts"` // 0:发起 1:成功 2:失败 3:拒绝
 	RefuseReason string `column(refuseReason);" json:"refuseReason"`
 	Time string `column(time);" json:"time"`
 	FinishTime string `column(finishTime);" json:"finishTime"`
 	WechatOrderId string `column(wechatOrderId);" json:"wechatOrderId"`
+	IsRefund bool `column(isRefund);" json:"isRefund"` //标记这笔交易是不是退过款了，支队type=0的订单有效
 	User *User `json:"user" orm:"rel(fk)"`
 }
 

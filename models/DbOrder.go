@@ -229,8 +229,12 @@ func (u *Order) DoRequire (od *Order_detail, pid string, siteNum int , mark stri
 	moneyStr := strconv.FormatFloat(accountFlow.Money, 'G' , -1,64)
 	balanceStr := strconv.FormatFloat(accountFlow.Balance, 'G' , -1,64)
 	commonLib.SendMsg5(userInfos[0].OpenId,
-		4, "", "#173177", "", "", "",
-		"预扣车费", "预扣成功", moneyStr, balanceStr)
+		4, "", "#173177", "", "",
+		"#173177", "",
+		"#ff0000","预扣车费",
+		"#22c32e", "预扣成功",
+		"#173177", moneyStr,
+		"#173177", balanceStr)
 	return true
 }
 
@@ -423,6 +427,24 @@ func (u *Order) DriverCancle (oid string, confirmNum int, driverId string) bool{
 			o.Rollback()
 			return false
 		}
+		commonLib.SendMsg5(passengerInfo[0].OpenId, 3, "http://www.youdidi.vip/Portal/passengerorderdetail/"+strconv.Itoa(v.Id),
+			"#ff0000", "抱歉，车主已操作取消行程", "为避免对您的影响，请尽快查询其他车主发起的行程",
+			"#173177", v.Passage.Nickname,
+			"#173177", v.Order.SrcId.Level1 + "-" + v.Order.SrcId.Level2 + "-" + v.Order.SrcId.Name,
+			"#173177", v.Order.DestId.Level1 + "-" + v.Order.DestId.Level2 + "-" + v.Order.DestId.Name,
+			"#173177", "抱歉，行程临时有变",
+			"#173177", time.Now().Format("2006-01-02 15:04"))
+
+		moneyStr := strconv.FormatFloat(accountFlow.Money, 'G' , -1,64)
+		balanceStr := strconv.FormatFloat(accountFlow.Balance, 'G' , -1,64)
+		commonLib.SendMsg5(passengerInfo[0].OpenId,
+			4, "", "#173177", "", "",
+			"#173177", "",
+			"#22c32e","车费退回",
+			"#22c32e", "退回成功",
+			"#173177", moneyStr,
+			"#173177", balanceStr)
+
 	}
 
 	errcommit := o.Commit()

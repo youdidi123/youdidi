@@ -420,14 +420,12 @@ func (this *OrderController) DoRequire () {
 		if (! commonLib.SendMsg5(orderInfo[0].User.OpenId,
 			0,
 			msgUrl,
-			"#22c32e",
-			"乘客预约申请通知",
-			"请点击详情，尽快处理乘客请求",
-			orderInfo[0].SrcId.Name,
-			orderInfo[0].DestId.Name,
-			tm.Format("2006-01-02 15:04"),
-			strconv.Itoa(count) + "人",
-			userInfo[0].Phone,
+			"#22c32e", "乘客预约申请通知", "用户留言【"+mark+"】;请点击详情，尽快处理乘客请求",
+			"#173177", orderInfo[0].SrcId.Name,
+			"#173177", orderInfo[0].DestId.Name,
+			"#173177", tm.Format("2006-01-02 15:04"),
+			"#173177", strconv.Itoa(count) + "人",
+			"#173177",userInfo[0].Phone,
 			)) {
 			logs.Error("send msg to driver fail")
 		}
@@ -630,6 +628,18 @@ func (this *OrderController) AgreeRequest () {
 	}
 
 	DelOrderLock(oid)
+	launchTime64, _ := strconv.ParseInt(orderInfo[0].LaunchTime, 10, 64)
+	tm := time.Unix(launchTime64, 0)
+
+	if (! commonLib.SendMsg5(orderDetailInfo[0].Passage.OpenId, 5, "http://www.youdidi.vip/Portal/passengerorderdetail/"+odid,
+		"#22c32e", "车主确认行程通知", "出发前30分钟内取消将会收取违约金，若行程发生变动，请及时操作变更",
+		"#173177", orderInfo[0].SrcId.Name + " - " + orderInfo[0].DestId.Name,
+		"#173177", tm.Format("2006-01-02 15:04"),
+		"#173177", orderInfo[0].User.CarNum,
+		"#173177", orderInfo[0].User.CarType,
+		"#173177", orderInfo[0].User.Nickname + "(" + orderInfo[0].User.Phone + ")")) {
+			logs.Info("send order agree message fail")
+	}
 	this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
 	this.ServeJSON()
 }
@@ -717,6 +727,15 @@ func (this *OrderController) RefuseRequest () {
 	}
 
 	DelOrderLock(oid)
+	launchTime64, _ := strconv.ParseInt(orderInfo[0].LaunchTime, 10, 64)
+	tm := time.Unix(launchTime64, 0)
+
+	commonLib.SendMsg3(orderDetailInfo[0].Passage.OpenId, 1, "http://www.youdidi.vip/Portal/passengerorderdetail/"+odid,
+		"#ff0000", "抱歉，车主拒绝了您的拼车请求", "为避免对您的影响，请尽快查询其他车主发起的行程",
+		"#173177", orderInfo[0].SrcId.Name + "-" + orderInfo[0].DestId.Name,
+		"#173177", tm.Format("2006-01-02 15:04"),
+		"#173177", "",
+	)
 	this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
 	this.ServeJSON()
 

@@ -131,6 +131,7 @@ func (c *WxPayController) WxInvestSuccess() {
 		wxId := params.GetString("transaction_id") //微信订单号
 		cfId := params.GetString("out_trade_no") //自己的订单号
 		total_fee := params.GetInt64("total_fee") //金额
+		transaction_id := params.GetString("transaction_id") //微信支付订单号
 
 		if (reAppId != appId || reMchId != mchId || trade_type != "JSAPI") {
 			logs.Info("appid or mchid or trade_typ is not mach appId=%v re=%v mchId=%v re=%v trade_typ=%v",
@@ -147,7 +148,7 @@ func (c *WxPayController) WxInvestSuccess() {
 
 		var dbCf models.Cash_flow
 
-		if (! dbCf.DealWxPayRe(result_code, err_code, err_code_des, openid, wxId, cfId, total_fee)) {
+		if (! dbCf.DealWxPayRe(result_code, err_code, err_code_des, openid, wxId, cfId, total_fee, transaction_id)) {
 			resPonse.SetString("return_code", "FAIL").
 				SetString("return_msg", "update database fail, please retry")
 			c.Ctx.WriteString(wxpay.MapToXml(resPonse))

@@ -26,7 +26,7 @@ func (u *Cash_flow) GetReadyOrder(list *[]*Cash_flow) int64 {
 	return num
 }
 
-func (u *Cash_flow) DealWxPayRe(result_code string, err_code string, err_code_des string, openid string, wxId string, cfId string, total_fee int64) bool {
+func (u *Cash_flow) DealWxPayRe(result_code string, err_code string, err_code_des string, openid string, wxId string, cfId string, total_fee int64, transaction_id string) bool {
 	o := orm.NewOrm()
 	o.Begin()
 
@@ -88,6 +88,7 @@ func (u *Cash_flow) DealWxPayRe(result_code string, err_code string, err_code_de
 		_, err4 := o.QueryTable(u).Filter("Id", cfId).Update(orm.Params{
 			"Status": 1,
 			"FinishTime":currentTime,
+			"WechatOrderId":transaction_id,
 		})
 		if (err4 != nil) {
 			logs.Info("update cf status to 1 fail oid=%v", cfId)
@@ -100,6 +101,7 @@ func (u *Cash_flow) DealWxPayRe(result_code string, err_code string, err_code_de
 			"Status": 2,
 			"RefuseReason": err_code_des,
 			"FinishTime":currentTime,
+			"WechatOrderId":transaction_id,
 		})
 		if (err4 != nil) {
 			logs.Info("update cf status to 1 fail oid=%v", cfId)
@@ -131,9 +133,21 @@ func (u *Cash_flow) DealWxPayRe(result_code string, err_code string, err_code_de
 	moneyStr := strconv.FormatFloat(orderInfo[0].Money, 'G' , -1,64)
 	balanceStr := strconv.FormatFloat(balance, 'G' , -1,64)
 	if (result_code == "SUCCESS") {
-		commonLib.SendMsg5(userInfo[0].OpenId, 4, "", "#173177", "", "", "", "账户充值", "充值成功", moneyStr, balanceStr)
+		commonLib.SendMsg5(userInfo[0].OpenId, 4, "",
+			"#173177", "", "",
+			"#173177", "",
+			"#22c32e", "账户充值",
+			"#22c32e", "充值成功",
+			"#173177", moneyStr,
+			"#173177", balanceStr)
 	} else {
-		commonLib.SendMsg5(userInfo[0].OpenId, 4, "", "#173177", "", "", "", "账户失败", "充值成功", moneyStr, balanceStr)
+		commonLib.SendMsg5(userInfo[0].OpenId, 4, "",
+			"#173177", "", "",
+			"#173177", "",
+			"#22c32e","账户充值",
+			"#ff0000","充值失败",
+			"#173177", moneyStr,
+			"#173177", balanceStr)
 	}
 
 	return true
