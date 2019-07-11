@@ -399,6 +399,10 @@ func (this *OrderController) DoRequire () {
 		return
 	}
 
+	if (mark == "") {
+		mark = "希望能和您同行，辛苦通过拼车申请"
+	}
+
 	var od models.Order_detail
 	od.Order = &models.Order{Id:oid}
 	od.IsPayed = true
@@ -420,7 +424,7 @@ func (this *OrderController) DoRequire () {
 		if (! commonLib.SendMsg5(orderInfo[0].User.OpenId,
 			0,
 			msgUrl,
-			"#22c32e", "乘客预约申请通知", "用户留言【"+mark+"】;请点击详情，尽快处理乘客请求",
+			"#22c32e", "乘客预约申请通知【您确认同意后才可开始行程哦】", "乘客留言\""+mark+"\";请尽快进入平台-》我的行程，选择【同意】或【拒绝】乘客的申请。",
 			"#173177", orderInfo[0].SrcId.Name,
 			"#173177", orderInfo[0].DestId.Name,
 			"#173177", tm.Format("2006-01-02 15:04"),
