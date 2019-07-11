@@ -302,6 +302,26 @@ func (u *Order_detail) PassengerConfirm(odid string) bool {
 		o.Rollback()
 		return false
 	}
+	zhifukuan := strconv.FormatFloat(afPassenger.Money, 'G' , -1,64)
+	shouxufei := strconv.FormatFloat(infoCost, 'G' , -1,64)
+	pbstr := strconv.FormatFloat(afPassenger.Balance, 'G' , -1,64)
+	dbstr := strconv.FormatFloat(balance, 'G' , -1,64)
+	dincome := strconv.FormatFloat(driverCost, 'G' , -1,64)
+
+	commonLib.SendMsg5(passengerInfo[0].OpenId,
+		4, "", "#173177", "", "",
+		"#173177", "",
+		"#ff0000","预充车费确认支付",
+		"#22c32e", "支付成功",
+		"#173177", zhifukuan,
+		"#173177", pbstr)
+	commonLib.SendMsg5(driverInfo[0].OpenId,
+		4, "", "#173177", "", "",
+		"#173177", "",
+		"#22c32e",passengerInfo[0].Nickname+":支付车费",
+		"#22c32e", "支付成功",
+		"#173177", dincome + "(信息费：" + shouxufei + ")",
+		"#173177", dbstr)
 
 	return true
 }
@@ -318,6 +338,16 @@ func (u *Order_detail) PassengerCancle(odid string) bool {
 
 	var dbOrder Order
 	var orderInfo []*Order
+
+	isAllBack := false
+	is80Back := false
+	is0Back := false
+	driverIncome := ""
+	passengerIncome := ""
+	weiyuejin := ""
+	shouxufei := ""
+	passengerB := ""
+	driverB := ""
 
 	o := orm.NewOrm()
 	o.Begin()
@@ -416,6 +446,9 @@ func (u *Order_detail) PassengerCancle(odid string) bool {
 			o.Rollback()
 			return false
 		}
+		isAllBack = true
+		passengerIncome = strconv.FormatFloat(afPassenger.Money, 'G' , -1,64)
+		passengerB = strconv.FormatFloat(afPassenger.Balance, 'G' , -1,64)
 	} else {
 		launchTime,_ := strconv.ParseInt(odInfo[0].Order.LaunchTime, 10, 64)
 		if (launchTime - currentTime > passangerCancleTime) {
@@ -442,6 +475,9 @@ func (u *Order_detail) PassengerCancle(odid string) bool {
 				o.Rollback()
 				return false
 			}
+			isAllBack = true
+			passengerIncome = strconv.FormatFloat(afPassenger.Money, 'G' , -1,64)
+			passengerB = strconv.FormatFloat(afPassenger.Balance, 'G' , -1,64)
 		} else if (currentTime > launchTime && odInfo[0].Status > 1) {
 			//在出发时间之后，且车主以确认到达，扣除100%
 			infoCost := allCost * infoCostRatio
@@ -499,6 +535,13 @@ func (u *Order_detail) PassengerCancle(odid string) bool {
 				o.Rollback()
 				return false
 			}
+			is0Back = true
+			weiyuejin = strconv.FormatFloat(afPassenger.Money, 'G' , -1,64)
+			shouxufei = strconv.FormatFloat(infoCost, 'G' , -1,64)
+			driverIncome = strconv.FormatFloat(afDriver.Money, 'G' , -1,64)
+			passengerIncome = "0"
+			driverB = strconv.FormatFloat(driverBalance, 'G' , -1,64)
+			passengerB = strconv.FormatFloat(passengerBalance, 'G' , -1,64)
 		} else {
 			//其余情况都扣20%给车主
 			kCost := allCost * passangerCancleRatio
@@ -569,6 +612,13 @@ func (u *Order_detail) PassengerCancle(odid string) bool {
 				o.Rollback()
 				return false
 			}
+			is80Back = true
+			weiyuejin = strconv.FormatFloat(kCost, 'G' , -1,64)
+			shouxufei = strconv.FormatFloat(infoCost, 'G' , -1,64)
+			driverIncome = strconv.FormatFloat(afDriver.Money, 'G' , -1,64)
+			passengerIncome = strconv.FormatFloat(afPassenger.Money, 'G' , -1,64)
+			driverB = strconv.FormatFloat(driverBalance, 'G' , -1,64)
+			passengerB = strconv.FormatFloat(passengerBalance, 'G' , -1,64)
 		}
 	}
 
@@ -580,6 +630,53 @@ func (u *Order_detail) PassengerCancle(odid string) bool {
 		logs.Error("commit fail odid=%v" , odid)
 		o.Rollback()
 		return false
+	}
+
+	if (isAllBack) {
+		commonLib.SendMsg5(passengerInfo[0].OpenId,
+			4, "", "#173177", "", "",
+			"#173177", "",
+			"#22c32e","车费退回",
+			"#22c32e", "退回成功",
+			"#173177", passengerIncome,
+			"#173177", passengerB)
+	} else if (is80Back) {
+		commonLib.SendMsg5(passengerInfo[0].OpenId,
+			4, "", "#173177", "", "",
+			"#173177", "",
+			"#22c32e","车费退回",
+			"#22c32e", "退回成功",
+			"#173177", passengerIncome,
+			"#173177", passengerB)
+		commonLib.SendMsg5(passengerInfo[0].OpenId,
+			4, "", "#173177", "", "",
+			"#173177", "",
+			"#ff0000","扣除违约金20%",
+			"#22c32e", "扣除成功",
+			"#173177", weiyuejin,
+			"#173177", passengerB)
+		commonLib.SendMsg5(driverInfo[0].OpenId,
+			4, "", "#173177", "", "",
+			"#173177", "",
+			"#22c32e","收款违约金20%",
+			"#22c32e", "收款成功",
+			"#173177", driverIncome+"(信息费：" + shouxufei + ")",
+			"#173177", driverB)
+	} else if (is0Back) {
+		commonLib.SendMsg5(passengerInfo[0].OpenId,
+			4, "", "#173177", "", "",
+			"#173177", "",
+			"#ff0000","扣除违约金100%",
+			"#22c32e", "扣除成功",
+			"#173177", weiyuejin,
+			"#173177", passengerB)
+		commonLib.SendMsg5(driverInfo[0].OpenId,
+			4, "", "#173177", "", "",
+			"#173177", "",
+			"#22c32e","收款违约金100%",
+			"#22c32e", "收款成功",
+			"#173177", driverIncome+"(信息费：" + shouxufei + ")",
+			"#173177", driverB)
 	}
 
 	commonLib.SendMsg5(odInfo[0].Driver.OpenId, 3, "http://www.youdidi.vip/Portal/driverorderdetail/"+odInfo[0].Order.Id,

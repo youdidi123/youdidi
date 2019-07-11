@@ -92,6 +92,7 @@ func init () {
 	TemplateMap[4] = "K-_rjXpu3Mly7-9F93Zh7n5FYiCpjfsiJ3HtsG_Ip7A" //账户变动通知 [账户余额变动通知]
 	TemplateMap[5] = "SHpmsTu3klHhJeZsZGYlgpsVi99B_1Fsa6BWxIIhTqo" //接受请求 [用车提醒]
 	TemplateMap[6] = "fFSVikipMD_hD6un3yTIR4LaW4t6XTDOjFdC5RC30pU" //行程状态变更 [用户订单变更状态提醒]
+	TemplateMap[7] = "CUUBv3_G1JjDdkNxd4KezaVeo2sQUhMa1aZfPpysLbY" //投诉处理确认 [投诉受理状态通知	]
 
 
 	ItemMap[0] = 5//乘客发起乘车申请推送
@@ -100,6 +101,7 @@ func init () {
 	ItemMap[4] = 5//乘客取消推送
 	ItemMap[5] = 5//乘客取消推送
 	ItemMap[6] = 4//乘客取消推送
+	ItemMap[7] = 3//乘客取消推送
 }
 
 func SendMsg5 (openId string, templateId int, url string, firstColor string, first string, remark string,

@@ -6,6 +6,7 @@ import (
 	"github.com/astaxie/beego/logs"
 	"strconv"
 	"time"
+	"youdidi/commonLib"
 	"youdidi/models"
 )
 
@@ -189,6 +190,13 @@ func (this *ComplainController) ReplyComplain () {
 		return
 	}
 
+	if (uType == 1) {
+		commonLib.SendMsg3(dcInfo[0].User.OpenId, 7, "http://www.youdidi.vip/portal/complaindetail/" + id + "/0",
+			"#22c32e", "投诉以完成受理" , "点击详情，查看处理结果",
+			"#173177", dcInfo[0].User.Nickname,
+			"#173177", dcInfo[0].Title,
+			"#173177", time.Now().Format("2006-01-02 15:04"))
+	}
 
 	this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
 	this.ServeJSON()
