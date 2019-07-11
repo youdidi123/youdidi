@@ -224,7 +224,7 @@
                         carNum:carNum,
                     },
                     dataType:"json",
-                    async: false,
+                    async: true,
                     success : function(result) {
                         console.log(result)
                         if (result.code != 0) {
@@ -246,7 +246,7 @@
                                 $(".loading2").hide();
                                 $.alert("网络繁忙，请重试","操作异常");
                             } else {
-                                $.toast("操作成功", 30000);
+                                $.toast("操作成功", 3000);
                                 window.location.href = "/Portal/driverconfirminput";
                             }
                         }
@@ -317,7 +317,7 @@
                     oid:oid,
                 },
                 dataType:"json",
-                async: false,
+                async: true,
                 success : function(result) {
                     if (result.code != 0) {
                         succ = false;

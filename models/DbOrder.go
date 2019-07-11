@@ -341,7 +341,7 @@ func (u *Order) DriverGetEnd (oid string, uid string) bool{
 	if (err6 == nil) {
 		for _, v := range odInfo {
 			commonLib.SendMsg4(v.Passage.OpenId, 6, "http://www.youdidi.vip/Portal/passengerorderdetail/" + strconv.Itoa(v.Id),
-				"#22c32e", "车主已确认到达目的地", "乘客请尽快确认到达目的地以便车主收款，若以确认请忽略次消息",
+				"#22c32e", "车主已确认到达目的地", "乘客请尽快确认到达目的地以便车主收款，若已确认请忽略此消息",
 				"#173177", "同行拼车",
 				"#173177", v.Order.Id,
 				"#22c32e", "车主已确认到达目的地",
