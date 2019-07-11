@@ -316,6 +316,29 @@ func SendMsg (openId string, templateId int, data string, url string) bool{
 			return false
 		}
 		logs.Debug("request body=%v", reqBody)
+	} else if (itemNum ==4) {
+		itemBody := &Items4{}
+		err1 := json.Unmarshal([]byte(data), &itemBody)
+		if (err1 != nil) {
+			logs.Error("pares data to item5 fail data=%v", data)
+			return false
+		}
+
+		msgBody := &MsgTemplateItems4{}
+		msgBody.Touser = openId
+		msgBody.Template_id = TemplateMap[templateId]
+		msgBody.Topcolor = "#FF0000"
+		msgBody.Url = url
+		msgBody.Data = itemBody
+
+		reqBodyTmp, err2 := json.Marshal(&msgBody)
+		reqBody = string(reqBodyTmp)
+
+		if (err2 != nil) {
+			logs.Error("pares struct to json fail err=%v", err2.Error())
+			return false
+		}
+		logs.Debug("request body=%v", reqBody)
 	}
 
 

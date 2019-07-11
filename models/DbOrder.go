@@ -269,7 +269,7 @@ func (u *Order) DriverGetStart (oid string) bool{
 	}
 	tm := time.Now()
 
-	if (err4 != nil) {
+	if (err4 == nil) {
 		for _, v := range odInfo {
 			commonLib.SendMsg4(v.Passage.OpenId, 6, "http://www.youdidi.vip/Portal/passengerorderdetail/" + strconv.Itoa(v.Id),
 				"#22c32e", "车主已到达出发地点", "请尽快到达出发地点，以免耽误行程",
@@ -291,7 +291,7 @@ func (u *Order) DriverGetEnd (oid string, uid string) bool{
 	var odInfo []*Order_detail
 	o.Begin()
 
-	_, err6 := o.QueryTable(od).Filter("order_id", oid).Filter("Status", 1).RelatedSel().All(&odInfo)
+	_, err6 := o.QueryTable(od).Filter("order_id", oid).Filter("Status", 2).RelatedSel().All(&odInfo)
 
 	_, err1 := o.QueryTable(u).Filter("id", oid).Update(orm.Params{"Status":2})
 	if (err1 != nil) {
@@ -336,17 +336,9 @@ func (u *Order) DriverGetEnd (oid string, uid string) bool{
 		return false
 	}
 
-	errcommit := o.Commit()
-
-	if (errcommit != nil) {
-		logs.Error("commit fail oid=%v" , u.Id)
-		o.Rollback()
-		return false
-	}
-
 	tm := time.Now()
 
-	if (err6 != nil) {
+	if (err6 == nil) {
 		for _, v := range odInfo {
 			commonLib.SendMsg4(v.Passage.OpenId, 6, "http://www.youdidi.vip/Portal/passengerorderdetail/" + strconv.Itoa(v.Id),
 				"#22c32e", "车主已确认到达目的地", "乘客请尽快确认到达目的地以便车主收款，若以确认请忽略次消息",
@@ -356,6 +348,16 @@ func (u *Order) DriverGetEnd (oid string, uid string) bool{
 				"#173177", tm.Format("2006-01-02 15:04"))
 		}
 	}
+
+	errcommit := o.Commit()
+
+	if (errcommit != nil) {
+		logs.Error("commit fail oid=%v" , u.Id)
+		o.Rollback()
+		return false
+	}
+
+
 
 	return true
 }
