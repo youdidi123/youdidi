@@ -32,7 +32,7 @@ type UserLoginInfo struct {
 }
 
 var (
-	LoginPeriod    = 30 * 60        //用户登陆有效期
+	LoginPeriod    = 30 * 24 * 60 * 60  //用户登陆有效期,一个月
 	LoginPrefix    = "LOGIN_INFO_"  //缓存在redis中的用户数据key前缀
 	PhoneVerPrefix = "RANDOM_CODE_" //短信验证码key前缀
 )
