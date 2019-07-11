@@ -494,7 +494,7 @@ func (u *Order_detail) PassengerCancle(odid string) bool {
 				o.Rollback()
 				return false
 			}
-			afDriver.Money = allCost - infoCost
+			afDriver.Money, _ = strconv.ParseFloat(fmt.Sprintf("%.2f", allCost - infoCost), 64)
 			afDriver.Balance = driverBalance
 			afDriver.Type = 7
 			afDriver.Time = strconv.FormatInt(currentTime, 10)
@@ -550,7 +550,9 @@ func (u *Order_detail) PassengerCancle(odid string) bool {
 			infoCost, _ = strconv.ParseFloat(fmt.Sprintf("%.2f", infoCost), 64)
 
 			passengerBalance = passengerBalance + (allCost - kCost)
+			passengerBalance, _ = strconv.ParseFloat(fmt.Sprintf("%.2f", passengerBalance), 64)
 			driverBalance = driverBalance + (kCost - infoCost)
+			driverBalance, _ = strconv.ParseFloat(fmt.Sprintf("%.2f", driverBalance), 64)
 
 			_, err4 := o.QueryTable(dbUser).Filter("Id", odInfo[0].Driver.Id).Update(orm.Params{
 				"Balance": driverBalance,
@@ -571,7 +573,7 @@ func (u *Order_detail) PassengerCancle(odid string) bool {
 				o.Rollback()
 				return false
 			}
-			afPassenger.Money = (allCost - kCost)
+			afPassenger.Money, _ = strconv.ParseFloat(fmt.Sprintf("%.2f",(allCost - kCost)), 64)
 			afPassenger.Type = 4
 			afPassenger.Balance = passengerBalance
 			afPassenger.Time = strconv.FormatInt(currentTime, 10)
@@ -592,7 +594,7 @@ func (u *Order_detail) PassengerCancle(odid string) bool {
 				return false
 			}
 
-			afDriver.Money = kCost - infoCost
+			afDriver.Money, _ = strconv.ParseFloat(fmt.Sprintf("%.2f",kCost - infoCost), 64)
 			afDriver.Type = 7
 			afDriver.Balance = driverBalance
 			afDriver.Time = strconv.FormatInt(currentTime, 10)
