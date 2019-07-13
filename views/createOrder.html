@@ -140,8 +140,8 @@
                                     }
                                     else {
                                         $(".loading2").hide();
-                                        $.toast("发布成功", 30000);
-                                        window.location.href = "/Portal/showdriverorder/";
+                                        $.toast("发布成功", 3000);
+                                        window.location.href = "/Portal/driverorderdetail/"+result.oid;
 
                                     }
                                 },
@@ -227,7 +227,10 @@
                 <i class="weui-icon-clear" onclick="cleararea(this)"></i>
             </div>
         </div>
-        <a href="javascript:;" class="weui-btn weui-btn_primary" onclick="submit()">发布行程</a>
+        <div class="weui-btn-area">
+            <a href="javascript:;" class="weui-btn weui-btn_primary" onclick="submit()">发布行程</a>
+        </div>
+
         <script src="/js/weui/picker.city.js"></script>
         <script>
             $("#start").cityPicker({

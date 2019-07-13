@@ -1,13 +1,13 @@
 package controllers
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/astaxie/beego"
+	"github.com/astaxie/beego/logs"
 	"strconv"
 	"time"
+	"youdidi/commonLib"
 	"youdidi/models"
-	"github.com/astaxie/beego/logs"
 )
 type OrderController struct {
 	beego.Controller
@@ -180,7 +180,7 @@ func (this *OrderController) DoCreateOrder () {
 	}
 	//fmt.Println(userId)
 
-	this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
+	this.Data["json"] = map[string]interface{}{"code":code, "msg":msg, "oid":orderId};
 	this.ServeJSON()
 }
 
@@ -194,6 +194,14 @@ func (this *OrderController) DriverOrderDetail () {
 
 	onum := dbOrder.GetOrderFromId(oid, &orderInfo)
 	this.Data["onum"] = onum
+
+	show_num, succ := this.GetSecureCookie("qyt", "show_num")
+	if (! succ || show_num != "show") {
+		this.SetSecureCookie("qyt", "show_num", "show")
+		this.Data["show"] = "show"
+	} else {
+		this.Data["show"] = "noshow"
+	}
 
 	if (onum > 0) {
 		uid, _ := this.Ctx.GetSecureCookie("qyt", "qyt_id")
@@ -391,6 +399,10 @@ func (this *OrderController) DoRequire () {
 		return
 	}
 
+	if (mark == "") {
+		mark = "希望能和您同行，辛苦通过拼车申请"
+	}
+
 	var od models.Order_detail
 	od.Order = &models.Order{Id:oid}
 	od.IsPayed = true
@@ -398,60 +410,31 @@ func (this *OrderController) DoRequire () {
 	od.Driver = &models.User{Id:orderInfo[0].User.Id}
 	od.SiteNum = count
 
-	if (orderInfo[0].DoRequire(od, userIdS, count , mark)) {
+	if (orderInfo[0].DoRequire(&od, userIdS, count , mark)) {
 		DelOrderLock(oid)
 		code = 0
 		msg = "预约成功"
 		//推送给司机有人预定的消息
-		msgData :=  &Items5{}
-		first := &Item{}
 
-		first.Value = "乘客预约申请通知"
-		first.Color = "#22c32e"
-		msgData.First = first
 
-		Keyword1 := &Item{}
-		Keyword1.Value = orderInfo[0].SrcId.Name
-		Keyword1.Color = "#173177"
-		msgData.Keyword1 = Keyword1
-
-		Keyword2 := &Item{}
-		Keyword2.Value = orderInfo[0].DestId.Name
-		Keyword2.Color = "#173177"
-		msgData.Keyword2 = Keyword2
-
+		msgUrl := "http://www.youdidi.vip/Portal/driverorderdetail/" + orderInfo[0].Id
 		launchTime64, _ := strconv.ParseInt(orderInfo[0].LaunchTime, 10, 64)
 		tm := time.Unix(launchTime64, 0)
-		Keyword3 := &Item{}
-		Keyword3.Value = tm.Format("2006-01-02 15:04")
-		Keyword3.Color = "#173177"
-		msgData.Keyword3 = Keyword3
 
-		Keyword4 := &Item{}
-		Keyword4.Value = strconv.Itoa(count) + "人"
-		Keyword4.Color = "#173177"
-		msgData.Keyword4 = Keyword4
-
-		Keyword5 := &Item{}
-		Keyword5.Value = userInfo[0].Phone
-		Keyword5.Color = "#173177"
-		msgData.Keyword5 = Keyword5
-
-		Remark := &Item{}
-		Remark.Value = "请点击详情，尽快处理乘客请求"
-		Remark.Color = "#173177"
-		msgData.Remark = Remark
-
-		msgDataStr, _ := json.Marshal(&msgData)
-		url := "http://www.youdidi.vip/Portal/driverorderdetail/" + orderInfo[0].Id
-
-		logs.Debug("msg content=", string(msgDataStr))
-
-		if (! SendMsg(orderInfo[0].User.Id, 0, string(msgDataStr), url)) {
+		if (! commonLib.SendMsg5(orderInfo[0].User.OpenId,
+			0,
+			msgUrl,
+			"#22c32e", "乘客预约申请通知【您确认同意后才可开始行程哦】", "乘客留言\""+mark+"\";请尽快进入平台-》我的行程，选择【同意】或【拒绝】乘客的申请。",
+			"#173177", orderInfo[0].SrcId.Name,
+			"#173177", orderInfo[0].DestId.Name,
+			"#173177", tm.Format("2006-01-02 15:04"),
+			"#173177", strconv.Itoa(count) + "人",
+			"#173177",userInfo[0].Phone,
+			)) {
 			logs.Error("send msg to driver fail")
 		}
 
-		this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
+		this.Data["json"] = map[string]interface{}{"code":code, "msg":msg, "pid":od.Id};
 		this.ServeJSON()
 	} else {
 		DelOrderLock(oid)
@@ -649,6 +632,18 @@ func (this *OrderController) AgreeRequest () {
 	}
 
 	DelOrderLock(oid)
+	launchTime64, _ := strconv.ParseInt(orderInfo[0].LaunchTime, 10, 64)
+	tm := time.Unix(launchTime64, 0)
+
+	if (! commonLib.SendMsg5(orderDetailInfo[0].Passage.OpenId, 5, "http://www.youdidi.vip/Portal/passengerorderdetail/"+odid,
+		"#22c32e", "车主确认行程通知", "出发前30分钟内取消将会收取违约金，若行程发生变动，请及时操作变更",
+		"#173177", orderInfo[0].SrcId.Name + " - " + orderInfo[0].DestId.Name,
+		"#173177", tm.Format("2006-01-02 15:04"),
+		"#173177", orderInfo[0].User.CarNum,
+		"#173177", orderInfo[0].User.CarType,
+		"#173177", orderInfo[0].User.Nickname + "(" + orderInfo[0].User.Phone + ")")) {
+			logs.Info("send order agree message fail")
+	}
 	this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
 	this.ServeJSON()
 }
@@ -736,6 +731,15 @@ func (this *OrderController) RefuseRequest () {
 	}
 
 	DelOrderLock(oid)
+	launchTime64, _ := strconv.ParseInt(orderInfo[0].LaunchTime, 10, 64)
+	tm := time.Unix(launchTime64, 0)
+
+	commonLib.SendMsg3(orderDetailInfo[0].Passage.OpenId, 1, "http://www.youdidi.vip/Portal/passengerorderdetail/"+odid,
+		"#ff0000", "抱歉，车主拒绝了您的拼车请求", "为避免对您的影响，请尽快查询其他车主发起的行程",
+		"#173177", orderInfo[0].SrcId.Name + "-" + orderInfo[0].DestId.Name,
+		"#173177", tm.Format("2006-01-02 15:04"),
+		"#173177", "",
+	)
 	this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
 	this.ServeJSON()
 
@@ -1093,4 +1097,45 @@ func (this *OrderController) DoRecommand () {
 
 	this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
 	this.ServeJSON()
+}
+
+// @router /Portal/canclesinglep [POST]
+func (this *OrderController) CancleSingleP () {
+	userId, _ := this.Ctx.GetSecureCookie("qyt", "qyt_id")
+	pid := this.GetString("pid")
+	odid := this.GetString("odid")
+
+	code := 0
+	msg := ""
+
+	var dbOd models.Order_detail
+	var odInfo []*models.Order_detail
+
+	num := dbOd.GetOrderDetailFromId(odid, &odInfo)
+
+	if (num != 1) {
+		code = 1
+		msg = "系统错误，请重试"
+		this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
+		this.ServeJSON()
+		return
+	}
+
+	if (strconv.Itoa(odInfo[0].Driver.Id) != userId) {
+		code = 2
+		msg = "这个行程不属于你哦"
+		this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
+		this.ServeJSON()
+		return
+	}
+	if (dbOd.CancleSingP(odid, pid)) {
+		code = 0
+		msg = "操作成功"
+	} else {
+		code = 4
+		msg = "系统错误，请重试"
+	}
+	this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
+	this.ServeJSON()
+
 }

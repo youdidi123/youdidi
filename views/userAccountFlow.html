@@ -19,6 +19,11 @@
 
 <body ontouchstart>
 {{template "sildePic.html" .}}
+{{if eq .num 0}}
+<div>
+    <div class="weui-cells__title">您尚未进行过任何交易</div>
+</div>
+{{else}}
 
 <ul class="weui-payrec">
 {{range .info}}
@@ -41,6 +46,7 @@
         </li>
     </div>
 {{end}}
+    {{end}}
 {{template "bottomNav.html" .}}
 </ul>
 

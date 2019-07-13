@@ -85,6 +85,7 @@
             var oid = {{.oid}};
             var pid= {{.pid}};
             var msg = $("#huifu").val();
+            var pageType = {{.type}};
             $.ajax({
                 type:"POST",
                 url:"/Portal/setMsg",
@@ -100,10 +101,19 @@
                         $.alert("留言失败，请重试","留言失败");
                     }
                     else {
-                        var content = "<div class=\"message-item message-item--right\">\n" +
-                            "        <img class=\"avatar\" src=\"{{.dimg}}\" alt=\"头像\">\n" +
-                            "        <div class=\"message-bubble\">"+msg+"</div>\n" +
-                            "    </div>";
+                        var content = "";
+                        if (pageType == "driver") {
+                            content = "<div class=\"message-item message-item--right\">\n" +
+                                "        <img class=\"avatar\" src=\"{{.dimg}}\" alt=\"头像\">\n" +
+                                "        <div class=\"message-bubble\">"+msg+"</div>\n" +
+                                "    </div>";
+                        } else {
+                            content = "<div class=\"message-item message-item--right\">\n" +
+                                "        <img class=\"avatar\" src=\"{{.pimg}}\" alt=\"头像\">\n" +
+                                "        <div class=\"message-bubble\">"+msg+"</div>\n" +
+                                "    </div>";
+                        }
+
                         $("#content").append(content);
                         $("#content").scrollTop($("#content")[0].scrollHeight);
                         $("#huifu").val("");

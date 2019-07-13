@@ -102,6 +102,8 @@ func (c *WxPayController) WxInvestSuccess() {
 	mchId := beego.AppConfig.String("weixin::MchId")
 	apiKey := beego.AppConfig.String("weixin::apiKey")
 
+	resPonse := make(wxpay.Params)
+
 	// 创建支付账户
 	account := wxpay.NewAccount(appId, mchId, apiKey, true)
 
@@ -111,7 +113,51 @@ func (c *WxPayController) WxInvestSuccess() {
 	params, err := client.ProcessResponseXml(string(c.Ctx.Input.RequestBody))
 	logs.Info("wxpay callback:%s", params)
 	if err != nil {
-		logs.Info("wxpay callback error :%s ", err)
+		//校验签名失败
+		logs.Info("wxpay callback:%s err:%v", params)
+		resPonse.SetString("return_code", "FAIL").
+			SetString("return_msg", "sign invaild")
+		c.Ctx.WriteString(wxpay.MapToXml(resPonse))
+		return
+	}
+
+	if (params.GetString("return_code") == wxpay.Success) {
+		reAppId := params.GetString("appid")
+		reMchId := params.GetString("mch_id")
+		result_code := params.GetString("result_code")
+		err_code := params.GetString("err_code")
+		err_code_des := params.GetString("err_code_des")
+		openid := params.GetString("openid")
+		trade_type := params.GetString("trade_type")
+		wxId := params.GetString("transaction_id") //微信订单号
+		cfId := params.GetString("out_trade_no") //自己的订单号
+		total_fee := params.GetInt64("total_fee") //金额
+		transaction_id := params.GetString("transaction_id") //微信支付订单号
+
+		if (reAppId != appId || reMchId != mchId || trade_type != "JSAPI") {
+			logs.Info("appid or mchid or trade_typ is not mach appId=%v re=%v mchId=%v re=%v trade_typ=%v",
+				appId,
+				reAppId,
+				reMchId,
+				mchId,
+				trade_type)
+			resPonse.SetString("return_code", "FAIL").
+				SetString("return_msg", "appid or mchid invaild")
+			c.Ctx.WriteString(wxpay.MapToXml(resPonse))
+			return
+		}
+
+		var dbCf models.Cash_flow
+
+		if (! dbCf.DealWxPayRe(result_code, err_code, err_code_des, openid, wxId, cfId, total_fee, transaction_id)) {
+			resPonse.SetString("return_code", "FAIL").
+				SetString("return_msg", "update database fail, please retry")
+			c.Ctx.WriteString(wxpay.MapToXml(resPonse))
+			return
+		}
+
+	} else {
+		//进入api主动验证
 	}
 
 
@@ -119,7 +165,7 @@ func (c *WxPayController) WxInvestSuccess() {
 
 	//if
 	//investOrderId := params.GetString("appid	")
-	resPonse := make(wxpay.Params)
+
 	resPonse.SetString("return_code", "SUCCESS").
 		SetString("return_msg", "OK")
 	c.Ctx.WriteString(wxpay.MapToXml(resPonse))

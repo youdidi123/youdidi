@@ -5,6 +5,7 @@ import (
 	"github.com/astaxie/beego/logs"
 	_ "youdidi/routers"
 	_ "youdidi/redisClient"
+	_ "youdidi/commonLib"
 )
 
 

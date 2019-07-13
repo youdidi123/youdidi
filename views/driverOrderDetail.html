@@ -45,7 +45,7 @@
                                     }
                                     else {
                                         $(".loading2").hide();
-                                        $.toast("操作成功", 30000);
+                                        $.toast("操作成功", 3000);
                                         window.location.href = "/Portal/driverorderdetail/"+oid;
 
                                     }
@@ -79,7 +79,7 @@
                                     }
                                     else {
                                         $(".loading2").hide();
-                                        $.toast("操作成功", 30000);
+                                        $.toast("操作成功", 3000);
                                         window.location.href = "/Portal/driverorderdetail/"+oid;
 
                                     }
@@ -96,29 +96,18 @@
                         onClick: function() {
                             window.location.href = "/Portal/chat/"+pid+"/"+oid+"/driver";
                         }
-                    }
-                ]
-            });
-        }
-        function chatOption(pid) {
-            var oid = {{.oinfo.Id}};
-            $.actions({
-                title: "选择操作",
-                onClose: function() {
-                    console.log("close");
-                },
-                actions: [
+                    },
                     {
-                        text: "查看留言",
+                        text: "拨打电话",
                         onClick: function() {
-                            window.location.href = "/Portal/chat/"+pid+"/"+oid+"/driver";
+                            $("#tel-"+pid).trigger("click");
                         }
-                    }
+                    },
+
                 ]
             });
         }
-
-        function chatAndCommentOption(pid, odid) {
+        function chatOption(pid, odid) {
             var oid = {{.oinfo.Id}};
             $.actions({
                 title: "选择操作",
@@ -127,10 +116,40 @@
                 },
                 actions: [
                     {
-                        text: "点评乘客",
-                        className: "color-primary",
+                        text: "取消该乘客预约",
+                        className: "color-danger",
                         onClick: function() {
-                            window.location.href = "/Portal/recommand/"+odid+"/1";
+                            $.confirm("取消后行程费用将全部退回给乘客", "确认操作?", function() {
+                                $(".loading2").show();
+                                $.ajax({
+                                    type:"POST",
+                                    url:"/Portal/canclesinglep",
+                                    data:{
+                                        odid:odid ,
+                                        pid:pid,
+                                    },
+                                    dataType:"json",
+                                    success : function(result) {
+                                        console.log(result)
+                                        if (result.code != 0) {
+                                            $(".loading2").hide();
+                                            $.alert(result.msg,"操作异常");
+                                        }
+                                        else {
+                                            $(".loading2").hide();
+                                            $.toast("操作成功", 3000);
+                                            window.location.href = "/Portal/driverorderdetail/"+oid;
+
+                                        }
+                                    },
+                                    error : function(result) {
+                                        $(".loading2").hide();
+                                        $.alert("网络繁忙，请重试","操作异常");
+                                    }
+                                });
+                            }, function() {
+                                //取消操作
+                            });
                         }
                     },
                     {
@@ -138,10 +157,17 @@
                         onClick: function() {
                             window.location.href = "/Portal/chat/"+pid+"/"+oid+"/driver";
                         }
-                    }
+                    },
+                    {
+                        text: "拨打电话",
+                        onClick: function() {
+                            $("#tel-"+pid).trigger("click");
+                        }
+                    },
                 ]
             });
         }
+
 
         function commentOption(odid) {
             $.actions({
@@ -199,7 +225,7 @@
                     }
                     else {
                         $(".loading2").hide();
-                        $.toast("操作成功", 30000);
+                        $.toast("操作成功", 3000);
                         window.location.href = "/Portal/driverorderdetail/"+oid;
 
                     }
@@ -239,7 +265,7 @@
                         }
                         else {
                             $(".loading2").hide();
-                            $.toast("操作成功", 30000);
+                            $.toast("操作成功", 3000);
                             window.location.href = "/Portal/driverorderdetail/"+oid;
 
                         }
@@ -278,8 +304,8 @@
                         }
                         else {
                             $(".loading2").hide();
-                            $.toast("操作成功", 30000);
-                            window.location.href = "/Portal/driverorderdetail/"+oid;
+                            $.toast("操作成功", 3000);
+                            window.location.href = "/Portal/showdriverorder/";
 
                         }
                     },
@@ -350,6 +376,10 @@
                     // 设置成功
                 }
             })
+            if ({{.show}} == "show") {
+                share()
+            }
+
         });
     </script>
 </head>
@@ -444,7 +474,7 @@
                 {{if eq .Status 0}}
                 <div class="weui-media-box__bd" onclick="allOption({{.Passage.Id}} , {{.Id}})">
                 {{else if eq .Status 1 2 3}}
-                    <div class="weui-media-box__bd" onclick="chatAndCommentOption({{.Passage.Id}}, {{.Id}})">
+                    <div class="weui-media-box__bd" onclick="chatOption({{.Passage.Id}}, {{.Id}})">
                         {{else if eq .Status 4}}
                         <div class="weui-media-box__bd" onclick="commentOption({{.Id}})">
                 {{else}}
@@ -468,7 +498,7 @@
 
                     </h2>
                     <h2 class="weui-media-box__title">乘客名：{{.Passage.Nickname}}</h2>
-                    <h2 class="weui-media-box__title">乘客电话：{{.Passage.Phone}}</h2>
+                    <h2 class="weui-media-box__title" >乘客电话：{{.Passage.Phone}}</h2>
                     <h2 class="weui-media-box__title">请求座位数：{{.SiteNum}}</h2>
                     <p class="weui-media-box__desc">乘客星级：{{.Passage.StarAsP}}</p>
                     <p class="weui-media-box__desc">历史拼车次数：{{.Passage.OrderNumAsP}}</p>
@@ -477,7 +507,7 @@
                     {{if eq .Status 0}}
                     <li class="weui-media-box__info__meta weui-media-box__info__meta_extra" onclick="allOption({{.Passage.Id}} , {{.Id}})"><span class="f-blue">更多操作<i class="icon icon-108"></i></span></li>
                     {{else if eq .Status 1 2 3}}
-                        <li class="weui-media-box__info__meta weui-media-box__info__meta_extra" onclick="chatAndCommentOption({{.Passage.Id}}, {{.Id}})"><span class="f-blue">更多操作<i class="icon icon-108"></i></span></li>
+                        <li class="weui-media-box__info__meta weui-media-box__info__meta_extra" onclick="chatOption({{.Passage.Id}}, {{.Id}})"><span class="f-blue">更多操作<i class="icon icon-108"></i></span></li>
                     {{else if eq .Status 4}}
                         <li class="weui-media-box__info__meta weui-media-box__info__meta_extra" onclick="commentOption({{.Id}})"><span class="f-blue">更多操作<i class="icon icon-108"></i></span></li>
                     {{else}}
@@ -485,6 +515,7 @@
                     {{end}}
                 </ul>
             </a>
+            <a href="tel:{{.Passage.Phone}}" id="tel-{{.Passage.Id}}" type="hidden"></a>
             {{end}}
         </div>
     </div>

@@ -53,7 +53,7 @@
                 <span class="f-green">(认证车主)</span>
             {{end}}
         </p>
-        <p class="weui-media-box__desc v-center"><span class="f-black"> 车主电话：</span>{{.List.Driver.Phone}}</p>
+        <p class="weui-media-box__desc v-center"><span class="f-black"> 车主电话：</span><a href="tel:{{.List.Driver.Phone}}">{{.List.Driver.Phone}}</a></p>
     </div>
     {{else}}
         <div class="weui-media-box__bd">
@@ -84,6 +84,8 @@
                     <p class="weui-media-box__desc"><span class="f-black"> 车牌号：</span>{{.List.Driver.CarNum}}
                     {{end}}
                     <p class="weui-media-box__desc"><span class="f-black"> 车辆品牌：</span>{{.List.Driver.CarType}}</p>
+                    <p class="weui-media-box__desc"><span class="f-black"> 行程说明：</span>{{.List.Order.ThroughL}}</p>
+                    <p class="weui-media-box__desc"><span class="f-black"> 行程备注：</span>{{.List.Order.Marks}}</p>
                 </div>
             </a>
         </div>

@@ -7,6 +7,7 @@ import (
 	"github.com/astaxie/beego/orm"
 	"strconv"
 	"time"
+	"youdidi/commonLib"
 )
 
 func (u *Order) TableName() string {
@@ -124,16 +125,17 @@ func (u *Order) GetOrderFromId (oid string , list *[]*Order) int64 {
 	return num
 }
 
-func (u *Order) DoRequire (od Order_detail, pid string, siteNum int , mark string) bool{
+func (u *Order) DoRequire (od *Order_detail, pid string, siteNum int , mark string) bool{
 	var userInfo User
 	var userInfos []*User
 	o := orm.NewOrm()
 	o.Begin()
 
-	//想order detail里插入一条记录
-	_ , err := o.Insert(&od)
-	if (err != nil) {
-		logs.Error("insert order detail fail oid=%v pid=%v" , u.Id , pid)
+	var orderInfo []*Order
+	numorder, errorder := o.QueryTable(u).Filter("Id", u.Id).RelatedSel().ForUpdate().All(&orderInfo)
+
+	if (numorder < 1 || errorder != nil) {
+		logs.Error("get order info fail oid=%v" , u.Id)
 		o.Rollback()
 		return false
 	}
@@ -144,20 +146,15 @@ func (u *Order) DoRequire (od Order_detail, pid string, siteNum int , mark strin
 		o.Rollback()
 		return false
 	}
-	balance, err := strconv.ParseFloat(fmt.Sprintf("%.2f",userInfos[0].Balance - u.Price * float64(siteNum)), 64)
-
-	//将乘客的状态改为行程中
-	_ , err1 := o.QueryTable(userInfo).Filter("id", pid).Update(orm.Params{
-		"onRoadType": 1,"balance":balance,
-	})
-	if (err1 != nil) {
-		logs.Error("set user stauts to 1 fail oid=%v pid=%v" , u.Id , pid)
+	balance, _ := strconv.ParseFloat(fmt.Sprintf("%.2f",userInfos[0].Balance - orderInfo[0].Price * float64(siteNum)), 64)
+	if (balance < 0) {
+		logs.Error("user balance is not enough uid=%v balance=%v" , u.Id , balance)
 		o.Rollback()
 		return false
 	}
 
 	//订单中讲requestPnum+座位数
-	if ((u.PNum - u.RequestPnum) < od.SiteNum) {
+	if ((orderInfo[0].PNum - orderInfo[0].RequestPnum) < od.SiteNum) {
 		logs.Error("siteNum is not enough")
 		o.Rollback()
 		return false
@@ -169,6 +166,27 @@ func (u *Order) DoRequire (od Order_detail, pid string, siteNum int , mark strin
 		o.Rollback()
 		return false
 	}
+
+
+	//想order detail里插入一条记录
+	_ , err := o.Insert(od)
+	if (err != nil) {
+		logs.Error("insert order detail fail oid=%v pid=%v" , u.Id , pid)
+		o.Rollback()
+		return false
+	}
+
+
+	//将乘客的状态改为行程中
+	_ , err1 := o.QueryTable(userInfo).Filter("id", pid).Update(orm.Params{
+		"onRoadType": 1,"balance":balance,
+	})
+	if (err1 != nil) {
+		logs.Error("set user stauts to 1 fail oid=%v pid=%v" , u.Id , pid)
+		o.Rollback()
+		return false
+	}
+
 
 	var chatInfo Chat
 	chatInfo.Order = &Order{Id:u.Id}
@@ -208,6 +226,15 @@ func (u *Order) DoRequire (od Order_detail, pid string, siteNum int , mark strin
 		o.Rollback()
 		return false
 	}
+	moneyStr := strconv.FormatFloat(accountFlow.Money, 'G' , -1,64)
+	balanceStr := strconv.FormatFloat(accountFlow.Balance, 'G' , -1,64)
+	commonLib.SendMsg5(userInfos[0].OpenId,
+		4, "", "#173177", "", "",
+		"#173177", "",
+		"#ff0000","预扣车费",
+		"#22c32e", "预扣成功",
+		"#173177", moneyStr,
+		"#173177", balanceStr)
 	return true
 }
 
@@ -215,6 +242,9 @@ func (u *Order) DriverGetStart (oid string) bool{
 	o := orm.NewOrm()
 	var od Order_detail
 	o.Begin()
+	var odInfo []*Order_detail
+
+	_, err4 := o.QueryTable(od).Filter("order_id", oid).Filter("Status", 1).RelatedSel().All(&odInfo)
 
 	_, err1 := o.QueryTable(u).Filter("id", oid).Update(orm.Params{"Status":1})
 	if (err1 != nil) {
@@ -237,6 +267,18 @@ func (u *Order) DriverGetStart (oid string) bool{
 		o.Rollback()
 		return false
 	}
+	tm := time.Now()
+
+	if (err4 == nil) {
+		for _, v := range odInfo {
+			commonLib.SendMsg4(v.Passage.OpenId, 6, "http://www.youdidi.vip/Portal/passengerorderdetail/" + strconv.Itoa(v.Id),
+				"#22c32e", "车主已到达出发地点", "请尽快到达出发地点，以免耽误行程",
+				"#173177", "同行拼车",
+				"#173177", v.Order.Id,
+				"#22c32e", "车主已到达出发地",
+				"#173177", tm.Format("2006-01-02 15:04"))
+		}
+	}
 
 	return true
 }
@@ -246,7 +288,10 @@ func (u *Order) DriverGetEnd (oid string, uid string) bool{
 	var driver User
 	var driverInfo []*User
 	var od Order_detail
+	var odInfo []*Order_detail
 	o.Begin()
+
+	_, err6 := o.QueryTable(od).Filter("order_id", oid).Filter("Status", 2).RelatedSel().All(&odInfo)
 
 	_, err1 := o.QueryTable(u).Filter("id", oid).Update(orm.Params{"Status":2})
 	if (err1 != nil) {
@@ -291,6 +336,19 @@ func (u *Order) DriverGetEnd (oid string, uid string) bool{
 		return false
 	}
 
+	tm := time.Now()
+
+	if (err6 == nil) {
+		for _, v := range odInfo {
+			commonLib.SendMsg4(v.Passage.OpenId, 6, "http://www.youdidi.vip/Portal/passengerorderdetail/" + strconv.Itoa(v.Id),
+				"#22c32e", "车主已确认到达目的地", "乘客请尽快确认到达目的地以便车主收款，若已确认请忽略此消息",
+				"#173177", "同行拼车",
+				"#173177", v.Order.Id,
+				"#22c32e", "车主已确认到达目的地",
+				"#173177", tm.Format("2006-01-02 15:04"))
+		}
+	}
+
 	errcommit := o.Commit()
 
 	if (errcommit != nil) {
@@ -298,6 +356,8 @@ func (u *Order) DriverGetEnd (oid string, uid string) bool{
 		o.Rollback()
 		return false
 	}
+
+
 
 	return true
 }
@@ -400,6 +460,24 @@ func (u *Order) DriverCancle (oid string, confirmNum int, driverId string) bool{
 			o.Rollback()
 			return false
 		}
+		commonLib.SendMsg5(passengerInfo[0].OpenId, 3, "http://www.youdidi.vip/Portal/passengerorderdetail/"+strconv.Itoa(v.Id),
+			"#ff0000", "抱歉，车主已操作取消行程", "为避免对您的影响，请尽快查询其他车主发起的行程",
+			"#173177", v.Passage.Nickname,
+			"#173177", v.Order.SrcId.Level1 + "-" + v.Order.SrcId.Level2 + "-" + v.Order.SrcId.Name,
+			"#173177", v.Order.DestId.Level1 + "-" + v.Order.DestId.Level2 + "-" + v.Order.DestId.Name,
+			"#173177", "抱歉，行程临时有变",
+			"#173177", time.Now().Format("2006-01-02 15:04"))
+
+		moneyStr := strconv.FormatFloat(accountFlow.Money, 'G' , -1,64)
+		balanceStr := strconv.FormatFloat(accountFlow.Balance, 'G' , -1,64)
+		commonLib.SendMsg5(passengerInfo[0].OpenId,
+			4, "", "#173177", "", "",
+			"#173177", "",
+			"#22c32e","车费退回",
+			"#22c32e", "退回成功",
+			"#173177", moneyStr,
+			"#173177", balanceStr)
+
 	}
 
 	errcommit := o.Commit()

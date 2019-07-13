@@ -146,8 +146,8 @@
                 if (result.code != 0) {
                     $.alert(result.msg,"验证异常");
                 } else {
-                    $.toast("验证成功", 30000);
-                    window.location.href = "/Portal/searchinput";
+                    $.toast("验证成功", 3000);
+                    window.location.href = result.url;
                 }
             },
             error : function(result) {
