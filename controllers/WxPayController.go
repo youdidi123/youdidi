@@ -111,6 +111,7 @@ func (c *WxPayController) WxInvestSuccess() {
 	client := wxpay.NewClient(account)
 
 	params, err := client.ProcessResponseXml(string(c.Ctx.Input.RequestBody))
+	logs.Info("wxpay callback:%s", params)
 	if err != nil {
 		//校验签名失败
 		logs.Info("wxpay callback:%s err:%v", params)
@@ -158,6 +159,8 @@ func (c *WxPayController) WxInvestSuccess() {
 	} else {
 		//进入api主动验证
 	}
+
+
 	//在这里入库
 
 	//if
