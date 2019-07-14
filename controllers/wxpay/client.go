@@ -174,6 +174,7 @@ func (c *Client) Sign(params Params) string {
 // 处理 HTTPS API返回数据，转换成Map对象。return_code为SUCCESS时，验证签名。
 func (c *Client) ProcessResponseXml(xmlStr string) (Params, error) {
 	var returnCode string
+	logs.Debug("WeiXin return Xml is :%s ", xmlStr)
 	params := XmlToMap(xmlStr)
 	if params.ContainsKey("return_code") {
 		returnCode = params.GetString("return_code")
