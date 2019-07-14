@@ -103,7 +103,7 @@ func (c *WxPayController) WxRefund() {
 	apiCert := beego.AppConfig.String("weixin::apiCert")
 
 	// 创建支付账户
-	account := wxpay.NewAccount(appId, mchId, apiKey, true)
+	account := wxpay.NewAccount(appId, mchId, apiKey, false)
 
 	// 设置证书
 	account.SetCertData(apiCert)
