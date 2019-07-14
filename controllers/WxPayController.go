@@ -144,7 +144,7 @@ func (c *WxPayController) WxRefund() {
 	}
 
 	// 获取退款原因
-	efundDesc := c.GetString("efundDesc")
+	refundDesc := c.GetString("refundDesc")
 
 	// 退款
 	params := make(wxpay.Params)
@@ -154,7 +154,7 @@ func (c *WxPayController) WxRefund() {
 		SetString("out_refund_no", refundOrderId).
 		SetString("transaction_id", wxInvestOrderId).
 		SetString("notify_url", "http://www.youdidi.vip/WxRefundSuccess").
-		SetString("efund_desc", efundDesc)
+		SetString("refund_desc", refundDesc)
 
 	responParam, err := client.Refund(params)
 	if err != nil {
