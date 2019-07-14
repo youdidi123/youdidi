@@ -95,6 +95,122 @@ func (c *WxPayController) WxInvest() {
 	c.jsonPotalReturn(0, "", jsapiParams)
 	return
 }
+// @router /WxRefund [POST,GET]
+func (c *WxPayController) WxRefund() {
+	appId := beego.AppConfig.String("weixin::AppId")
+	mchId := beego.AppConfig.String("weixin::MchId")
+	apiKey := beego.AppConfig.String("weixin::apiKey")
+	apiCert := beego.AppConfig.String("weixin::apiCert")
+
+	// 创建支付账户
+	account := wxpay.NewAccount(appId, mchId, apiKey, true)
+
+	// 设置证书
+	account.SetCertData(apiCert)
+
+	// 新建微信支付客户端
+	client := wxpay.NewClient(account)
+
+	// 获取充值金额
+	refundFeeInt, err := moneyCHeck(c.GetString("refundFee"))
+	if err != nil {
+		err = fmt.Errorf("refundFee input error :%s", err)
+		logs.Notice(err.Error())
+		c.jsonPotalReturn(-1, err.Error(), nil)
+		return
+	}
+	refundFee := float64(refundFeeInt) / 100
+
+	// 获取退款订单号
+	investOrderId := c.GetString("investOrderId")
+	wxInvestOrderId := c.GetString("wxInvestOrderId")
+	refundOrderId := c.GetString("wxInvestOrderId")
+
+	investOrder, err := InvestOrderCheck(investOrderId, wxInvestOrderId, refundOrderId)
+	if (err != nil) {
+		err = fmt.Errorf("InvestOrderCheck error for:%s", err)
+		logs.Notice(err.Error())
+		c.jsonPotalReturn(-1, err.Error(), nil)
+		return
+	}
+
+	// 退款金额比较检查
+	if ( investOrder.Money <  refundFee) {
+		err := fmt.Errorf("The amount of refund:%f exceeds the total amount:%f",
+			refundFee, investOrder.Money)
+		logs.Notice(err.Error())
+		c.jsonPotalReturn(-1, err.Error(), nil)
+		return
+	}
+
+	// 获取退款原因
+	efundDesc := c.GetString("efund_desc")
+
+	// 退款
+	params := make(wxpay.Params)
+	params.SetInt64("total_fee", int64(investOrder.Money*100)).
+		SetInt64("refund_fee", int64(refundFee*100)).
+		SetString("out_trade_no", investOrderId).
+		SetString("out_refund_no", refundOrderId).
+		SetString("transaction_id", wxInvestOrderId).
+		SetString("notify_url", "http://www.youdidi.vip/WxRefundSuccess").
+		SetString("efund_desc", efundDesc)
+
+	responParam, err := client.Refund(params)
+	if err != nil {
+		//logs.Debug("xml response %s", res)
+		err = fmt.Errorf("Refund request weixin err:%s", err)
+		logs.Notice(err.Error())
+		c.jsonPotalReturn(-1, err.Error(), nil)
+		return
+	}
+
+	// debug 微信返回数据
+	logs.Debug("WxUnifiedOrder Info:%s", responParam)
+
+	c.jsonPotalReturn(0, "", &responParam)
+	return
+
+}
+
+// 退款时充值订单检查
+func InvestOrderCheck(investOrderId string, wxInvestOrderId string,
+	refundOrderId string) (*models.Cash_flow, error) {
+	var cashFlowOrder models.Cash_flow
+	var cashFlowOrders []*models.Cash_flow
+
+	if (!IsNum(investOrderId) || !IsNum(wxInvestOrderId) || !IsNum(refundOrderId)) {
+		err := fmt.Errorf("Illegal format of Order Id, investOrderId:%s" +
+			", wxInvestOrderId:%s, refundOrderId:%s")
+		return nil, err
+	}
+
+	_, num := cashFlowOrder.GetOrderInfo(investOrderId, &cashFlowOrders)
+	if num == 0 {
+		err := fmt.Errorf("InvestOrderId not exist and can not get order info from db ")
+		return nil, err
+	}
+
+	if (num > 1) {
+		err := fmt.Errorf("InvestOrderId:%s repeat in db", investOrderId)
+		return nil, err
+	}
+
+	if (cashFlowOrders[0].WechatOrderId != wxInvestOrderId){
+		err := fmt.Errorf("wxInvestOrderId:%s not equal to WechatOrderId:5s in cashFlowOrders",
+			wxInvestOrderId, cashFlowOrders[0].WechatOrderId)
+		return nil, err
+	}
+
+	return  cashFlowOrders[0], nil
+}
+
+// 数字字符串判断，检查订单号
+func IsNum(s string) bool {
+	_, err := strconv.ParseFloat(s, 64)
+	return err == nil
+}
+
 
 // @router /WxInvestSuccess [POST,GET]
 func (c *WxPayController) WxInvestSuccess() {
