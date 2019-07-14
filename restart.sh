@@ -37,6 +37,8 @@ killpid()
 
 killpid
 
+docker start mymysql
+
 ./youdidi -d >logs/run.log &
 
 ps -ef|grep ${PROCESSNAME}
