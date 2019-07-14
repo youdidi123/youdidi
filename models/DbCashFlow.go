@@ -18,6 +18,15 @@ func (u *Cash_flow) Insert() (int64, error) {
 	return orm.NewOrm().Insert(u)
 }
 
+func (u *Cash_flow) GetOrderInfo(orderId string, list *[]*Cash_flow) (success string , num int64){
+	num, error := orm.NewOrm().QueryTable(u).Filter("Name", orderId).All(list)
+	if (error != nil) {
+		logs.Error("can not get order info from db orderId=%s ,error=%s" , orderId , error)
+		return "false" , 0
+	}
+	return "true" , num
+}
+
 func (u *Cash_flow) GetReadyOrder(list *[]*Cash_flow) int64 {
 	num, err := orm.NewOrm().QueryTable(u).RelatedSel().Filter("Status", 0).Filter("Type", 1).All(list)
 	if (err != nil) {
