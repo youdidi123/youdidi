@@ -182,7 +182,7 @@ func (c *WxPayController) WxInvestSuccess() {
 	resPonse := make(wxpay.Params)
 
 	// 创建支付账户
-	account := wxpay.NewAccount(appId, mchId, apiKey, true)
+	account := wxpay.NewAccount(appId, mchId, apiKey, false)
 
 	// 新建微信支付客户端
 	client := wxpay.NewClient(account)
@@ -249,10 +249,47 @@ func (c *WxPayController) WxInvestSuccess() {
 	return
 }
 
+// 退款成功的回调
 // @router /WxRefundSuccess [POST,GET]
 func (c *WxPayController) WxRefundSuccess() {
-	logs.Info("wxpay callback:%s", string(c.Ctx.Input.RequestBody))
+	logs.Info("WxRefund callback:%s", string(c.Ctx.Input.RequestBody))
+
+	appId := beego.AppConfig.String("weixin::AppId")
+	mchId := beego.AppConfig.String("weixin::MchId")
+	apiKey := beego.AppConfig.String("weixin::apiKey")
+
+	resPonse := make(wxpay.Params)
+
+	// 创建支付账户
+	account := wxpay.NewAccount(appId, mchId, apiKey, false)
+
+	// 新建微信支付客户端
+	client := wxpay.NewClient(account)
+
+	params, err := client.ProcessResponseXml(string(c.Ctx.Input.RequestBody))
+	logs.Info("WxRefund callback:%s", params)
+	if err != nil {
+		//校验签名失败
+		logs.Info("WxRefund callback:%s err:%v", params)
+		resPonse.SetString("return_code", "FAIL").
+			SetString("return_msg", "sign invaild")
+		c.Ctx.WriteString(wxpay.MapToXml(resPonse))
+		return
+	}
+
+
+	//在这里入修改数据库
+
+	//if
+	//investOrderId := params.GetString("appid	")
+
+
+
+	resPonse.SetString("return_code", "SUCCESS").
+		SetString("return_msg", "OK")
+	c.Ctx.WriteString(wxpay.MapToXml(resPonse))
 	return
+
 }
 
 
