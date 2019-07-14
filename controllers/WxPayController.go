@@ -124,7 +124,7 @@ func (c *WxPayController) WxRefund() {
 	// 获取退款订单号
 	investOrderId := c.GetString("investOrderId")
 	wxInvestOrderId := c.GetString("wxInvestOrderId")
-	refundOrderId := c.GetString("wxInvestOrderId")
+	refundOrderId := c.GetString("refundOrderId")
 
 	investOrder, err := InvestOrderCheck(investOrderId, wxInvestOrderId, refundOrderId)
 	if (err != nil) {
@@ -144,7 +144,7 @@ func (c *WxPayController) WxRefund() {
 	}
 
 	// 获取退款原因
-	efundDesc := c.GetString("efund_desc")
+	efundDesc := c.GetString("efundDesc")
 
 	// 退款
 	params := make(wxpay.Params)
@@ -172,45 +172,6 @@ func (c *WxPayController) WxRefund() {
 	return
 
 }
-
-// 退款时充值订单检查
-func InvestOrderCheck(investOrderId string, wxInvestOrderId string,
-	refundOrderId string) (*models.Cash_flow, error) {
-	var cashFlowOrder models.Cash_flow
-	var cashFlowOrders []*models.Cash_flow
-
-	if (!IsNum(investOrderId) || !IsNum(wxInvestOrderId) || !IsNum(refundOrderId)) {
-		err := fmt.Errorf("Illegal format of Order Id, investOrderId:%s" +
-			", wxInvestOrderId:%s, refundOrderId:%s")
-		return nil, err
-	}
-
-	_, num := cashFlowOrder.GetOrderInfo(investOrderId, &cashFlowOrders)
-	if num == 0 {
-		err := fmt.Errorf("InvestOrderId not exist and can not get order info from db ")
-		return nil, err
-	}
-
-	if (num > 1) {
-		err := fmt.Errorf("InvestOrderId:%s repeat in db", investOrderId)
-		return nil, err
-	}
-
-	if (cashFlowOrders[0].WechatOrderId != wxInvestOrderId){
-		err := fmt.Errorf("wxInvestOrderId:%s not equal to WechatOrderId:5s in cashFlowOrders",
-			wxInvestOrderId, cashFlowOrders[0].WechatOrderId)
-		return nil, err
-	}
-
-	return  cashFlowOrders[0], nil
-}
-
-// 数字字符串判断，检查订单号
-func IsNum(s string) bool {
-	_, err := strconv.ParseFloat(s, 64)
-	return err == nil
-}
-
 
 // @router /WxInvestSuccess [POST,GET]
 func (c *WxPayController) WxInvestSuccess() {
@@ -287,6 +248,53 @@ func (c *WxPayController) WxInvestSuccess() {
 	c.Ctx.WriteString(wxpay.MapToXml(resPonse))
 	return
 }
+
+// @router /WxRefundSuccess [POST,GET]
+func (c *WxPayController) WxRefundSuccess() {
+	logs.Info("wxpay callback:%s", string(c.Ctx.Input.RequestBody))
+	return
+}
+
+
+// 退款时充值订单检查
+func InvestOrderCheck(investOrderId string, wxInvestOrderId string,
+	refundOrderId string) (*models.Cash_flow, error) {
+	var cashFlowOrder models.Cash_flow
+	var cashFlowOrders []*models.Cash_flow
+
+	if (!IsNum(investOrderId) || !IsNum(wxInvestOrderId) || !IsNum(refundOrderId)) {
+		err := fmt.Errorf("Illegal format of Order Id, investOrderId:%s" +
+			", wxInvestOrderId:%s, refundOrderId:%s")
+		return nil, err
+	}
+
+	_, num := cashFlowOrder.GetOrderInfo(investOrderId, &cashFlowOrders)
+	if num == 0 {
+		err := fmt.Errorf("InvestOrderId not exist and can not get order info from db ")
+		return nil, err
+	}
+
+	if (num > 1) {
+		err := fmt.Errorf("InvestOrderId:%s repeat in db", investOrderId)
+		return nil, err
+	}
+
+	if (cashFlowOrders[0].WechatOrderId != wxInvestOrderId){
+		err := fmt.Errorf("wxInvestOrderId:%s not equal to WechatOrderId:5s in cashFlowOrders",
+			wxInvestOrderId, cashFlowOrders[0].WechatOrderId)
+		return nil, err
+	}
+
+	return  cashFlowOrders[0], nil
+}
+
+// 数字字符串判断，检查订单号
+func IsNum(s string) bool {
+	_, err := strconv.ParseFloat(s, 64)
+	return err == nil
+}
+
+
 
 // return Json result
 func (c *WxPayController) jsonPotalReturn(code int, msg string,
