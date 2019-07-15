@@ -95,8 +95,14 @@ func (c *WxPayController) WxInvest() {
 	c.jsonPotalReturn(0, "", jsapiParams)
 	return
 }
-// @router /WxRefund [POST,GET]
-func (c *WxPayController) WxRefund() {
+
+// 微信退款
+// investOrderId 充值商户订单号
+// wxInvestOrderId充值 微信订单号
+// refundOrderId 退款订单号
+// refundDesc 退款原因描述
+func WxRefund(investOrderId string, wxInvestOrderId string,
+	refundOrderId string, refundDesc string) error {
 	appId := beego.AppConfig.String("weixin::AppId")
 	mchId := beego.AppConfig.String("weixin::MchId")
 	apiKey := beego.AppConfig.String("weixin::apiKey")
@@ -116,22 +122,22 @@ func (c *WxPayController) WxRefund() {
 	if err != nil {
 		err = fmt.Errorf("refundFee input error :%s", err)
 		logs.Notice(err.Error())
-		c.jsonPotalReturn(-1, err.Error(), nil)
-		return
+		//c.jsonPotalReturn(-1, err.Error(), nil)
+		return err
 	}
 	refundFee := float64(refundFeeInt) / 100
 
 	// 获取退款订单号
-	investOrderId := c.GetString("investOrderId")
-	wxInvestOrderId := c.GetString("wxInvestOrderId")
-	refundOrderId := c.GetString("refundOrderId")
+	//investOrderId := c.GetString("investOrderId")
+	//wxInvestOrderId := c.GetString("wxInvestOrderId")
+	//refundOrderId := c.GetString("refundOrderId")
 
 	investOrder, err := InvestOrderCheck(investOrderId, wxInvestOrderId, refundOrderId)
 	if (err != nil) {
 		err = fmt.Errorf("InvestOrderCheck error for:%s", err)
 		logs.Notice(err.Error())
-		c.jsonPotalReturn(-1, err.Error(), nil)
-		return
+		//c.jsonPotalReturn(-1, err.Error(), nil)
+		return err
 	}
 
 	// 退款金额比较检查
@@ -139,12 +145,12 @@ func (c *WxPayController) WxRefund() {
 		err := fmt.Errorf("The amount of refund:%f exceeds the total amount:%f",
 			refundFee, investOrder.Money)
 		logs.Notice(err.Error())
-		c.jsonPotalReturn(-1, err.Error(), nil)
-		return
+		//c.jsonPotalReturn(-1, err.Error(), nil)
+		return err
 	}
 
 	// 获取退款原因
-	refundDesc := c.GetString("refundDesc")
+	//refundDesc := c.GetString("refundDesc")
 
 	// 退款
 	params := make(wxpay.Params)
@@ -161,18 +167,18 @@ func (c *WxPayController) WxRefund() {
 		//logs.Debug("xml response %s", res)
 		err = fmt.Errorf("Refund request weixin err:%s", err)
 		logs.Notice(err.Error())
-		c.jsonPotalReturn(-1, err.Error(), nil)
-		return
+		//c.jsonPotalReturn(-1, err.Error(), nil)
+		return err
 	}
 
 	// debug 微信返回数据
 	logs.Debug("WxUnifiedOrder Info:%s", responParam)
 
-	c.jsonPotalReturn(0, "", &responParam)
-	return
-
+	//c.jsonPotalReturn(0, "", &responParam)
+	return nil
 }
 
+// 充值成功微信回调调用接口
 // @router /WxInvestSuccess [POST,GET]
 func (c *WxPayController) WxInvestSuccess() {
 	appId := beego.AppConfig.String("weixin::AppId")
@@ -249,7 +255,7 @@ func (c *WxPayController) WxInvestSuccess() {
 	return
 }
 
-// 退款成功的回调
+// 退款成功的微信回调接口
 // @router /WxRefundSuccess [POST,GET]
 func (c *WxPayController) WxRefundSuccess() {
 	logs.Info("WxRefund callback:%s", string(c.Ctx.Input.RequestBody))
@@ -278,7 +284,7 @@ func (c *WxPayController) WxRefundSuccess() {
 	}
 
 
-	//在这里入修改数据库
+	//在这里入修改数据库,减少用户的余额
 
 	//if
 	//investOrderId := params.GetString("appid	")
@@ -292,6 +298,58 @@ func (c *WxPayController) WxRefundSuccess() {
 
 }
 
+// 企业付款提现的接口
+// cashOutAmount 提现金额人民币 单位 分 partnerTradeNo 商户用户提现订单
+// clientIP  用户IP desc 提现原因描述
+// @router /WxEnpTransfers [POST,GET]
+func WxEnpTransfers(cashOutAmount int64, OpenId string, partnerTradeNo string,
+	clientIP string, desc string) error {
+	appId := beego.AppConfig.String("weixin::AppId")
+	mchId := beego.AppConfig.String("weixin::MchId1")
+	apiKey := beego.AppConfig.String("weixin::apiKey1")
+
+	// 获取提现金额
+	cashOutAmount, err := moneyCHeck(c.GetString("cashOutAmount"))
+	if err != nil {
+		err = fmt.Errorf("refundFee input error :%s", err)
+		logs.Notice(err.Error())
+		return err
+	}
+
+	if cashOutAmount <= 0 {
+		return fmt.Errorf("cashOutAmount can't be less than zero!")
+	}
+
+	// 订单号校验
+	if (!IsNum(partnerTradeNo)) {
+		err = fmt.Errorf("Illegal Partner Trade Number:%s", partnerTradeNo)
+		logs.Notice(err.Error())
+		return err
+	}
+
+	// 企业号提现到个人零钱账户
+	params := make(wxpay.Params)
+	params.SetInt64("amount", cashOutAmount).
+		SetString("partner_trade_no", partnerTradeNo).
+		SetString("openid", OpenId).
+		SetString("check_name", "NO_CHECK").
+		SetString("desc", desc).
+		SetString("spbill_create_ip", clientIP)
+
+
+	// 创建支付账户
+	account := wxpay.NewAccount(appId, mchId, apiKey, false)
+
+	// 新建微信支付客户端
+	client := wxpay.NewClient(account)
+
+	_, err = client.EnpTransfers(params)
+	if err != nil {
+		return fmt.Errorf("EnpTransfers err:%s", err)
+	}
+
+	return nil
+}
 
 // 退款时充值订单检查
 func InvestOrderCheck(investOrderId string, wxInvestOrderId string,
