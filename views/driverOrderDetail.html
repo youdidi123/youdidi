@@ -400,7 +400,7 @@
         {{if eq .oinfo.Status 0}}
         <a href="javascript:;" class="weui-btn weui-btn_primary" onclick="getStart()">现在出发</a>
         {{else if eq .oinfo.Status 1}}
-        <a href="javascript:;" class="weui-btn weui-btn_primary" onclick="getEnd()">已到达目的地</a>
+        <a href="javascript:;" class="weui-btn weui-btn_primary" onclick="getEnd()">到达目的地</a>
         {{end}}
         {{if lt .oinfo.Status 2}}
         <a href="javascript:;" class="weui-btn weui-btn_default" onclick="cancle()">取消行程</a>

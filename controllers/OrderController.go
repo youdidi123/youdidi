@@ -16,7 +16,7 @@ type OrderController struct {
 var (
 	statusText = []struct {
 		Text string
-	}{{"接单中"}, {"车主到达出发地"}, {"完成"}, {"已取消"}}
+	}{{"接单中"}, {"行程中"}, {"完成"}, {"已取消"}}
 	odStatusText = []struct {
 		Text string
 	}{{"发起拼车请求"},{"请求已确认"}, {"行程中"}, {"待乘客确认"},{"完成"},{"拒绝请求"},{"乘客取消"},  {"车主取消"}}
