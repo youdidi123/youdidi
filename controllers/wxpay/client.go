@@ -239,6 +239,21 @@ func (c *Client) Refund(params Params) (Params, error) {
 	return c.ProcessResponseXml(xmlStr)
 }
 
+// 企业付款到零钱
+func (c *Client) EnpTransfers(params Params) (Params, error) {
+	var url string
+	if c.account.isSandbox {
+		url = SandboxEnpTransfersUrl
+	} else {
+		url = EnpTransfersUrl
+	}
+	xmlStr, err := c.postWithoutCert(url, params)
+	if err != nil {
+		return nil, err
+	}
+	return c.ProcessResponseXml(xmlStr)
+}
+
 // 订单查询
 func (c *Client) OrderQuery(params Params) (Params, error) {
 	var url string
