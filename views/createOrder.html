@@ -95,8 +95,13 @@
                 return
             }
 
+            if (getByteLen(travelExplain) < 4) {
+                $.alert("至少4个字说明上车地点","请修正行程单内容");
+                return
+            }
+
             if (getByteLen(travelExplain) > 30) {
-                $.alert("行程说明不能超过30个字，要不拼车的小姐姐懒得读哦","请修正行程单内容");
+                $.alert("上车地点不能超过30个字，要不拼车的小姐姐懒得读哦","请修正行程单内容");
                 return
             }
 
@@ -212,7 +217,7 @@
         <div class="weui-cells weui-cells_form">
             <div class="weui-cell">
                 <div class="weui-cell__bd">
-                    <textarea id="travelExplain" class="weui-textarea" placeholder="行程起止地点说明，如:西安基地->龙凤园->泾渭苑->庆城" rows="2" onkeyup="textarea(this);"></textarea>
+                    <textarea id="travelExplain" class="weui-textarea" placeholder="上车地点说明，如：提前10分钟在龙凤园2号门集合" rows="2" onkeyup="textarea(this);"></textarea>
                     <div class="weui-textarea-counter"><span>0</span>/<i>30</i></div>
                 </div>
                 <i class="weui-icon-clear" onclick="cleararea(this)"></i>

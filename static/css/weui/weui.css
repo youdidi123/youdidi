@@ -764,6 +764,9 @@ button.weui-form-preview__btn{
 .weui-form-preview__btn_primary{
   color:#0BB20C;
 }
+.weui-form-preview__btn_danger{
+  color:#f6383a;
+}
 .weui-cell_select{
   padding:0;
 }

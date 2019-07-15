@@ -102,7 +102,7 @@ func (c *WxPayController) WxInvest() {
 // refundOrderId 退款订单号
 // refundDesc 退款原因描述
 func WxRefund(investOrderId string, wxInvestOrderId string,
-	refundOrderId string, refundDesc string) error {
+	refundOrderId string, refundDesc string, refundFeeStr string) error {
 	appId := beego.AppConfig.String("weixin::AppId")
 	mchId := beego.AppConfig.String("weixin::MchId")
 	apiKey := beego.AppConfig.String("weixin::apiKey")
@@ -118,7 +118,7 @@ func WxRefund(investOrderId string, wxInvestOrderId string,
 	client := wxpay.NewClient(account)
 
 	// 获取充值金额
-	refundFeeInt, err := moneyCHeck(c.GetString("refundFee"))
+	refundFeeInt, err := moneyCHeck(refundFeeStr)
 	if err != nil {
 		err = fmt.Errorf("refundFee input error :%s", err)
 		logs.Notice(err.Error())
@@ -301,20 +301,12 @@ func (c *WxPayController) WxRefundSuccess() {
 // 企业付款提现的接口
 // cashOutAmount 提现金额人民币 单位 分 partnerTradeNo 商户用户提现订单
 // clientIP  用户IP desc 提现原因描述
-// @router /WxEnpTransfers [POST,GET]
 func WxEnpTransfers(cashOutAmount int64, OpenId string, partnerTradeNo string,
 	clientIP string, desc string) error {
 	appId := beego.AppConfig.String("weixin::AppId")
 	mchId := beego.AppConfig.String("weixin::MchId1")
 	apiKey := beego.AppConfig.String("weixin::apiKey1")
 
-	// 获取提现金额
-	cashOutAmount, err := moneyCHeck(c.GetString("cashOutAmount"))
-	if err != nil {
-		err = fmt.Errorf("refundFee input error :%s", err)
-		logs.Notice(err.Error())
-		return err
-	}
 
 	if cashOutAmount <= 0 {
 		return fmt.Errorf("cashOutAmount can't be less than zero!")
@@ -322,7 +314,7 @@ func WxEnpTransfers(cashOutAmount int64, OpenId string, partnerTradeNo string,
 
 	// 订单号校验
 	if (!IsNum(partnerTradeNo)) {
-		err = fmt.Errorf("Illegal Partner Trade Number:%s", partnerTradeNo)
+		err := fmt.Errorf("Illegal Partner Trade Number:%s", partnerTradeNo)
 		logs.Notice(err.Error())
 		return err
 	}
@@ -343,7 +335,7 @@ func WxEnpTransfers(cashOutAmount int64, OpenId string, partnerTradeNo string,
 	// 新建微信支付客户端
 	client := wxpay.NewClient(account)
 
-	_, err = client.EnpTransfers(params)
+	_, err := client.EnpTransfers(params)
 	if err != nil {
 		return fmt.Errorf("EnpTransfers err:%s", err)
 	}

@@ -15,6 +15,70 @@
     <script>
         var appId,timestamp,nonceStr,signature;
 
+        function doAgree(pid , odid) {
+            var oid = {{.oinfo.Id}} ;
+            $(".loading2").show();
+            $.ajax({
+                type:"POST",
+                url:"/Portal/agreerequest",
+                data:{
+                    pid:pid ,
+                    oid:oid ,
+                    odid:odid
+                },
+                dataType:"json",
+                success : function(result) {
+                    console.log(result)
+                    if (result.code != 0) {
+                        $(".loading2").hide();
+                        $.alert(result.msg,"操作异常");
+                    }
+                    else {
+                        $(".loading2").hide();
+                        $.toast("操作成功", 3000);
+                        window.location.href = "/Portal/driverorderdetail/"+oid;
+
+                    }
+                },
+                error : function(result) {
+                    $(".loading2").hide();
+                    $.alert("网络繁忙，请重试","操作异常");
+                }
+            });
+        }
+
+        function doRefuse(pid, odid) {
+            var oid = {{.oinfo.Id}} ;
+            $(".loading2").show();
+            $.ajax({
+                type:"POST",
+                url:"/Portal/refuserequest",
+                data:{
+                    pid:pid ,
+                    oid:oid ,
+                    odid:odid
+                },
+                dataType:"json",
+                success : function(result) {
+                    console.log(result)
+                    if (result.code != 0) {
+                        $(".loading2").hide();
+                        $.alert(result.msg,"操作异常");
+                    }
+                    else {
+                        $(".loading2").hide();
+                        $.toast("操作成功", 3000);
+                        window.location.href = "/Portal/driverorderdetail/"+oid;
+
+                    }
+                },
+                error : function(result) {
+                    $(".loading2").hide();
+                    $.alert("网络繁忙，请重试","操作异常");
+                }
+            });
+        }
+
         function allOption(pid , odid) {
             var oid = {{.oinfo.Id}} ;
             $.actions({
@@ -24,71 +88,10 @@
                 },
                 actions: [
                     {
-                        text: "确认请求",
+                        text: "拨打电话",
                         className: "color-primary",
                         onClick: function() {
-                            $(".loading2").show();
-                            $.ajax({
-                                type:"POST",
-                                url:"/Portal/agreerequest",
-                                data:{
-                                    pid:pid ,
-                                    oid:oid ,
-                                    odid:odid
-                                },
-                                dataType:"json",
-                                success : function(result) {
-                                    console.log(result)
-                                    if (result.code != 0) {
-                                        $(".loading2").hide();
-                                        $.alert(result.msg,"操作异常");
-                                    }
-                                    else {
-                                        $(".loading2").hide();
-                                        $.toast("操作成功", 3000);
-                                        window.location.href = "/Portal/driverorderdetail/"+oid;
-
-                                    }
-                                },
-                                error : function(result) {
-                                    $(".loading2").hide();
-                                    $.alert("网络繁忙，请重试","操作异常");
-                                }
-                            });
-                        }
-                    },
-                    {
-                        text: "拒绝请求",
-                        className: "color-danger",
-                        onClick: function() {
-                            $(".loading2").show();
-                            $.ajax({
-                                type:"POST",
-                                url:"/Portal/refuserequest",
-                                data:{
-                                    pid:pid ,
-                                    oid:oid ,
-                                    odid:odid
-                                },
-                                dataType:"json",
-                                success : function(result) {
-                                    console.log(result)
-                                    if (result.code != 0) {
-                                        $(".loading2").hide();
-                                        $.alert(result.msg,"操作异常");
-                                    }
-                                    else {
-                                        $(".loading2").hide();
-                                        $.toast("操作成功", 3000);
-                                        window.location.href = "/Portal/driverorderdetail/"+oid;
-
-                                    }
-                                },
-                                error : function(result) {
-                                    $(".loading2").hide();
-                                    $.alert("网络繁忙，请重试","操作异常");
-                                }
-                            });
+                            $("#tel-"+pid).trigger("click");
                         }
                     },
                     {
@@ -97,13 +100,6 @@
                             window.location.href = "/Portal/chat/"+pid+"/"+oid+"/driver";
                         }
                     },
-                    {
-                        text: "拨打电话",
-                        onClick: function() {
-                            $("#tel-"+pid).trigger("click");
-                        }
-                    },
-
                 ]
             });
         }
@@ -160,6 +156,7 @@
                     },
                     {
                         text: "拨打电话",
+                        className: "color-primary",
                         onClick: function() {
                             $("#tel-"+pid).trigger("click");
                         }
@@ -195,13 +192,13 @@
             var now = new Date();
             var nowTime = now.getTime() ;
 
-            if (launchTime*1000 - nowTime > 10 * 60 * 1000) {
+            if (launchTime*1000 - nowTime > 30 * 60 * 1000) {
             //if (launchTime*1000 - nowTime < 10 * 60 * 1000) {
-                $.alert("距行程开始前10分钟内才能确认到达出发地哦","现在不能操作哦",function(){
+                $.alert("距行程开始前30分钟内才确认出发哦","现在不能操作哦",function(){
                     return;
                 });
             }else if (requestNum > confirmNum) {
-                $.alert("您有尚未操作的乘客申请","现在不能操作哦",function(){
+                $.alert("您有尚未处理的乘客申请","现在不能操作哦",function(){
                     return;
                 });
             } else {
@@ -401,9 +398,9 @@
 
     <div class="page-hd">
         {{if eq .oinfo.Status 0}}
-        <a href="javascript:;" class="weui-btn weui-btn_primary" onclick="getStart()">确认到达出发地</a>
+        <a href="javascript:;" class="weui-btn weui-btn_primary" onclick="getStart()">现在出发</a>
         {{else if eq .oinfo.Status 1}}
-        <a href="javascript:;" class="weui-btn weui-btn_primary" onclick="getEnd()">确认到达目的地</a>
+        <a href="javascript:;" class="weui-btn weui-btn_primary" onclick="getEnd()">已到达目的地</a>
         {{end}}
         {{if lt .oinfo.Status 2}}
         <a href="javascript:;" class="weui-btn weui-btn_default" onclick="cancle()">取消行程</a>
@@ -516,8 +513,15 @@
                 </ul>
             </a>
             <a href="tel:{{.Passage.Phone}}" id="tel-{{.Passage.Id}}" type="hidden"></a>
+                {{if eq .Status 0}}
+            <div class="weui-form-preview__ft">
+                <button type="submit" class="weui-form-preview__btn weui-form-preview__btn_danger" onclick="doRefuse({{.Passage.Id}}, {{.Id}})">拒绝预约</button>
+                <button type="submit" class="weui-form-preview__btn weui-form-preview__btn_primary" onclick="doAgree({{.Passage.Id}}, {{.Id}})">同意预约</button>
+            </div>
+                    {{end}}
             {{end}}
         </div>
+
     </div>
     {{end}}
 </div>
