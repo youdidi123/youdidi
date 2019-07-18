@@ -249,7 +249,7 @@ func (c *Client) EnpTransfers(params Params) (Params, error) {
 	} else {
 		url = EnpTransfersUrl
 	}
-	xmlStr, err := c.postWithoutCert(url, params)
+	xmlStr, err := c.postWithCert(url, params)
 	if err != nil {
 		return nil, err
 	}

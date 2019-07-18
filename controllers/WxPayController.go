@@ -306,6 +306,7 @@ func WxEnpTransfers(cashOutAmount int64, OpenId string, partnerTradeNo string,
 	appId := beego.AppConfig.String("weixin::AppId")
 	mchId := beego.AppConfig.String("weixin::MchId1")
 	apiKey := beego.AppConfig.String("weixin::apiKey1")
+	apiCert := beego.AppConfig.String("weixin::apiCert")
 
 
 	if cashOutAmount <= 0 {
@@ -331,6 +332,9 @@ func WxEnpTransfers(cashOutAmount int64, OpenId string, partnerTradeNo string,
 
 	// 创建支付账户
 	account := wxpay.NewAccount(appId, mchId, apiKey, false)
+
+	// 设置证书
+	account.SetCertData(apiCert)
 
 	// 新建微信支付客户端
 	client := wxpay.NewClient(account)
