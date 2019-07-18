@@ -4,6 +4,7 @@ import (
 	"github.com/astaxie/beego"
 	"strconv"
 	"time"
+	"youdidi/commonLib"
 	"youdidi/models"
 )
 
@@ -72,10 +73,21 @@ func (this *AccountFlowController) DoWithdraw () {
 	code := 0
 	msg := ""
 
-	var dbAc models.Account_flow
+	var dbCf models.Cash_flow
+
+	_, tmStr := commonLib.GetTodayBeginTime()
+
+	if (! dbCf.IsFirstWithdrew(userId, tmStr)) {
+		code = 2
+		msg = "每天仅能发起一次提现操作"
+		this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
+		this.ServeJSON()
+		return
+	}
+
 	cacheFlowId := genOrderId(userIdInt)
 
-	if (dbAc.DoWithDrew(userId, money, cacheFlowId)) {
+	if (dbCf.DoWithDrew(userId, cacheFlowId, money)) {
 		code = 0
 		msg = "操作成功"
 	} else {

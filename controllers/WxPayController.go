@@ -302,21 +302,21 @@ func (c *WxPayController) WxRefundSuccess() {
 // cashOutAmount 提现金额人民币 单位 分 partnerTradeNo 商户用户提现订单
 // clientIP  用户IP desc 提现原因描述
 func WxEnpTransfers(cashOutAmount int64, OpenId string, partnerTradeNo string,
-	clientIP string, desc string) error {
+	clientIP string, desc string) (string, error) {
 	appId := beego.AppConfig.String("weixin::AppId")
 	mchId := beego.AppConfig.String("weixin::MchId1")
 	apiKey := beego.AppConfig.String("weixin::apiKey1")
 
 
 	if cashOutAmount <= 0 {
-		return fmt.Errorf("cashOutAmount can't be less than zero!")
+		return "", fmt.Errorf("cashOutAmount can't be less than zero!")
 	}
 
 	// 订单号校验
 	if (!IsNum(partnerTradeNo)) {
 		err := fmt.Errorf("Illegal Partner Trade Number:%s", partnerTradeNo)
 		logs.Notice(err.Error())
-		return err
+		return "", err
 	}
 
 	// 企业号提现到个人零钱账户
@@ -335,12 +335,21 @@ func WxEnpTransfers(cashOutAmount int64, OpenId string, partnerTradeNo string,
 	// 新建微信支付客户端
 	client := wxpay.NewClient(account)
 
-	_, err := client.EnpTransfers(params)
+	rParams, err := client.EnpTransfers(params)
 	if err != nil {
-		return fmt.Errorf("EnpTransfers err:%s", err)
+		return "", fmt.Errorf("EnpTransfers err:%s", err)
 	}
 
-	return nil
+	if (rParams.GetString("return_code") == wxpay.Success) {
+		if (rParams.GetString("result_code") == wxpay.Success) {
+			return rParams.GetString("payment_no"), nil
+		} else {
+			return "", fmt.Errorf(rParams.GetString("err_code"))
+		}
+	} else {
+		return "", fmt.Errorf("EnpTransfers err return_code not success, return_msg=$v", rParams.GetString("return_msg"))
+	}
+
 }
 
 // 退款时充值订单检查

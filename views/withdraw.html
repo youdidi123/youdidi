@@ -19,7 +19,9 @@
             });
         });
         function withdrew() {
-            checkMoney();
+            if(!checkMoney()) {
+                return;
+            }
             $(".loading2").show();
             $.ajax({
                 type:"POST",
@@ -56,12 +58,13 @@
 
             if (money == "" || ! pattern.test(money)) {
                 $.alert("请输入正确的金额","数据错误");
-                return;
+                return false;
             }
             if (money > balance) {
                 $.alert("提现金额不能大于账户余额","数据错误");
-                return;
+                return false;
             }
+            return true;
         }
 
 

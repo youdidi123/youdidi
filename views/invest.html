@@ -25,11 +25,21 @@
 
         var appId,timeStamp,nonceStr,package,signType,paySign;
 
+        function checkMoney() {
+            var pattern = /^([1-9]{1}[0-9]{0,3}(\,[0-9]{3,4})*(\.[0-9]{0,2})?|[1-9]{1}\d*(\.[0-9]{0,2})?|0(\.[0-9]{0,2})?|(\.[0-9]{1,2})?)$/;
+
+            money = $("#money").val();
+
+            if (money == "" || ! pattern.test(money)) {
+                $.alert("请输入正确的金额","数据错误");
+                return false;
+            }
+            return true;
+        }
+
         function chongzhi() {
             var money =$("#money").val();
-            if(typeof money == "undefined" || money == null || money == "" || money <= "0" ){
-                $.alert("支付金额错误", "支付失败");
-            } else {
+            if(checkMoney()){
                 $.ajax({
                     type:"GET",
                     url:"/Portal/WxInvest?money=" + money,
