@@ -2,9 +2,12 @@ package commonLib
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/httplib"
 	"github.com/astaxie/beego/logs"
+	"strconv"
+	"time"
 	"youdidi/redisClient"
 )
 
@@ -371,4 +374,20 @@ func SendMsg (openId string, templateId int, data string, url string) bool{
 
 func GetAccessToken () string {
 	return redisClient.GetKey(AccessTokenKey)
+}
+
+func GetTodayBeginTime() (int64, string) {
+	timeStr := time.Now().Format("2006-01-02")
+	t, _ := time.ParseInLocation("2006-01-02", timeStr, time.Local)
+	timeNumber := t.Unix()
+	return timeNumber, strconv.FormatInt(timeNumber,10)
+}
+
+func GetCurrentTime() string {
+	return strconv.FormatInt(time.Now().Unix(),10)
+}
+
+func FormatMoney (m float64) float64{
+	r, _ := strconv.ParseFloat(fmt.Sprintf("%.2f", m), 64)
+	return r
 }

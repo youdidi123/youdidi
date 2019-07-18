@@ -25,48 +25,155 @@
             $('input[id="check"]:checked').each(function(){//遍历每一个名字为interest的复选框，其中选中的执行函数
                 chk_value.push($(this).val());//将选中的值添加到数组chk_value中
             });
-            alert(chk_value);
+            if (chk_value.length == 0) {
+                $.alert("至少选一个单子","错误");
+                return;
+            }
+            $(".loading2").show();
+            $.ajax({
+                type:"POST",
+                url:"/admin/dealwithdrew",
+                data:{
+                    oid:chk_value,
+                },
+                traditional:true,
+                dataType:"json",
+                success : function(result) {
+                    console.log(result)
+                    if (result.code != 0) {
+                        $(".loading2").hide();
+                        $.alert(result.msg,"操作异常");
+                    }
+                    else {
+                        $(".loading2").hide();
+                        $.toast("操作成功", 3000);
+                        window.location.href = "/admin/userwithdrew";
+
+                    }
+                },
+                error : function(result) {
+                    $(".loading2").hide();
+                    $.alert("网络繁忙，请重试","操作异常");
+                }
+            });
         }
     </script>
 </head>
 <body>
-{{if lt .num 1}}
-没有用户发起的提现需求
-{{else}}
-    <div class="loading2 hide" data-text="处理中..."></div>
-    <div class="page-hd">
-        <a href="javascript:;" class="weui-btn weui-btn_mini weui-btn_primary" onclick="agree()">通过</a>
-        <br>
-        <a href="javascript:;" class="weui-btn weui-btn_mini weui-btn_warn" onclick="refuse()">拒绝</a>
-    </div>
-    <div class="page-bd-15">
-        <table border="1">
+<div class="page-hd">
+    截止{{.endTime}}, 通过提现方式需支付：{{.sum1}}元；通过退款方式需支付：{{.sum2}}元
+</div>
+<div class="loading2 hide" data-text="处理中..."></div>
+<div class="page-hd">
+    <a href="javascript:;" class="weui-btn weui-btn_mini weui-btn_primary" onclick="agree()">付钱</a>
+    <br>
+    <!--<a href="javascript:;" class="weui-btn weui-btn_mini weui-btn_warn" onclick="refuse()">拒绝</a>-->
+</div>
+<div class="page-bd-15">
+    <table border="1">
+        <tr>
+            <td><input name="allcheck" id="allcheck" type="checkbox" />全选</td>
+            <th>申请号</th>
+            <th>用户ID</th>
+            <th>用户名</th>
+            <th>真名</th>
+            <th>申请时间</th>
+            <th>提现金额</th>
+            <th>账户余额</th>
+            <th>提现方式</th>
+        </tr>
+        {{range .listw}}
             <tr>
-                <td><input name="allcheck" id="allcheck" type="checkbox" />全选</td>
-                <th>申请号</th>
-                <th>用户ID</th>
-                <th>用户名</th>
-                <th>真名</th>
-                <th>申请时间</th>
-                <th>提现金额</th>
-                <th>账户余额</th>
-                <th>操作</th>
+                <td><input name="check" id="check" type="checkbox" value="{{.Id}}" class="qx" /></td>
+                <td>{{.Id}}</td>
+                <td>{{.User.Id}}</td>
+                <td>{{.User.Nickname}}</td>
+                <td>{{.User.Name}}</td>
+                <td>{{.Time}}</td>
+                <td>{{.Money}}</td>
+                <td>{{.User.Balance}}</td>
+                <td>提现<td>
             </tr>
-            {{range .list}}
-                <tr>
-                    <td><input name="check" id="check" type="checkbox" value="{{.Id}}" class="qx" /></td>
-                    <td>{{.Id}}</td>
-                    <td>{{.User.Id}}</td>
-                    <td>{{.User.Nickname}}</td>
-                    <td>{{.User.Name}}</td>
-                    <td>{{.Time}}</td>
-                    <td>{{.Money}}</td>
-                    <td>{{.User.Balance}}</td>
-                    <td><a href="/admin/confirmDriverDetail/{{.Id}}">查看</a><td>
-                </tr>
-            {{end}}
-        </table>
-    </div>
-{{end}}
+        {{end}}
+        {{range .listwr}}
+            <tr>
+                <td><input name="check" id="check" type="checkbox" value="{{.Id}}" class="qx" /></td>
+                <td>{{.Id}}</td>
+                <td>{{.User.Id}}</td>
+                <td>{{.User.Nickname}}</td>
+                <td>{{.User.Name}}</td>
+                <td>{{.Time}}</td>
+                <td>{{.Money}}</td>
+                <td>{{.User.Balance}}</td>
+                <td>退款<td>
+            </tr>
+        {{end}}
+    </table>
+</div>
+
+<div class="page-bd-15">
+    提现操作失败的单子：
+    <table border="1">
+        <tr>
+            <th>错误原因</th>>
+            <th>申请号</th>
+            <th>用户ID</th>
+            <th>申请时间</th>
+            <th>处理完成时间</th>
+            <th>提现金额</th>
+            <th>账户余额</th>
+            <th>提现方式</th>
+        </tr>
+        {{range .listwe}}
+            <tr>
+                <td>{{.RefuseReason}}</td>
+                <td>{{.Id}}</td>
+                <td>{{.User.Id}}</td>
+                <td>{{.Time}}</td>
+                <td>{{.FinishTime}}</td>
+                <td>{{.Money}}</td>
+                <td>{{.User.Balance}}</td>
+                <td>提现<td>
+            </tr>
+        {{end}}
+        {{range .listwre}}
+            <tr>
+                <td>{{.RefuseReason}}</td>
+                <td>{{.Id}}</td>
+                <td>{{.User.Id}}</td>
+                <td>{{.Time}}</td>
+                <td>{{.FinishTime}}</td>
+                <td>{{.Money}}</td>
+                <td>{{.User.Balance}}</td>
+                <td>退款<td>
+            </tr>
+        {{end}}
+    </table>
+</div>
+
+<div class="page-bd-15">
+    退款状态未获取的单子：
+    <table border="1">
+        <tr>
+            <th>申请号</th>
+            <th>用户ID</th>
+            <th>申请时间</th>
+            <th>处理完成时间</th>
+            <th>提现金额</th>
+            <th>账户余额</th>
+        </tr>
+        {{range .listwp}}
+            <tr>
+                <td>{{.Id}}</td>
+                <td>{{.User.Id}}</td>
+                <td>{{.Time}}</td>
+                <td>{{.FinishTime}}</td>
+                <td>{{.Money}}</td>
+                <td>{{.User.Balance}}</td>
+            </tr>
+        {{end}}
+    </table>
+</div>
+
 </body>
 </html>

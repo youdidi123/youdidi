@@ -8,6 +8,7 @@ import (
 	"github.com/astaxie/beego/logs"
 	"strconv"
 	"time"
+	"youdidi/commonLib"
 	"youdidi/models"
 	"youdidi/redisClient"
 )
@@ -130,19 +131,79 @@ func (this *AdminUserController) ConfirmDriverDetail (){
 // @router /admin/userwithdrew [GET]
 func (this *AdminUserController) UserWithdrew () {
 	var dbCashFlow models.Cash_flow
-	var cfInfo []*models.Cash_flow
+	var cfWithdrew []*models.Cash_flow
+	var cfWithdrewRefund []*models.Cash_flow
+	var cfWithdrewError []*models.Cash_flow
+	var cfWithdrewRefundError []*models.Cash_flow
+	var cfWithdrewProcess []*models.Cash_flow
 
-	num := dbCashFlow.GetReadyOrder(&cfInfo)
+	tm, _ := commonLib.GetTodayBeginTime()
+	endTime := tm - (24 * 60 * 60 * 1)
+	this.Data["endTime"] = time.Unix(endTime,0).Format("2006-01-02 15:04")
 
-	for i, v := range cfInfo {
+	sum1 := 0.00
+	sum2 := 0.00
+
+
+	num1 := dbCashFlow.GetWithdrewOrder(&cfWithdrew, endTime, 1, 0)
+	num2 := dbCashFlow.GetWithdrewOrder(&cfWithdrewRefund, endTime, 2, 0)
+	dbCashFlow.GetWithdrewOrder(&cfWithdrewError, endTime, 1, 2)
+	dbCashFlow.GetWithdrewOrder(&cfWithdrewRefundError, endTime, 2, 2)
+	dbCashFlow.GetWithdrewOrder(&cfWithdrewProcess, endTime, 2, 4)
+
+	for i, v := range cfWithdrew {
 		this.Data["launchTime"] = v.Time;
 		launchTime64, _ := strconv.ParseInt(v.Time, 10, 64)
 		tm := time.Unix(launchTime64, 0)
-		cfInfo[i].Time = tm.Format("2006-01-02 15:04")
+		cfWithdrew[i].Time = tm.Format("2006-01-02 15:04")
+		sum1 += v.Money
 	}
 
-	this.Data["num"] = num
-	this.Data["list"] = cfInfo
+	for i, v := range cfWithdrewRefund {
+		this.Data["launchTime"] = v.Time;
+		launchTime64, _ := strconv.ParseInt(v.Time, 10, 64)
+		tm := time.Unix(launchTime64, 0)
+		cfWithdrewRefund[i].Time = tm.Format("2006-01-02 15:04")
+		sum2 += v.Money
+	}
+
+	for i, v := range cfWithdrewError {
+		this.Data["launchTime"] = v.Time;
+		launchTime64, _ := strconv.ParseInt(v.Time, 10, 64)
+		finishTime64, _ := strconv.ParseInt(v.FinishTime, 10, 64)
+		tm := time.Unix(launchTime64, 0)
+		tm1 := time.Unix(finishTime64, 0)
+		cfWithdrewError[i].Time = tm.Format("2006-01-02 15:04")
+		cfWithdrewError[i].FinishTime = tm1.Format("2006-01-02 15:04")
+	}
+
+	for i, v := range cfWithdrewRefundError {
+		this.Data["launchTime"] = v.Time;
+		launchTime64, _ := strconv.ParseInt(v.Time, 10, 64)
+		finishTime64, _ := strconv.ParseInt(v.FinishTime, 10, 64)
+		tm := time.Unix(launchTime64, 0)
+		tm1 := time.Unix(finishTime64, 0)
+		cfWithdrewRefundError[i].Time = tm.Format("2006-01-02 15:04")
+		cfWithdrewRefundError[i].FinishTime = tm1.Format("2006-01-02 15:04")
+	}
+
+	for i, v := range cfWithdrewProcess {
+		this.Data["launchTime"] = v.Time;
+		launchTime64, _ := strconv.ParseInt(v.Time, 10, 64)
+		tm := time.Unix(launchTime64, 0)
+		cfWithdrewProcess[i].Time = tm.Format("2006-01-02 15:04")
+	}
+
+	this.Data["num1"] = num1
+	this.Data["num2"] = num2
+	this.Data["sum1"] = sum1
+	this.Data["sum2"] = sum2
+
+	this.Data["listw"] = cfWithdrew
+	this.Data["listwr"] = cfWithdrewRefund
+	this.Data["listwe"] = cfWithdrewError
+	this.Data["listwre"] = cfWithdrewRefundError
+	this.Data["listwp"] = cfWithdrewProcess
 
 	this.TplName = "adminUserWithdrew.html"
 }
@@ -185,4 +246,48 @@ func (this *AdminUserController) ShowComplain () {
 	this.Data["num"] = num
 	this.Data["list"] = cInfo
 	this.TplName = "adminShowComplain.html"
+}
+
+// @router /admin/dealwithdrew [POST]
+func (this *AdminUserController) DealWithDrew () {
+	oids := this.GetStrings("oid")
+	logs.Debug("withdrew list %v", oids)
+	var dbCf models.Cash_flow
+
+	code := 0
+	msg := ""
+
+	for _, oid := range oids {
+		logs.Debug("withdrew id %v", oid)
+		var cfInfo []* models.Cash_flow
+		_, num := dbCf.GetOrderInfo(oid, &cfInfo)
+		if (num != 1) {
+			logs.Error("withdrew order id has something wrong oid=%v reNum=%v", oid, num)
+			continue
+		}
+		wxId, err := WxEnpTransfers(int64(cfInfo[0].Money * 100), cfInfo[0].User.OpenId, oid, "192.168.0.1", "平台账户提现")
+		if (err != nil) {
+			_, err := dbCf.UpdateWithDrewResult(false, oid, "", err.Error())
+			if (err != nil) {
+				logs.Error("update withdrew result fail oid=%v result=fail err=%v", oid, err.Error())
+			}
+		} else {
+			_, err := dbCf.UpdateWithDrewResult(true, oid, wxId, "")
+			if (err != nil) {
+				logs.Error("update withdrew result fail oid=%v result=success err=%v", oid, err.Error())
+			}
+			moneyStr := strconv.FormatFloat(cfInfo[0].Money, 'G' , -1,64)
+			balanceStr := strconv.FormatFloat(cfInfo[0].User.Balance, 'G' , -1,64)
+			commonLib.SendMsg5(cfInfo[0].User.OpenId,
+				4, "", "#173177", "", "",
+				"#173177", "",
+				"#ff0000","预扣车费",
+				"#22c32e", "预扣成功",
+				"#173177", moneyStr,
+				"#173177", balanceStr)
+		}
+	}
+
+	this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
+	this.ServeJSON()
 }

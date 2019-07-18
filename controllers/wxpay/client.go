@@ -54,6 +54,8 @@ func (c *Client) SetAccount(account *Account) {
 func (c *Client) fillRequestData(params Params) Params {
 	params["appid"] = c.account.appID
 	params["mch_id"] = c.account.mchID
+	params["mch_appid"] = c.account.appID
+	params["mchid"] = c.account.mchID
 	params["nonce_str"] = nonceStr()
 	params["sign_type"] = c.signType
 	params["sign"] = c.Sign(params)

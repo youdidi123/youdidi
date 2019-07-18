@@ -19,7 +19,7 @@ func (u *Cash_flow) Insert() (int64, error) {
 }
 
 func (u *Cash_flow) GetOrderInfo(orderId string, list *[]*Cash_flow) (success string , num int64){
-	num, error := orm.NewOrm().QueryTable(u).Filter("Id", orderId).All(list)
+	num, error := orm.NewOrm().QueryTable(u).RelatedSel().Filter("Id", orderId).All(list)
 	if (error != nil) {
 		logs.Error("can not get order info from db orderId=%s ,error=%s" , orderId , error)
 		return "false" , 0
@@ -27,12 +27,31 @@ func (u *Cash_flow) GetOrderInfo(orderId string, list *[]*Cash_flow) (success st
 	return "true" , num
 }
 
-func (u *Cash_flow) GetReadyOrder(list *[]*Cash_flow) int64 {
-	num, err := orm.NewOrm().QueryTable(u).RelatedSel().Filter("Status", 0).Filter("Type", 1).All(list)
+func (u *Cash_flow) GetWithdrewOrder(list *[]*Cash_flow, endTime int64, oType int, status int) int64 {
+	num, err := orm.NewOrm().QueryTable(u).RelatedSel().
+		Filter("Status", status).
+		Filter("Type", oType).
+		Filter("Time__lt", endTime).All(list)
 	if (err != nil) {
 		logs.Debug("get ready cash flow order fail")
 	}
 	return num
+}
+
+func (u *Cash_flow) UpdateWithDrewResult(succ bool, oid string, wxId string, reason string) (int64, error) {
+	if (succ) {
+		return orm.NewOrm().QueryTable(u).Filter("Id", oid).Update(orm.Params{
+			"Status": 1,
+			"WechatOrderId": wxId,
+			"FinishTime": commonLib.GetCurrentTime(),
+		})
+	} else {
+		return orm.NewOrm().QueryTable(u).Filter("Id", oid).Update(orm.Params{
+			"Status": 2,
+			"FinishTime": commonLib.GetCurrentTime(),
+			"RefuseReason": reason,
+		})
+	}
 }
 
 func (u *Cash_flow) DealWxPayRe(result_code string, err_code string, err_code_des string, openid string, wxId string, cfId string, total_fee int64, transaction_id string) bool {
@@ -159,5 +178,132 @@ func (u *Cash_flow) DealWxPayRe(result_code string, err_code string, err_code_de
 			"#173177", balanceStr)
 	}
 
+	return true
+}
+
+func (u *Cash_flow) IsFirstWithdrew (uid string, tmBegin string) bool {
+	re := false
+	var tmp []*Cash_flow
+
+	logs.Debug("today begin time %v", tmBegin)
+	num, err := orm.NewOrm().QueryTable(u).Filter("user_id", uid).Filter("Time__gte", tmBegin).Filter("type__in", 1,2).All(&tmp)
+	if (err != nil) {
+		logs.Info("get user withdrew order fail uid=%v", uid)
+	}
+	if (num == 0) {
+		re = true
+	}
+
+	return re
+}
+
+func (u *Cash_flow) DoWithDrew (uid string, oid string, money string) bool {
+	o := orm.NewOrm()
+	o.Begin()
+
+	var invest []*Cash_flow
+	var accountFlow Account_flow
+	var cashFlow Cash_flow
+	var dbUser User
+	var userInfo []*User
+
+	num1, err1 := o.QueryTable(dbUser).Filter("Id", uid).ForUpdate().All(&userInfo)
+
+	if (num1 < 1 || err1 != nil) {
+		logs.Error("get userInfo fail uid=%v", uid)
+		o.Rollback()
+		return false
+	}
+
+	money64, _ := strconv.ParseFloat(money, 64)
+
+	if (money64 > userInfo[0].Balance) {
+		logs.Error("balance is not enough for withdrew money=%v balance=%v", money64, userInfo[0].Balance)
+		o.Rollback()
+		return false
+	}
+
+	balance := userInfo[0].Balance - money64
+	balance = commonLib.FormatMoney(balance)
+
+	_, err2 := o.QueryTable(dbUser).Filter("Id", uid).Update(orm.Params{
+		"Balance": balance,
+	})
+
+	if (err2 != nil) {
+		logs.Error("update userInfo fail uid=%v", uid)
+		o.Rollback()
+		return false
+	}
+
+	currentTime := commonLib.GetCurrentTime()
+
+	accountFlow.Balance = balance
+	accountFlow.User = userInfo[0]
+	accountFlow.Type = 1
+	accountFlow.Money = money64
+	accountFlow.Time = currentTime
+
+	cashFlow.Money = money64
+	cashFlow.Status = 0
+	cashFlow.User = userInfo[0]
+	cashFlow.Time = currentTime
+
+	num3, err3 := o.QueryTable(u).RelatedSel().
+		Filter("user_id", uid).
+		Filter("Type", 0).
+		Filter("Money", money).
+		Filter("IsRefund", false).All(&invest)
+
+	if (err3 != nil) {
+		logs.Info("get invest history fail")
+		o.Rollback()
+		return false
+	}
+
+	if (num3 > 0) {
+		//走退款逻辑
+		investId := invest[0].Id
+		oid = "t-" + investId
+		cashFlow.Id = oid
+		cashFlow.Type = 2
+		cashFlow.InvestOid = investId
+		_, err4 := o.QueryTable(u).Filter("Id", investId).Update(orm.Params{
+			"IsRefund": true,
+		})
+		if (err4 != nil) {
+			logs.Error("update cashflow fail id=%v", investId)
+			o.Rollback()
+			return false
+		}
+	}else {
+		//走正常提现
+		cashFlow.Type = 1
+		cashFlow.Id = oid
+	}
+
+	_, err5 := o.Insert(&cashFlow)
+	if (err5 != nil) {
+		logs.Error("insert cashflow fail uid=%v", uid)
+		o.Rollback()
+		return false
+	}
+
+	accountFlow.Oid = oid
+
+	_, err6 := o.Insert(&accountFlow)
+	if (err6 != nil) {
+		logs.Error("insert account fail uid=%v", uid)
+		o.Rollback()
+		return false
+	}
+
+	errcommit := o.Commit()
+
+	if (errcommit != nil) {
+		logs.Error("create withdrew order fail oid=%v" , oid)
+		o.Rollback()
+		return false
+	}
 	return true
 }
