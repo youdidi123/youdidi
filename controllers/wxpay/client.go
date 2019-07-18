@@ -54,11 +54,18 @@ func (c *Client) SetAccount(account *Account) {
 func (c *Client) fillRequestData(params Params) Params {
 	params["appid"] = c.account.appID
 	params["mch_id"] = c.account.mchID
-	params["mch_appid"] = c.account.appID
-	params["mchid"] = c.account.mchID
 	params["nonce_str"] = nonceStr()
 	params["sign_type"] = c.signType
 	params["sign"] = c.Sign(params)
+	return params
+}
+
+// 向 params 中添加 appid、mch_id、nonce_str、sign_type、sign
+func (c *Client) fillRequestDataEnp(params Params) Params {
+	params["mch_appid"] = c.account.appID
+	params["mchid"] = c.account.mchID
+	params["nonce_str"] = nonceStr()
+	params["sign"] = c.SignEnp(params)
 	return params
 }
 
@@ -98,6 +105,36 @@ func (c *Client) postWithCert(url string, params Params) (string, error) {
 	}
 	h := &http.Client{Transport: transport}
 	p := c.fillRequestData(params)
+	response, err := h.Post(url, bodyType, strings.NewReader(MapToXml(p)))
+	if err != nil {
+		return "", err
+	}
+	defer response.Body.Close()
+	res, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return "", err
+	}
+	return string(res), nil
+}
+
+// https need cert post
+func (c *Client) postWithCertEnp(url string, params Params) (string, error) {
+	if c.account.certData == nil {
+		return "", errors.New("证书数据为空")
+	}
+
+	// 将pkcs12证书转成pem
+	cert := pkcs12ToPem(c.account.certData, c.account.mchID)
+
+	config := &tls.Config{
+		Certificates: []tls.Certificate{cert},
+	}
+	transport := &http.Transport{
+		TLSClientConfig:    config,
+		DisableCompression: true,
+	}
+	h := &http.Client{Transport: transport}
+	p := c.fillRequestDataEnp(params)
 	response, err := h.Post(url, bodyType, strings.NewReader(MapToXml(p)))
 	if err != nil {
 		return "", err
@@ -169,6 +206,46 @@ func (c *Client) Sign(params Params) string {
 		dataSha256 = h.Sum(nil)
 		str = hex.EncodeToString(dataSha256[:])
 	}
+
+	return strings.ToUpper(str)
+}
+
+func (c *Client) SignEnp(params Params) string {
+	// 创建切片
+	var keys = make([]string, 0, len(params))
+	// 遍历签名参数
+	for k := range params {
+		if k != "sign" { // 排除sign字段
+			keys = append(keys, k)
+		}
+	}
+
+	// 由于切片的元素顺序是不固定，所以这里强制给切片元素加个顺序
+	sort.Strings(keys)
+
+	//创建字符缓冲
+	var buf bytes.Buffer
+	for _, k := range keys {
+		if len(params.GetString(k)) > 0 {
+			buf.WriteString(k)
+			buf.WriteString(`=`)
+			buf.WriteString(params.GetString(k))
+			buf.WriteString(`&`)
+		}
+	}
+	// 加入apiKey作加密密钥
+	buf.WriteString(`key=`)
+	buf.WriteString(c.account.apiKey)
+
+	var (
+		dataMd5    [16]byte
+		str        string
+	)
+
+
+	dataMd5 = md5.Sum(buf.Bytes())
+	str = hex.EncodeToString(dataMd5[:]) //需转换成切片
+
 
 	return strings.ToUpper(str)
 }
@@ -249,7 +326,7 @@ func (c *Client) EnpTransfers(params Params) (Params, error) {
 	} else {
 		url = EnpTransfersUrl
 	}
-	xmlStr, err := c.postWithCert(url, params)
+	xmlStr, err := c.postWithCertEnp(url, params)
 	if err != nil {
 		return nil, err
 	}
