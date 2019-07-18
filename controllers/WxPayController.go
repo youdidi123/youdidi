@@ -306,7 +306,7 @@ func WxEnpTransfers(cashOutAmount int64, OpenId string, partnerTradeNo string,
 	appId := beego.AppConfig.String("weixin::AppId")
 	mchId := beego.AppConfig.String("weixin::MchId1")
 	apiKey := beego.AppConfig.String("weixin::apiKey1")
-	apiCert := beego.AppConfig.String("weixin::apiCert")
+	apiCert := beego.AppConfig.String("weixin::apiCert1")
 
 
 	if cashOutAmount <= 0 {
