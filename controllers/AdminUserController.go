@@ -265,27 +265,53 @@ func (this *AdminUserController) DealWithDrew () {
 			logs.Error("withdrew order id has something wrong oid=%v reNum=%v", oid, num)
 			continue
 		}
-		wxId, err := WxEnpTransfers(int64(cfInfo[0].Money * 100), cfInfo[0].User.OpenId, oid, "192.168.0.1", "平台账户提现")
-		if (err != nil) {
-			_, err := dbCf.UpdateWithDrewResult(false, oid, "", err.Error())
+		if (cfInfo[0].Type == 1) {
+			wxId, err := WxEnpTransfers(int64(cfInfo[0].Money * 100), cfInfo[0].User.OpenId, oid, "192.168.0.1", "平台账户提现")
 			if (err != nil) {
-				logs.Error("update withdrew result fail oid=%v result=fail err=%v", oid, err.Error())
+				_, err := dbCf.UpdateWithDrewResult(false, oid, "", err.Error(), 2)
+				if (err != nil) {
+					logs.Error("update withdrew result fail oid=%v result=fail err=%v", oid, err.Error())
+				}
+			} else {
+				_, err := dbCf.UpdateWithDrewResult(true, oid, wxId, "", 1)
+				if (err != nil) {
+					logs.Error("update withdrew result fail oid=%v result=success err=%v", oid, err.Error())
+				}
+				moneyStr := strconv.FormatFloat(cfInfo[0].Money, 'G' , -1,64)
+				balanceStr := strconv.FormatFloat(cfInfo[0].User.Balance, 'G' , -1,64)
+				commonLib.SendMsg5(cfInfo[0].User.OpenId,
+					4, "", "#173177", "", "",
+					"#173177", "",
+					"#22c32e","提现确认",
+					"#22c32e", "提现成功",
+					"#173177", moneyStr,
+					"#173177", balanceStr)
 			}
-		} else {
-			_, err := dbCf.UpdateWithDrewResult(true, oid, wxId, "")
+		} else if (cfInfo[0].Type == 2) {
+			var investInfo []*models.Cash_flow
+			_, num1 := dbCf.GetOrderInfo(cfInfo[0].InvestOid, &investInfo)
+			if (num1 != 1) {
+				logs.Error("get invest info from refund fail refundid=%v investid=%v", oid, cfInfo[0].InvestOid)
+				continue
+			}
+			if (cfInfo[0].Money != investInfo[0].Money) {
+				logs.Error("refund money:%v not equal invset money:%v", cfInfo[0].Money, investInfo[0].Money)
+				continue
+			}
+			wxId, err := WxRefund(cfInfo[0].InvestOid, investInfo[0].WechatOrderId, oid, "平台账户提现", cfInfo[0].Money)
 			if (err != nil) {
-				logs.Error("update withdrew result fail oid=%v result=success err=%v", oid, err.Error())
+				_, err := dbCf.UpdateWithDrewResult(false, oid, "", err.Error(), 2)
+				if (err != nil) {
+					logs.Error("update withdrew result fail oid=%v result=fail err=%v", oid, err.Error())
+				}
+			} else {
+				_, err := dbCf.UpdateWithDrewResult(true, oid, wxId, "", 4)
+				if (err != nil) {
+					logs.Error("update withdrew result fail oid=%v result=success err=%v", oid, err.Error())
+				}
 			}
-			moneyStr := strconv.FormatFloat(cfInfo[0].Money, 'G' , -1,64)
-			balanceStr := strconv.FormatFloat(cfInfo[0].User.Balance, 'G' , -1,64)
-			commonLib.SendMsg5(cfInfo[0].User.OpenId,
-				4, "", "#173177", "", "",
-				"#173177", "",
-				"#ff0000","预扣车费",
-				"#22c32e", "预扣成功",
-				"#173177", moneyStr,
-				"#173177", balanceStr)
 		}
+
 	}
 
 	this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};

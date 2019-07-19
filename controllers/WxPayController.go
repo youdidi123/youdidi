@@ -1,14 +1,17 @@
 package controllers
 
 import (
+	"encoding/base64"
 	"fmt"
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
 	"math"
 	"strconv"
+	"strings"
 	"time"
 	"youdidi/controllers/wxpay"
 	"youdidi/models"
+	"github.com/nanjishidu/gomini/gocrypto"
 )
 
 type WxPayController struct {
@@ -102,7 +105,7 @@ func (c *WxPayController) WxInvest() {
 // refundOrderId 退款订单号
 // refundDesc 退款原因描述
 func WxRefund(investOrderId string, wxInvestOrderId string,
-	refundOrderId string, refundDesc string, refundFeeStr string) error {
+	refundOrderId string, refundDesc string, refundFee float64) (string, error) {
 	appId := beego.AppConfig.String("weixin::AppId")
 	mchId := beego.AppConfig.String("weixin::MchId")
 	apiKey := beego.AppConfig.String("weixin::apiKey")
@@ -117,27 +120,14 @@ func WxRefund(investOrderId string, wxInvestOrderId string,
 	// 新建微信支付客户端
 	client := wxpay.NewClient(account)
 
-	// 获取充值金额
-	refundFeeInt, err := moneyCHeck(refundFeeStr)
-	if err != nil {
-		err = fmt.Errorf("refundFee input error :%s", err)
-		logs.Notice(err.Error())
-		//c.jsonPotalReturn(-1, err.Error(), nil)
-		return err
-	}
-	refundFee := float64(refundFeeInt) / 100
-
 	// 获取退款订单号
-	//investOrderId := c.GetString("investOrderId")
-	//wxInvestOrderId := c.GetString("wxInvestOrderId")
-	//refundOrderId := c.GetString("refundOrderId")
 
 	investOrder, err := InvestOrderCheck(investOrderId, wxInvestOrderId, refundOrderId)
 	if (err != nil) {
 		err = fmt.Errorf("InvestOrderCheck error for:%s", err)
 		logs.Notice(err.Error())
 		//c.jsonPotalReturn(-1, err.Error(), nil)
-		return err
+		return "", err
 	}
 
 	// 退款金额比较检查
@@ -146,7 +136,7 @@ func WxRefund(investOrderId string, wxInvestOrderId string,
 			refundFee, investOrder.Money)
 		logs.Notice(err.Error())
 		//c.jsonPotalReturn(-1, err.Error(), nil)
-		return err
+		return "", err
 	}
 
 	// 获取退款原因
@@ -168,14 +158,21 @@ func WxRefund(investOrderId string, wxInvestOrderId string,
 		err = fmt.Errorf("Refund request weixin err:%s", err)
 		logs.Notice(err.Error())
 		//c.jsonPotalReturn(-1, err.Error(), nil)
-		return err
+		return "", err
 	}
 
 	// debug 微信返回数据
 	logs.Debug("WxUnifiedOrder Info:%s", responParam)
 
-	//c.jsonPotalReturn(0, "", &responParam)
-	return nil
+	if (responParam.GetString("return_code") == wxpay.Success) {
+		if (responParam.GetString("result_code") == wxpay.Success) {
+			return responParam.GetString("refund_id"), nil
+		} else {
+			return "", fmt.Errorf(responParam.GetString("err_code"))
+		}
+	} else {
+		return "", fmt.Errorf("refund err return_code not success, return_msg=%v", responParam.GetString("return_msg"))
+	}
 }
 
 // 充值成功微信回调调用接口
@@ -241,6 +238,10 @@ func (c *WxPayController) WxInvestSuccess() {
 
 	} else {
 		//进入api主动验证
+		resPonse.SetString("return_code", "FAIL").
+			SetString("return_msg", "appid or mchid invaild")
+		c.Ctx.WriteString(wxpay.MapToXml(resPonse))
+		return
 	}
 
 
@@ -272,7 +273,7 @@ func (c *WxPayController) WxRefundSuccess() {
 	// 新建微信支付客户端
 	client := wxpay.NewClient(account)
 
-	params, err := client.ProcessResponseXml(string(c.Ctx.Input.RequestBody))
+	params, err := client.ProcessResponseXmlEnp(string(c.Ctx.Input.RequestBody))
 	logs.Info("WxRefund callback:%s", params)
 	if err != nil {
 		//校验签名失败
@@ -283,13 +284,71 @@ func (c *WxPayController) WxRefundSuccess() {
 		return
 	}
 
+	if (params.GetString("return_code") == wxpay.Success) {
+		reAppId := params.GetString("appid")
+		reMchId := params.GetString("mch_id")
 
-	//在这里入修改数据库,减少用户的余额
+		req_info := params.GetString("req_info")
 
-	//if
-	//investOrderId := params.GetString("appid	")
+		req_info64, err := base64.StdEncoding.DecodeString(req_info)
+		if (err != nil) {
+			logs.Error("wx refund req_info decode base64 fail err=%v", err.Error())
+			resPonse.SetString("return_code", "FAIL").
+				SetString("return_msg", "appid or mchid invaild")
+			c.Ctx.WriteString(wxpay.MapToXml(resPonse))
+			return
+		}
+
+		gocrypto.SetAesKey(strings.ToLower(gocrypto.Md5(apiKey)))
+
+		plaintext, err := gocrypto.AesECBDecrypt(req_info64)
+		if err != nil {
+			logs.Error("decode AesECBDecrypt fail err=%v", err.Error())
+			resPonse.SetString("return_code", "FAIL").
+				SetString("return_msg", "appid or mchid invaild")
+			c.Ctx.WriteString(wxpay.MapToXml(resPonse))
+			return
+		}
+
+		paramsJM := wxpay.XmlToMap(string(plaintext))
+		refund_id := paramsJM.GetString("refund_id")
+		out_refund_no := paramsJM.GetString("out_refund_no")
+		refund_status := paramsJM.GetString("refund_status")
+		success_time := paramsJM.GetString("success_time")
+		settlement_refund_fee := paramsJM.GetInt64("settlement_refund_fee")
 
 
+		if (reAppId != appId || reMchId != mchId ) {
+			logs.Info("appid or mchid or trade_typ is not mach appId=%v re=%v mchId=%v re=%v",
+				appId,
+				reAppId,
+				reMchId,
+				mchId,
+				)
+			resPonse.SetString("return_code", "FAIL").
+				SetString("return_msg", "appid or mchid invaild")
+			c.Ctx.WriteString(wxpay.MapToXml(resPonse))
+			return
+		}
+
+		var dbCf models.Cash_flow
+
+		if (! dbCf.DealWxRefundRe(refund_id, out_refund_no, refund_status, success_time, settlement_refund_fee)) {
+			resPonse.SetString("return_code", "FAIL").
+				SetString("return_msg", "update database fail, please retry")
+			c.Ctx.WriteString(wxpay.MapToXml(resPonse))
+			return
+		}
+
+	} else {
+		reMsg := params.GetString("return_msg")
+		logs.Debug("wx refund retrun msg fail err=%v", reMsg)
+		//进入api主动验证
+		resPonse.SetString("return_code", "FAIL").
+			SetString("return_msg", "appid or mchid invaild")
+		c.Ctx.WriteString(wxpay.MapToXml(resPonse))
+		return
+	}
 
 	resPonse.SetString("return_code", "SUCCESS").
 		SetString("return_msg", "OK")
@@ -351,7 +410,7 @@ func WxEnpTransfers(cashOutAmount int64, OpenId string, partnerTradeNo string,
 			return "", fmt.Errorf(rParams.GetString("err_code"))
 		}
 	} else {
-		return "", fmt.Errorf("EnpTransfers err return_code not success, return_msg=$v", rParams.GetString("return_msg"))
+		return "", fmt.Errorf("EnpTransfers err return_code not success, return_msg=%v", rParams.GetString("return_msg"))
 	}
 
 }
@@ -361,12 +420,6 @@ func InvestOrderCheck(investOrderId string, wxInvestOrderId string,
 	refundOrderId string) (*models.Cash_flow, error) {
 	var cashFlowOrder models.Cash_flow
 	var cashFlowOrders []*models.Cash_flow
-
-	if (!IsNum(investOrderId) || !IsNum(wxInvestOrderId) || !IsNum(refundOrderId)) {
-		err := fmt.Errorf("Illegal format of Order Id, investOrderId:%s" +
-			", wxInvestOrderId:%s, refundOrderId:%s")
-		return nil, err
-	}
 
 	_, num := cashFlowOrder.GetOrderInfo(investOrderId, &cashFlowOrders)
 	if num == 0 {
