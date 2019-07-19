@@ -490,3 +490,16 @@ func (u *Order) DriverCancle (oid string, confirmNum int, driverId string) bool{
 
 	return true
 }
+
+func (o *Order) GetOrderNum (startTm int64, endTm int64)(int64, int, int) {
+	var odInfo []*Order
+	num, _ := orm.NewOrm().QueryTable(o).Filter("CreateTime__lt", endTm).Filter("CreateTime__gte", startTm).All(&odInfo)
+	requestNum := 0
+	confirmNum := 0
+	for _, v := range odInfo {
+		requestNum += v.RequestPnum
+		confirmNum += v.ConfirmPnum
+	}
+
+	return num, requestNum, confirmNum
+}

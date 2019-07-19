@@ -1,0 +1,48 @@
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>数据报表</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=0">
+    <link rel="stylesheet" href="/css/weui/weui.css"/>
+    <link rel="stylesheet" href="/css/weui/weuix.css"/>
+    <link rel="stylesheet" href="http://8.url.cn/edu/classroom/assets/lib/reset.css">
+    <link rel="stylesheet" href="/css/style.css">
+
+    <script src="/js/weui/zepto.min.js"></script>
+    <script src="/js/weui/zepto.weui.js"></script>
+    <script src="/js/weui/iscroll-lite.js"></script>
+    <script src="/js/weui/lrz.min.js"></script>
+    <script>
+
+    </script>
+</head>
+<body>
+<div class="page-hd">
+    <p class="f20 f-blue">截止{{.today}} 需处理的提现情况:</p>
+    <p class="f-red">-需要通过支付实现的用户提现总金额：【{{.sum_withdrew}}】元；共：【{{.num_withdrew}}】笔。这些钱今天要打到T7账户</p>
+    <p>-需要通过退款实现的用户提现总金额：【{{.sum_withdrew_refund}}】元； 共：【{{.num_withdrew_refund}}】笔。</p>
+    <p>-支付失败的总金额：【{{.sum_withdrew_error}}】元；共：【{{.num_withdrew_error}}】笔。</p>
+    <p>-退款失败的总金额：【{{.sum_withdrew_refund_error}}】元；共：【{{.num_withdrew_refund_error}}】笔。</p>
+    <p>-需人工确认的退款总金额：【{{.sum_withdrew_refund_process}}】元；共：【{{.num_withdrew_refund_process}}】笔。</p>
+    <br>
+    <p class="f20 f-blue">截止{{.today}} 需处理的其他情况:</p>
+    <p>尚未处理的车主认证单数：【{{.dcNum}}】单</p>
+    <p>尚未处理的投诉单数：【{{.cNUm}}】单</p>
+    <br>
+    <p class="f20 f-blue">截止{{.today}} 信息汇总:</p>
+    <p>共有用户：【{{.userNnum}}】人</p>
+    <p>认证车主：【{{.driverNum}}】人</p>
+    <br>
+    <p class="f20 f-blue">{{.yesterday}} 至 {{.today}} :</p>
+    <p>用户充值成功总金额: 【{{.investMoney}}】元; 共【{{.investNum}}】笔</p>
+    <p>用户充值失败总金额: 【{{.investMoneyF}}】元; 共【{{.investNumF}}】笔</p>
+    <p>用户充值未完成总金额: 【{{.investMoneyCNF}}】元; 共【{{.investNumCNF}}】笔</p>
+    <br>
+    <p>共新增行程【{{.orderNum}}】单</p>
+    <p>共有【{{.requestNum}}】位乘客针对这些发起拼车请求</p>
+    <p>共有【{{.confirmNum}}】位乘客针对这些发起拼车请求被确认</p>
+</div>
+
+
+</body>
+</html>
