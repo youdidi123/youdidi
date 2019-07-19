@@ -38,16 +38,16 @@ func (u *Cash_flow) GetWithdrewOrder(list *[]*Cash_flow, endTime int64, oType in
 	return num
 }
 
-func (u *Cash_flow) UpdateWithDrewResult(succ bool, oid string, wxId string, reason string) (int64, error) {
+func (u *Cash_flow) UpdateWithDrewResult(succ bool, oid string, wxId string, reason string, status int) (int64, error) {
 	if (succ) {
 		return orm.NewOrm().QueryTable(u).Filter("Id", oid).Update(orm.Params{
-			"Status": 1,
+			"Status": status,
 			"WechatOrderId": wxId,
 			"FinishTime": commonLib.GetCurrentTime(),
 		})
 	} else {
 		return orm.NewOrm().QueryTable(u).Filter("Id", oid).Update(orm.Params{
-			"Status": 2,
+			"Status": status,
 			"FinishTime": commonLib.GetCurrentTime(),
 			"RefuseReason": reason,
 		})
@@ -304,6 +304,52 @@ func (u *Cash_flow) DoWithDrew (uid string, oid string, money string) bool {
 		logs.Error("create withdrew order fail oid=%v" , oid)
 		o.Rollback()
 		return false
+	}
+	return true
+}
+
+func (u *Cash_flow) DealWxRefundRe (refund_id string, out_refund_no string, refund_status string, success_time string, settlement_refund_fee int64) bool {
+	var cfInfo []*Cash_flow
+	num, err := orm.NewOrm().QueryTable(u).RelatedSel().Filter("Id", out_refund_no).All(&cfInfo)
+	if (num < 1 || err !=nil) {
+		logs.Error("get refund order info fail oid=%v", out_refund_no)
+		return false
+	}
+	if (int64(cfInfo[0].Money * 100) != settlement_refund_fee) {
+		logs.Error("wx return money %v != refund money %v", settlement_refund_fee, cfInfo[0].Money)
+		return false
+	}
+
+	if (refund_status == "SUCCESS") {
+		_, err1 := orm.NewOrm().QueryTable(u).Filter("Id", out_refund_no).Update(orm.Params{
+			"Status": 1,
+			"FinishTime":success_time,
+			"WechatOrderId":refund_id,
+		})
+		if (err1 != nil) {
+			logs.Error("update success refund info fail err=%v", err.Error())
+			return false
+		}
+		moneyStr := strconv.FormatFloat(cfInfo[0].Money, 'G' , -1,64)
+		balanceStr := strconv.FormatFloat(cfInfo[0].User.Balance, 'G' , -1,64)
+		commonLib.SendMsg5(cfInfo[0].User.OpenId, 4, "",
+			"#173177", "", "",
+			"#173177", "",
+			"#22c32e","提现确认",
+			"#22c32e","提现成功",
+			"#173177", moneyStr,
+			"#173177", balanceStr)
+	} else {
+		_, err1 := orm.NewOrm().QueryTable(u).Filter("Id", out_refund_no).Update(orm.Params{
+			"Status": 2,
+			"FinishTime":success_time,
+			"WechatOrderId":refund_id,
+			"RefuseReason":refund_status,
+		})
+		if (err1 != nil) {
+			logs.Error("update success refund info fail err=%v", err.Error())
+			return false
+		}
 	}
 	return true
 }

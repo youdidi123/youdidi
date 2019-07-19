@@ -64,6 +64,10 @@
                 $.alert("提现金额不能大于账户余额","数据错误");
                 return false;
             }
+            if (money < 0.3) {
+                $.alert("由于微信限制，提现金额不能小于0.3元","数据错误");
+                return false;
+            }
             return true;
         }
 
