@@ -353,3 +353,16 @@ func (u *Cash_flow) DealWxRefundRe (refund_id string, out_refund_no string, refu
 	}
 	return true
 }
+
+func (u *Cash_flow) GetInvestMoney(startTime int64, endTime int64, status int) (float64, int) {
+	var info []*Cash_flow
+	orm.NewOrm().QueryTable(u).Filter("Type", 0).Filter("Status", status).
+		Filter("FinishTime__lt", endTime).Filter("FinishTime__gte", startTime).All(&info)
+	sum := 0.0
+	num := 0
+	for _, v := range info {
+		sum += v.Money
+		num++
+	}
+	return sum, num
+}

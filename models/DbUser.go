@@ -62,3 +62,11 @@ func (u *User) UpdateInfo (id int64, key string , value string)  {
 		logs.Error("update User fail id=%v key=%v value=%v" , id , key , value)
 	}
 }
+
+func (u *User) GetUserNum () (int64, error){
+	return orm.NewOrm().QueryTable(u).Count()
+}
+
+func (u *User) GetDriverNum () (int64, error){
+	return orm.NewOrm().QueryTable(u).Filter("IsDriver", 2).Count()
+}

@@ -266,7 +266,7 @@ func (this *AdminUserController) DealWithDrew () {
 			continue
 		}
 		if (cfInfo[0].Type == 1) {
-			wxId, err := WxEnpTransfers(int64(cfInfo[0].Money * 100), cfInfo[0].User.OpenId, oid, "192.168.0.1", "平台账户提现")
+			wxId, err := WxEnpTransfers(int64(cfInfo[0].Money * 100), cfInfo[0].User.OpenId, oid, "192.168.0.1", "长庆出行账户提现")
 			if (err != nil) {
 				_, err := dbCf.UpdateWithDrewResult(false, oid, "", err.Error(), 2)
 				if (err != nil) {
@@ -298,7 +298,7 @@ func (this *AdminUserController) DealWithDrew () {
 				logs.Error("refund money:%v not equal invset money:%v", cfInfo[0].Money, investInfo[0].Money)
 				continue
 			}
-			wxId, err := WxRefund(cfInfo[0].InvestOid, investInfo[0].WechatOrderId, oid, "平台账户提现", cfInfo[0].Money)
+			wxId, err := WxRefund(cfInfo[0].InvestOid, investInfo[0].WechatOrderId, oid, "长庆出行账户提现", cfInfo[0].Money)
 			if (err != nil) {
 				_, err := dbCf.UpdateWithDrewResult(false, oid, "", err.Error(), 2)
 				if (err != nil) {
@@ -316,4 +316,106 @@ func (this *AdminUserController) DealWithDrew () {
 
 	this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
 	this.ServeJSON()
+}
+
+// @router /admin/report [GET]
+func (this *AdminUserController) Report () {
+	var dbCashFlow models.Cash_flow
+	var dbUser models.User
+	var dbDc models.Driver_confirm
+	var dbCom models.Complain
+	var dbOrder models.Order
+
+	userNum, _ := dbUser.GetUserNum()
+	userNum = userNum - 10
+	this.Data["userNnum"] = userNum //平台当前的用户数量
+
+	driverNum, _ := dbUser.GetDriverNum()
+	this.Data["driverNum"] = driverNum //平台当前的车主数量
+
+
+	var cfWithdrew []*models.Cash_flow
+	var cfWithdrewRefund []*models.Cash_flow
+	var cfWithdrewError []*models.Cash_flow
+	var cfWithdrewRefundError []*models.Cash_flow
+	var cfWithdrewProcess []*models.Cash_flow
+
+	tm, _ := commonLib.GetTodayBeginTime()
+	tm1 := tm - (24 * 60 * 60)
+	this.Data["today"] = time.Unix(tm,0).Format("2006-01-02 15:04") //结束时间
+	this.Data["yesterday"] = time.Unix(tm1,0).Format("2006-01-02 15:04") //开始时间
+
+	sum_withdrew := 0.00
+	sum_withdrew_refund := 0.00
+	sum_withdrew_error := 0.00
+	sum_withdrew_refund_error := 0.00
+	sum_withdrew_refund_process := 0.00
+
+
+	num_withdrew := dbCashFlow.GetWithdrewOrder(&cfWithdrew, tm, 1, 0)
+	num_withdrew_refund := dbCashFlow.GetWithdrewOrder(&cfWithdrewRefund, tm, 2, 0)
+	num_withdrew_error := dbCashFlow.GetWithdrewOrder(&cfWithdrewError, tm, 1, 2)
+	num_withdrew_refund_error := dbCashFlow.GetWithdrewOrder(&cfWithdrewRefundError, tm, 2, 2)
+	num_withdrew_refund_process := dbCashFlow.GetWithdrewOrder(&cfWithdrewProcess, tm, 2, 4)
+
+	for _, v := range cfWithdrew {
+		sum_withdrew += v.Money
+	}
+
+	for _, v := range cfWithdrewRefund {
+		sum_withdrew_refund += v.Money
+	}
+
+	for _, v := range cfWithdrewError {
+		sum_withdrew_error += v.Money
+	}
+
+	for _, v := range cfWithdrewRefundError {
+		sum_withdrew_refund_error += v.Money
+	}
+
+	for _, v := range cfWithdrewProcess {
+		sum_withdrew_refund_process += v.Money
+	}
+
+
+
+	this.Data["sum_withdrew"] = sum_withdrew //通过支付方式提现的金额
+	this.Data["sum_withdrew_refund"] = sum_withdrew_refund //通过退款方式提现的金额
+	this.Data["sum_withdrew_error"] = sum_withdrew_error //通过支付方式提现失败的金额
+	this.Data["sum_withdrew_refund_error"] = sum_withdrew_refund_error //通过退款方式提现失败的金额
+	this.Data["sum_withdrew_refund_process"] = sum_withdrew_refund_process //还没有收到微信确认退款的金额
+	this.Data["num_withdrew"] = num_withdrew //通过支付方式提现的单数
+	this.Data["num_withdrew_refund"] = num_withdrew_refund //通过退款方式提现的单数
+	this.Data["num_withdrew_error"] = num_withdrew_error //通过支付方式提现失败的单数
+	this.Data["num_withdrew_refund_error"] = num_withdrew_refund_error //通过退款方式提现失败的单数
+	this.Data["num_withdrew_refund_process"] = num_withdrew_refund_process //微信还没有确认退款的单数
+
+	investMoney, investNum := dbCashFlow.GetInvestMoney(tm1, tm, 1)
+	this.Data["investMoney"] = investMoney //昨天充值的总共多少钱
+	this.Data["investNum"] = investNum //昨天充值的总共多少单
+
+	investMoneyCNF, investNumCNF := dbCashFlow.GetInvestMoney(tm1, tm, 0)
+	this.Data["investMoneyCNF"] = investMoneyCNF //昨天发起充值但未完成的金额
+	this.Data["investNumCNF"] = investNumCNF //昨天发起充值但未完成的单子数
+
+	investMoneyF, investNumF := dbCashFlow.GetInvestMoney(tm1, tm, 2)
+	this.Data["investMoneyF"] = investMoneyF //昨天充值失败的金额
+	this.Data["investNumF"] = investNumF //昨天充值的单子数
+
+	var tmp []*models.Driver_confirm
+	dcNum := dbDc.GetNoConfirm(&tmp)
+	this.Data["dcNum"] = dcNum //待处理的司机身份验证单数
+
+	var tmp1 []*models.Complain
+	cNUm, _ := dbCom.GetNoComplain(&tmp1)
+	this.Data["cNUm"] = cNUm //待处理投诉单数
+
+	orderNum, requestNum, confirmNum := dbOrder.GetOrderNum(tm1, tm)
+	this.Data["orderNum"] = orderNum //昨天车主发起的行程数
+	this.Data["requestNum"] = requestNum //昨天请求拼车的乘客数
+	this.Data["confirmNum"] = confirmNum //昨天车主确认请求的乘客数
+
+	this.TplName = "adminReport.html"
+
 }
