@@ -132,7 +132,7 @@ func (this *UserCenterController) PhoneVer() {
 // @router /Ver/getvercode [GET,POST]
 func (this *UserCenterController) GetVerCode() {
 	expireMin := 5 //验证码有效时间
-	userId := this.GetString("userId")
+	userId, _ := this.Ctx.GetSecureCookie("qyt", "qyt_id")
 	phoneNum := this.GetString("phoneNum")
 
 	code := 0
