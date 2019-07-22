@@ -94,6 +94,20 @@
         <a href="javascript:;" class="weui-btn weui-btn_primary" onclick="submit()">寻找行程</a>
     </div>
 </div>
+<div class="weui-cells__title">最新发布行程</div>
+{{range .list}}
+<div class="weui-pay-m">
+    <li class="weui-pay-order">
+        <dl class="weui-pay-line">
+            <dd class="weui-pay-name">出发时间: {{.LaunchTime}}</dd>
+        </dl>
+        <dl class="weui-pay-line"><dt class="weui-pay-label">出发地：</dt><dd class="weui-pay-e">{{.SrcId.Level2}}-{{.SrcId.Name}}</dd></dl>
+        <dl class="weui-pay-line"><dt class="weui-pay-label">目的地：</dt><dd class="weui-pay-e">{{.DestId.Level2}}-{{.DestId.Name}}</dd></dl>
+        <dl class="weui-pay-line"><dt class="weui-pay-label">车主昵称：</dt><dd class="weui-pay-e">{{.User.Nickname}}</dd></dl>
+        <dl class="weui-pay-line"><dt class="weui-pay-label">车辆品牌：</dt><dd class="weui-pay-e">{{.User.CarType}}</dd></dl>
+    </li>
+</div>
+{{end}}
 
 <script src="/js/weui/picker.city.js"></script>
 <script>

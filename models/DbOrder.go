@@ -503,3 +503,11 @@ func (o *Order) GetOrderNum (startTm int64, endTm int64)(int64, int, int) {
 
 	return num, requestNum, confirmNum
 }
+
+func (o *Order) GerAllOrder (list *[]*Order)(int64, error) {
+	return orm.NewOrm().QueryTable(o).RelatedSel().All(list)
+}
+
+func (o *Order) GetNewOrder(list *[]*Order)(int64, error) {
+	return orm.NewOrm().QueryTable(o).RelatedSel().OrderBy("Status","-LaunchTime").Limit(5).All(list)
+}
