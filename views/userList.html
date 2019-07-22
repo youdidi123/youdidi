@@ -1,0 +1,47 @@
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>用户列表</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=0">
+    <link rel="stylesheet" href="/css/weui/weui.css"/>
+    <link rel="stylesheet" href="/css/weui/weuix.css"/>
+    <link rel="stylesheet" href="http://8.url.cn/edu/classroom/assets/lib/reset.css">
+    <link rel="stylesheet" href="/css/style.css">
+
+    <script src="/js/weui/zepto.min.js"></script>
+    <script src="/js/weui/zepto.weui.js"></script>
+    <script src="/js/weui/iscroll-lite.js"></script>
+    <script src="/js/weui/lrz.min.js"></script>
+</head>
+<body>
+<div class="page-hd">
+    用户总量：{{.num}}人
+</div>
+<table border="1">
+    <tr>
+        <th>ID</th>
+        <th>昵称</th>
+        <th>地域</th>
+        <th>OPENID</th>
+        <th>真名</th>
+        <th>是否绑定手机</th>
+        <th>手机号</th>
+        <th>车主状态</th>
+        <th>账户余额</th>
+    </tr>
+    {{range .list}}
+    <tr>
+        <td>{{.Id}}</td>
+        <td>{{.Nickname}}</td>
+        <td>{{.Province}}</td>
+        <td>{{.OpenId}}</td>
+        <td>{{.RealName}}</td>
+        <td>{{.IsPhoneVer}}</td>
+        <td>{{.Phone}}</td>
+        <td>{{.IsDriver}}</td>
+        <td>{{.Balance}}</td>
+    </tr>
+    {{end}}
+</table>
+</body>
+</html>

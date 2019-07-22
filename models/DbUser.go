@@ -70,3 +70,7 @@ func (u *User) GetUserNum () (int64, error){
 func (u *User) GetDriverNum () (int64, error){
 	return orm.NewOrm().QueryTable(u).Filter("IsDriver", 2).Count()
 }
+
+func (u *User) GetAllUser(list *[]*User) (int64, error) {
+	return orm.NewOrm().QueryTable(u).All(list)
+}

@@ -419,3 +419,38 @@ func (this *AdminUserController) Report () {
 	this.TplName = "adminReport.html"
 
 }
+
+// @router /admin/userlist [GET]
+func (this *AdminUserController) UserList () {
+	var dbUser models.User
+	var userInfo []*models.User
+
+	num, _ := dbUser.GetAllUser(&userInfo)
+
+	this.Data["num"] = num - 10
+	this.Data["list"] = userInfo
+
+	this.TplName = "userList.html"
+}
+
+// @router /admin/orderlist [GET]
+func (this *AdminUserController) OrderList () {
+	var dbOrder models.Order
+	var orderInfo []*models.Order
+
+	num, _ := dbOrder.GerAllOrder(&orderInfo)
+
+	for i, v := range orderInfo {
+		launchTime64, _ := strconv.ParseInt(v.LaunchTime, 10, 64)
+		tm := time.Unix(launchTime64, 0)
+		orderInfo[i].LaunchTime = tm.Format("2006-01-02 15:04")
+		createTime64, _ := strconv.ParseInt(v.CreateTime, 10, 64)
+		tm1 := time.Unix(createTime64, 0)
+		orderInfo[i].CreateTime = tm1.Format("2006-01-02 15:04")
+	}
+
+	this.Data["num"] = num
+	this.Data["list"] = orderInfo
+
+	this.TplName = "orderList.html"
+}

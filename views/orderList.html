@@ -1,0 +1,63 @@
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>行程列表</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=0">
+    <link rel="stylesheet" href="/css/weui/weui.css"/>
+    <link rel="stylesheet" href="/css/weui/weuix.css"/>
+    <link rel="stylesheet" href="http://8.url.cn/edu/classroom/assets/lib/reset.css">
+    <link rel="stylesheet" href="/css/style.css">
+
+    <script src="/js/weui/zepto.min.js"></script>
+    <script src="/js/weui/zepto.weui.js"></script>
+    <script src="/js/weui/iscroll-lite.js"></script>
+    <script src="/js/weui/lrz.min.js"></script>
+</head>
+<body>
+<div class="page-hd">
+    行程总量：{{.num}}人
+</div>
+<table border="1">
+    <tr>
+        <th>ID</th>
+        <th>用户ID</th>
+        <th>用户</th>
+        <th>昵称</th>
+        <th>真名</th>
+        <th>创建时间</th>
+        <th>出发时间</th>
+        <th>出发地</th>
+        <th>目的地</th>
+        <th>说明</th>
+        <th>备注</th>
+        <th>目的地</th>
+        <th>价格</th>
+        <th>座位数</th>
+        <th>申请人数</th>
+        <th>同意人数</th>
+        <th>拒绝人数</th>
+        <th>状态</th>
+    </tr>
+    {{range .list}}
+    <tr>
+        <td>{{.Id}}</td>
+        <td>{{.User.Id}}</td>
+        <td>{{.User.Nickname}}</td>
+        <td>{{.User.RealName}}</td>
+        <td>{{.CreateTime}}</td>
+        <td>{{.LaunchTime}}</td>
+        <td>{{.SrcId.Level1}}-{{.SrcId.Level2}}-{{.SrcId.Name}}</td>
+        <td>{{.DestId.Level1}}-{{.DestId.Level2}}-{{.DestId.Name}}</td>
+        <td>{{.Price}}</td>
+        <td>{{.ThroughL}}</td>
+        <td>{{.Marks}}</td>
+        <td>{{.PNum}}</td>
+        <td>{{.RequestPnum}}</td>
+        <td>{{.ConfirmPnum}}</td>
+        <td>{{.RefusePnum}}</td>
+        <td>{{.Status}}</td>
+    </tr>
+    {{end}}
+</table>
+</body>
+</html>

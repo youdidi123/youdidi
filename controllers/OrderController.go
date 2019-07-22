@@ -449,6 +449,20 @@ func (this *OrderController) DoRequire () {
 
 // @router /Portal/searchinput [GET]
 func (this *OrderController) SearchInput () {
+	var dbOrder models.Order
+	var orderInfo []*models.Order
+
+	num, _ := dbOrder.GetNewOrder(&orderInfo)
+
+	for i, v := range orderInfo {
+		launchTime64, _ := strconv.ParseInt(v.LaunchTime, 10, 64)
+		tm := time.Unix(launchTime64, 0)
+		orderInfo[i].LaunchTime = tm.Format("2006-01-02 15:04")
+	}
+
+	this.Data["num"] = num
+	this.Data["list"] = orderInfo
+
 	this.Data["tabIndex"] = 0
 	this.TplName = "searchInput.html"
 }
