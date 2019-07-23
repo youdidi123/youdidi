@@ -21,7 +21,6 @@
     <tr>
         <th>ID</th>
         <th>用户ID</th>
-        <th>用户</th>
         <th>昵称</th>
         <th>真名</th>
         <th>创建时间</th>
@@ -30,7 +29,6 @@
         <th>目的地</th>
         <th>说明</th>
         <th>备注</th>
-        <th>目的地</th>
         <th>价格</th>
         <th>座位数</th>
         <th>申请人数</th>
@@ -48,9 +46,9 @@
         <td>{{.LaunchTime}}</td>
         <td>{{.SrcId.Level1}}-{{.SrcId.Level2}}-{{.SrcId.Name}}</td>
         <td>{{.DestId.Level1}}-{{.DestId.Level2}}-{{.DestId.Name}}</td>
-        <td>{{.Price}}</td>
         <td>{{.ThroughL}}</td>
         <td>{{.Marks}}</td>
+        <td>¥{{.Price}}</td>
         <td>{{.PNum}}</td>
         <td>{{.RequestPnum}}</td>
         <td>{{.ConfirmPnum}}</td>

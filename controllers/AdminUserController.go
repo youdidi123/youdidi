@@ -138,7 +138,7 @@ func (this *AdminUserController) UserWithdrew () {
 	var cfWithdrewProcess []*models.Cash_flow
 
 	tm, _ := commonLib.GetTodayBeginTime()
-	endTime := tm - (24 * 60 * 60 * 1)
+	endTime := tm + (24 * 60 * 60 * 1)
 	this.Data["endTime"] = time.Unix(endTime,0).Format("2006-01-02 15:04")
 
 	sum1 := 0.00
