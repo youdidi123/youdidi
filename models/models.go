@@ -81,6 +81,7 @@ type Location struct {
 	Level1 string `column(level1);" json:"level1"`
 	Level2 string `column(level2);" json:"level2"`
 	Orders []*Order `orm:"reverse(many)"`
+	LocationRanks []*LocationRank `orm:"reverse(many)"`
 }
 
 type Order_detail struct {
@@ -170,6 +171,13 @@ type Complain struct {
 	Time string `column(time);" json:"time"`
 }
 
+type LocationRank struct {
+	Id int `orm:"auto;pk;column(id);" json:"id"`
+	Src *Location `json:"src" orm:"rel(fk)"`
+	Dest *Location `json:"dest" orm:"rel(fk)"`
+	Num int `column(num);" json:"num"`
+}
+
 func init () {
 	mysqluser := beego.AppConfig.String("mysqluser")
 	mysqlpass := beego.AppConfig.String("mysqlpass")
@@ -188,6 +196,7 @@ func init () {
 		new(Admin_user),
 		new(Cash_flow),
 		new(Complain),
+		new(LocationRank),
 		)
 	orm.DefaultTimeLoc = time.UTC
 	orm.RegisterDriver("mysql", orm.DRMySQL)
