@@ -509,5 +509,5 @@ func (o *Order) GerAllOrder (list *[]*Order)(int64, error) {
 }
 
 func (o *Order) GetNewOrder(list *[]*Order)(int64, error) {
-	return orm.NewOrm().QueryTable(o).RelatedSel().OrderBy("Status","-LaunchTime").Limit(5).All(list)
+	return orm.NewOrm().QueryTable(o).RelatedSel().OrderBy("-CreateTime").Limit(5).All(list)
 }

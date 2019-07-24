@@ -17,9 +17,26 @@
                 me.find('.dot').children().eq(i).addClass('cur').siblings().removeClass('cur');
             }
         });
+        $.ajax({
+            type:"POST",
+            url:"/Portal/gettop5",
+            dataType:"json",
+            success : function(result) {
+                console.log(result)
+                if (result.code != 0) {
+                }
+                else {
+                    var oList = document.getElementById("zmd");
+                    oList.innerHTML = "<marquee behavior=\"scroll\" direction=\"left\" height=\"20\" scrolldelay=\"150\" align=\"middle\" vspace=\"0\" hspace=\"0\">"+result.msg+"</marquee>";
+                }
+            },
+            error : function(result) {
+            }
+        });
     });
 </script>
-
+<div id="zmd">
+</div>
     <div class="slide" id="slide1">
         <ul>
             <!--<li>

@@ -115,7 +115,7 @@ func SendMsg5 (openId string, templateId int, url string, firstColor string, fir
 	key5color string, key5 string) bool {
 	if (templateId == 4) {
 		url = "http://www.youdidi.vip/Portal/accountflow"
-		remark = "本消息不作为交易凭证，具体交易信息请登陆评查查看"
+		remark = "本消息不作为交易凭证，具体交易信息请登陆平台查看"
 		first = "尊敬的用户您好，您的平台账户发生资金变动，具体信息如下:"
 		key1 = "平台个人账户"
 	}

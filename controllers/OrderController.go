@@ -277,6 +277,10 @@ func (this *OrderController) SearchOrder () {
 	tmEnd := tmStart.Unix() + (1*24*60*60)
 
 	logs.Debug("search order launchTime=%v start=%v end=%v", launchTime , startCode , endCode)
+	if (startCode != 0 && endCode != 0) {
+		var dbLR models.LocationRank
+		dbLR.InsertData(startCode, endCode)
+	}
 	var dbOrder models.Order
 	var orderInfo []*models.Order
 
@@ -1151,5 +1155,29 @@ func (this *OrderController) CancleSingleP () {
 	}
 	this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
 	this.ServeJSON()
+}
 
+// @router /Portal/gettop5 [POST]
+func (this *OrderController) GetTop5 () {
+	var dbLR models.LocationRank
+	var info []*models.LocationRank
+	_, err := dbLR.GetTop5(&info)
+
+	code := 0
+	msg := ""
+
+	if (err != nil) {
+		code = 1
+		msg = err.Error()
+		this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
+		this.ServeJSON()
+		return
+	}
+
+	for _, v := range info {
+		msg = msg + "  --  【" + v.Src.Level2 + "-" + v.Src.Name + "】至【" + v.Dest.Level2 + "-" + v.Dest.Name + "】累积共有【" + strconv.Itoa(v.Num) + "】名乘客关注"
+	}
+
+	this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
+	this.ServeJSON()
 }
