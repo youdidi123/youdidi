@@ -1175,7 +1175,7 @@ func (this *OrderController) GetTop5 () {
 	}
 
 	for _, v := range info {
-		msg = msg + "  --  【" + v.Src.Level2 + "-" + v.Src.Name + "】至【" + v.Dest.Level2 + "-" + v.Dest.Name + "】累积共有【" + strconv.Itoa(v.Num) + "】名乘客关注"
+		msg = msg + "  ---【" + v.Src.Level2 + "-" + v.Src.Name + "】至【" + v.Dest.Level2 + "-" + v.Dest.Name + "】累积共有【" + strconv.Itoa(v.Num) + "】名乘客关注"
 	}
 
 	this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
