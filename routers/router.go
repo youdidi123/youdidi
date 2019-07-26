@@ -133,6 +133,7 @@ func init() {
 	beego.Router("/", &controllers.OrderController{}, "GET:SearchInput")
 	beego.Router("/admin/complaindetail/:id/:utype", &controllers.ComplainController{}, "GET:ComplainDetail")
 	beego.Router("/admin/replycomplain", &controllers.ComplainController{}, "POST:ReplyComplain")
+    beego.Router("/home", &controllers.OrderController{}, "GET:SearchInput")
 	beego.Include(&controllers.WxLoginController{})
 	beego.Include(&controllers.WxPayController{})
 	beego.Include(&controllers.UserCenterController{})
