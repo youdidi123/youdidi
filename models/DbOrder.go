@@ -272,7 +272,7 @@ func (u *Order) DriverGetStart (oid string) bool{
 	if (err4 == nil) {
 		for _, v := range odInfo {
 			commonLib.SendMsg4(v.Passage.OpenId, 6, "http://www.youdidi.vip/Portal/passengerorderdetail/" + strconv.Itoa(v.Id),
-				"#22c32e", "车主已到达出发地点", "请尽快到达出发地点，以免耽误行程",
+				"#22c32e", "车主已确认行程开始", "请尽快到达出发地点，以免耽误行程",
 				"#173177", "同行拼车",
 				"#173177", v.Order.Id,
 				"#22c32e", "车主已到达出发地",
@@ -438,7 +438,7 @@ func (u *Order) DriverCancle (oid string, confirmNum int, driverId string) bool{
 			o.Rollback()
 			return false
 		}
-		balance, _ := strconv.ParseFloat(fmt.Sprintf("%.2f", v.Order.Price * float64(v.SiteNum) + passengerInfo[0].Balance), 64)
+		balance, _ := strconv.ParseFloat(fmt.Sprintf("%.2f", v.Price * float64(v.SiteNum) + passengerInfo[0].Balance), 64)
 
 		_, err7 := o.QueryTable(passenger).Filter("id", v.Passage.Id).Update(orm.Params{"Balance":balance,"OnRoadType":0})
 		if (err7 != nil) {
@@ -450,7 +450,7 @@ func (u *Order) DriverCancle (oid string, confirmNum int, driverId string) bool{
 		accountFlow.Type = 4
 		accountFlow.User = &User{Id:passengerInfo[0].Id}
 		accountFlow.Oid = oid
-		accountFlow.Money, _ = strconv.ParseFloat(fmt.Sprintf("%.2f", v.Order.Price * float64(v.SiteNum)), 64)
+		accountFlow.Money, _ = strconv.ParseFloat(fmt.Sprintf("%.2f", v.Price * float64(v.SiteNum)), 64)
 		accountFlow.Time = strconv.FormatInt(time.Now().Unix(),10)
 		accountFlow.Balance = balance
 
@@ -509,5 +509,5 @@ func (o *Order) GerAllOrder (list *[]*Order)(int64, error) {
 }
 
 func (o *Order) GetNewOrder(list *[]*Order)(int64, error) {
-	return orm.NewOrm().QueryTable(o).RelatedSel().OrderBy("-CreateTime").Limit(5).All(list)
+	return orm.NewOrm().QueryTable(o).RelatedSel().OrderBy("-LaunchTime").Limit(10).All(list)
 }

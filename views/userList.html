@@ -20,6 +20,7 @@
 <table border="1">
     <tr>
         <th>ID</th>
+        <th>头像</th>
         <th>昵称</th>
         <th>地域</th>
         <th>OPENID</th>
@@ -32,6 +33,7 @@
     {{range .list}}
     <tr>
         <td>{{.Id}}</td>
+        <td><img src="{{.WechatImg}}"></td>
         <td>{{.Nickname}}</td>
         <td>{{.Province}}</td>
         <td>{{.OpenId}}</td>

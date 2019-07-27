@@ -32,7 +32,7 @@ type User struct {
 	IsVer bool `orm:"column(isVer)" json:"isVer"`
 	RealName string `orm:"column(realName)" json:"realName"`
 	IsStaff bool `orm:"column(isStaff)" json:"isStaff"`
-	OnRoadType int `orm:"column(onRoadType)" json:"onRoadType"`
+	OnRoadType int `orm:"column(onRoadType)" json:"onRoadType"` // 1：乘客行程 2：车主行程 3：乘客人找车
 	OrderNumAsP int `orm:"column(orderNumAsP)" json:"orderNumAsP"`
 	OrderNumAsD int `orm:"column(orderNumAsD)" json:"orderNumAsD"`
 	StarAsP int `orm:"column(starAsP)" json:"starAsP"`
@@ -48,6 +48,7 @@ type User struct {
 	Order_details []*Order_detail `orm:"reverse(many)"`
 	Account_flows []*Account_flow `orm:"reverse(many)"`
 	Cash_flows []*Cash_flow `orm:"reverse(many)"`
+	Passenger_orders []*PassengerOrder `orm:"reverse(many)"`
 }
 
 type Order struct {
@@ -82,6 +83,7 @@ type Location struct {
 	Level2 string `column(level2);" json:"level2"`
 	Orders []*Order `orm:"reverse(many)"`
 	LocationRanks []*LocationRank `orm:"reverse(many)"`
+	Passenger_orders []*PassengerOrder `orm:"reverse(many)"`
 }
 
 type Order_detail struct {
@@ -102,6 +104,7 @@ type Order_detail struct {
 	IsPayed bool `column(isPayed);" json:"isPayed"`
 	CancleReason string `column(cancleReason);" json:"cancleReason"`
 	Chat string `column(chat);" json:"chat"`
+	Price float64 `column(price);" json:"price"`
 }
 
 type Account_flow struct {
@@ -178,6 +181,22 @@ type LocationRank struct {
 	Num int `column(num);" json:"num"`
 }
 
+type PassengerOrder struct {
+	Id int `orm:"auto;pk;column(id);" json:"id"`
+	User *User `json:"user" orm:"rel(fk)"`
+	CreateTime string `column(createTime);" json:"createTime"`
+	LaunchTime string `column(launchTime);" json:"launchTime"`
+	PNum int `column(pNum);" json:"pNum"`
+	SrcId *Location `json:"srcId" orm:"rel(fk)"`
+	DestId *Location `json:"DestId" orm:"rel(fk)"`
+	SrcLocationId int64 `column(srcLocationId);" json:"srcLocationId"`
+	DestLocationId int64 `column(destLocationId);" json:"destLocationId"`
+	ThroughL string `column(throughL);" json:"throughL"`
+	Mark string `column(mark);" json:"mark"`
+	Price float64 `column(price);" json:"price"`
+	Status int `column(status);" json:"status"` // 0:等待接单 1:已被抢单 2:完成 3:取消
+}
+
 func init () {
 	mysqluser := beego.AppConfig.String("mysqluser")
 	mysqlpass := beego.AppConfig.String("mysqlpass")
@@ -197,6 +216,7 @@ func init () {
 		new(Cash_flow),
 		new(Complain),
 		new(LocationRank),
+		new(PassengerOrder),
 		)
 	orm.DefaultTimeLoc = time.UTC
 	orm.RegisterDriver("mysql", orm.DRMySQL)

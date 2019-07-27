@@ -40,12 +40,44 @@
         function gotoDetail (oid) {
             this.window.location.href="/Portal/passengerorderdetail/" + oid;
         }
+        function cancle (poId) {
+            $.confirm("客官不再等等了？", "确认取消?", function() {
+                $(".loading2").show();
+                $.ajax({
+                    type:"POST",
+                    url:"/Portal/canclepo",
+                    data:{
+                        id:poId ,
+                    },
+                    dataType:"json",
+                    success : function(result) {
+                        console.log(result)
+                        if (result.code != 0) {
+                            $(".loading2").hide();
+                            $.alert(result.msg,"操作异常");
+                        }
+                        else {
+                            $(".loading2").hide();
+                            $.toast("操作成功", 3000);
+                            window.location.href = "/Portal/showpassengerorder";
+
+                        }
+                    },
+                    error : function(result) {
+                        $(".loading2").hide();
+                        $.alert("网络繁忙，请重试","操作异常");
+                    }
+                });
+            }, function() {
+                //取消操作
+            });
+        }
     </script>
 </head>
 
 <body ontouchstart onload="init()">
 {{template "sildePic.html" .}}
-
+<div class="loading2 hide" data-text="处理中..."></div>
 
 <div class="page-bd-15">
     <div class="weui-cells__title">
@@ -56,6 +88,50 @@
         <div class="weui-cells__title">您还没有进行过拼车，快去查查有没有需要的行程把</div>
     {{else}}
         <div class="weui-cells__title">历史行程列表</div>
+    <div class="page-bd">
+    {{range .poInfo}}
+        <div class="weui-form-preview">
+            <div class="weui-form-preview__hd">
+                <label class="weui-form-preview__label f-green">
+                    等待车主抢单
+                </label>
+                <em class="weui-form-preview__value f-orange">人找车</em>
+            </div>
+        </div>
+        <div class="weui-form-preview__bd bg-gray">
+            <div class="weui-form-preview__item">
+                <label class="weui-form-preview__label">出发时间：</label>
+                <label class="weui-form-preview__label">{{.LaunchTime}}</label>
+            </div>
+            <div class="weui-form-preview__item">
+                <label class="weui-form-preview__label">出发地：</label>
+                <label class="weui-form-preview__label">{{.SrcId.Level1}} {{.SrcId.Level2}} {{.SrcId.Name}}</label>
+            </div>
+            <div class="weui-form-preview__item">
+                <label class="weui-form-preview__label">目的地：</label>
+                <label class="weui-form-preview__label">{{.DestId.Level1}} {{.DestId.Level2}} {{.DestId.Name}}</label>
+            </div>
+            <div class="weui-form-preview__item">
+                <label class="weui-form-preview__label">乘车人数：</label>
+                <label class="weui-form-preview__label">{{.PNum}}</label>
+            </div>
+            <div class="weui-form-preview__item">
+                <label class="weui-form-preview__label">支付费用：</label>
+                <label class="weui-form-preview__label">{{.Price}}元/人</label>
+            </div>
+            <div class="weui-form-preview__item">
+                <label class="weui-form-preview__label">上车地点：</label>
+                <label class="weui-form-preview__label">{{.ThroughL}}</label>
+            </div>
+            <div class="weui-form-preview__item">
+                <label class="weui-form-preview__label">行程说明：</label>
+                <label class="weui-form-preview__label">{{.Mark}}</label>
+            </div>
+            <div class="weui-form-preview__ft">
+                <button type="submit" class="weui-form-preview__btn weui-form-preview__btn_danger" onclick="cancle({{.Id}})">立即取消</button>
+            </div>
+        </div>
+    {{end}}
     {{range .orderInfo}}
     <div class="weui-form-preview" onclick="gotoDetail({{.Id}})">
         <div class="weui-form-preview__hd">
@@ -72,8 +148,6 @@
                     {{end}}
                 {{end}}
             {{end}}
-
-
         </div>
         <div class="weui-form-preview__bd bg-gray">
             <div class="weui-form-preview__item">
@@ -99,6 +173,7 @@
         </div>
     </div>
     {{end}}
+    </div>
     {{end}}
 
 
