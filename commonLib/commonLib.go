@@ -391,3 +391,14 @@ func FormatMoney (m float64) float64{
 	r, _ := strconv.ParseFloat(fmt.Sprintf("%.2f", m), 64)
 	return r
 }
+
+func TransTimeStoInt64 (tm string) int64{
+	tmUnix, _ := time.ParseInLocation("2006-01-02 15:04:05", tm, time.Local)
+	return tmUnix.Unix()
+}
+
+func FormatUnixToStr (tm string) string  {
+	tm64, _ := strconv.ParseInt(tm, 10, 64)
+	tmUnix := time.Unix(tm64, 0)
+	return tmUnix.Format("2006-01-02 15:04")
+}

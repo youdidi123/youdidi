@@ -192,9 +192,9 @@
             var now = new Date();
             var nowTime = now.getTime() ;
 
-            if (launchTime*1000 - nowTime > 30 * 60 * 1000) {
+            if (launchTime*1000 - nowTime > 40 * 60 * 1000) {
             //if (launchTime*1000 - nowTime < 10 * 60 * 1000) {
-                $.alert("距行程开始前30分钟内才确认出发哦","现在不能操作哦",function(){
+                $.alert("距行程开始前40分钟内才确认出发哦","现在不能操作哦",function(){
                     return;
                 });
             }else if (requestNum > confirmNum) {

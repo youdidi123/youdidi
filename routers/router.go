@@ -145,4 +145,5 @@ func init() {
 	beego.Include(&controllers.AdminUserController{})
 	beego.Include(&controllers.ComplainController{})
 	beego.Include(&controllers.CommonToolsController{})
+	beego.Include(&controllers.PassengerOrderController{})
 }

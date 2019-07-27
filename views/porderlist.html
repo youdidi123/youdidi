@@ -1,0 +1,168 @@
+<!doctype html>
+<script>
+    function digPhone(pid) {
+        $("#tel-"+pid).trigger("click");
+    }
+    function qiangdan(oid) {
+        $(".loading2").show();
+        $.ajax({
+            type:"POST",
+            url:"/Portal/qiangdanbefore",
+            data:{
+                oid:oid
+            },
+            dataType:"json",
+            success : function(result) {
+                console.log(result)
+                if (result.code != 0) {
+                    $(".loading2").hide();
+                    $.alert(result.msg,"操作异常");
+                }
+                else {
+                    if (result.ops == 1) { //车主没有行程，提示发单
+                        $(".loading2").hide();
+                        $.modal({
+                            title: "操作确认",
+                            text: "您当前尚没有创建车主行程<br>可根据此行程内容自动创建车主行程",
+                            buttons: [
+                                { text: "自动创建", onClick: function(){
+                                        createAndConfirm(oid);
+                                    }},
+                                { text: "手工创建", className: "default", onClick: function(){
+                                        window.location.href = "/Portal/createorder";
+                                    }},
+                            ]
+                        });
+                    } else if (result.ops == 2) { //行程完全匹配，直接发单
+                        doqiangdan(oid)
+                    } else if (result.ops == 3) {//行程不完全匹配，提示后发单
+                        $(".loading2").hide();
+                        $.modal({
+                            title: "操作确认",
+                            text: "您的车主行程内容在"+result.msg+"上与乘客行程存在差异，是否继续抢单？",
+                            buttons: [
+                                { text: "继续抢单", onClick: function(){
+                                        doqiangdan(oid)
+                                    }},
+                                { text: "取消抢单", className: "default", onClick: function(){
+
+                                    }},
+                            ]
+                        });
+                    }
+                }
+            },
+            error : function(result) {
+                $(".loading2").hide();
+                $.alert("网络繁忙，请重试","操作异常");
+            }
+        });
+    }
+
+    function createAndConfirm(oid) {
+        $(".loading2").hide();
+        $.ajax({
+            type:"POST",
+            url:"/Portal/createandconfirm",
+            data:{
+                oid:oid
+            },
+            dataType:"json",
+            success : function(result) {
+                console.log(result)
+                if (result.code != 0) {
+                    $(".loading2").hide();
+                    $.alert(result.msg,"操作异常");
+                }
+                else {
+                    $(".loading2").hide();
+                    $.toast("操作成功", 3000);
+                    window.location.href = result.url;
+                }
+            },
+            error : function(result) {
+                $(".loading2").hide();
+                $.alert("网络繁忙，请重试","操作异常");
+            }
+        });
+    }
+
+    function doqiangdan(oid) {
+        $(".loading2").hide();
+        $.ajax({
+            type:"POST",
+            url:"/Portal/driverqiangdan",
+            data:{
+                oid:oid
+            },
+            dataType:"json",
+            success : function(result) {
+                console.log(result)
+                if (result.code != 0) {
+                    $(".loading2").hide();
+                    $.alert(result.msg,"操作异常");
+                }
+                else {
+                    $(".loading2").hide();
+                    $.toast("操作成功", 3000);
+                    window.location.href = result.url;
+                }
+            },
+            error : function(result) {
+                $(".loading2").hide();
+                $.alert("网络繁忙，请重试","操作异常");
+            }
+        });
+    }
+</script>
+<div class="loading2 hide" data-text="抢单中..."></div>
+
+<div class="page-bd">
+    {{if lt .num 1}}
+        <div class="weui-cells__title">暂时还没有准备出发的乘客，请稍后再试</div>
+    {{else}}
+        <div class="weui-cells__title">最新发布的乘客拼车请求</div>
+        <div class="weui-panel weui-panel_access">
+            <div class="weui-panel__bd">
+                {{range .list}}
+                <a href="javascript:void(0);" class="weui-media-box weui-media-box_appmsg">
+                    <div class="weui-media-box__hd">
+                        <div class="weui-avatar-circle">
+                            <img src="{{.User.WechatImg}}">
+                        </div>
+                    </div>
+                    <div class="weui-media-box__bd">
+                        <h2 class="weui-media-box__title">{{.SrcId.Level2}}-{{.SrcId.Name}} 至 {{.DestId.Level2}}-{{.DestId.Name}}</h2>
+                        <h2 class="weui-media-box__title">出发时间：{{.LaunchTime}}</h2>
+                        <h2 class="weui-media-box__title">乘车人数：{{.PNum}}</h2>
+                        <h2 class="weui-media-box__title">支付费用：{{.Price}}元/人</h2>
+                        <h2 class="weui-media-box__title">上车地点：{{.ThroughL}}</h2>
+                        <h2 class="weui-media-box__title">行程备注：{{.Mark}}</h2>
+                        <h2 class="weui-media-box__title">乘客昵称：{{.User.Nickname}}</h2>
+                    </div>
+                </a>
+                    {{if eq .Status 0}}
+                        <div class="weui-form-preview__ft">
+                            <button type="submit" class="weui-form-preview__btn weui-form-preview__btn_primary" onclick="qiangdan({{.Id}})">确认同行</button>
+                            <button type="submit" class="weui-form-preview__btn weui-form-preview__btn_default" onclick="digPhone({{.User.Id}})">电话咨询</button>
+                        </div>
+                        <a href="tel:{{.User.Phone}}" id="tel-{{.User.Id}}" type="hidden"></a>
+                    {{else if eq .Status 1 2}}
+                        <div class="weui-form-preview__ft">
+                            <button type="submit" class="weui-form-preview__btn weui-form-preview__btn_default">已被抢单</button>
+                        </div>
+                    {{else if eq .Status 3}}
+                        <div class="weui-form-preview__ft">
+                            <button type="submit" class="weui-form-preview__btn weui-form-preview__btn_default">乘客取消</button>
+                        </div>
+                    {{else if eq .Status 4}}
+                        <div class="weui-form-preview__ft">
+                            <button type="submit" class="weui-form-preview__btn weui-form-preview__btn_default">行程超时</button>
+                        </div>
+                    {{end}}
+
+                {{end}}
+            </div>
+        </div>
+    {{end}}
+</div>

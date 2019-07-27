@@ -55,7 +55,7 @@
             $("#startCode").val(startCode);
             $("#endCode").val(endCode);
             $(".loading2").show();
-            window.location.href = "/Portal/searchorder/"+startCode+"/"+endCode+"/"+launchTime;
+            window.location.href = "/Portal/searchporder/"+startCode+"/"+endCode+"/"+launchTime;
         }
 
         function create() {
@@ -128,14 +128,8 @@
         </div>
     </div>
     <div class="weui-btn-area">
-        <a href="javascript:;" class="weui-btn weui-btn_plain-primary" onclick="submit()">寻找车主行程</a>
-        <a href="javascript:;" class="weui-btn weui-btn_primary" onclick="create()">发布拼车请求</a>
+        <a href="javascript:;" class="weui-btn weui-btn_plain-primary" onclick="submit()">精确查找</a>
     </div>
-</div>
-<div class="weui-cells__title">最新发布车主行程</div>
-{{template "dorderlist.html" .}}
-<div class="weui-loadmore weui-loadmore_line">
-    <span class="weui-loadmore__tips">选择具体路线，查看更多车主行程</span>
 </div>
 
 <script src="/js/weui/picker.city.js"></script>
@@ -153,7 +147,10 @@
         }
     });
 </script>
-
+{{template "porderlist.html" .}}
+<div class="weui-loadmore weui-loadmore_line">
+    <span class="weui-loadmore__tips">选择具体路线，查看更多乘客行程</span>
+</div>
 {{template "bottomNav.html" .}}
 
 </body>

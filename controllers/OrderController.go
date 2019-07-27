@@ -92,7 +92,7 @@ func (this *OrderController) DoCreateOrder () {
 	var userInfo []*models.User
 
 
-	userIdS := this.GetString("uid")
+	userIdS, _ := this.Ctx.GetSecureCookie("qyt","qyt_id")
 
 	_, num := dbUser.GetUserInfoFromId(userIdS, &userInfo)
 
@@ -331,6 +331,13 @@ func (this *OrderController) DoRequire () {
 		this.Data["json"] = map[string]interface{}{"code":code, "msg":msg};
 		this.ServeJSON()
 		return
+	} else if (onRoadType == 3) {
+		code = 8
+		msg = "为避免行程冲突，请先取消您当前的拼车请求申请"
+		logs.Debug("onroadType=%v", onRoadType)
+		this.Data["json"] = map[string]interface{}{"code": code, "msg": msg};
+		this.ServeJSON()
+		return
 	}
 
 	var dbOrderDetail models.Order_detail
@@ -413,6 +420,7 @@ func (this *OrderController) DoRequire () {
 	od.Passage = &models.User{Id:userId}
 	od.Driver = &models.User{Id:orderInfo[0].User.Id}
 	od.SiteNum = count
+	od.Price = orderInfo[0].Price
 
 	if (orderInfo[0].DoRequire(&od, userIdS, count , mark)) {
 		DelOrderLock(oid)
@@ -465,7 +473,7 @@ func (this *OrderController) SearchInput () {
 	}
 
 	this.Data["num"] = num
-	this.Data["list"] = orderInfo
+	this.Data["orders"] = orderInfo
 
 	this.Data["tabIndex"] = 0
 	this.TplName = "searchInput.html"
@@ -529,14 +537,21 @@ func (this *OrderController) ShowPassengerOrder () {
 	userId, _ := this.Ctx.GetSecureCookie("qyt", "qyt_id")
 	var dbOrderDetail models.Order_detail
 	var orderDetailInfo []*models.Order_detail
+	var dbPo models.PassengerOrder
+	var poInfo []*models.PassengerOrder
+
+	numPo, _ := dbPo.GetLastOrdersById(userId, &poInfo)
+	if (numPo > 0) {
+		for i, v := range poInfo {
+			poInfo[i].LaunchTime = commonLib.FormatUnixToStr(v.LaunchTime)
+		}
+	}
 
 	num := dbOrderDetail.GetOrderDetailFromPassengerId(userId , &orderDetailInfo)
 
 	if (num > 0) {
 		for i, v := range orderDetailInfo {
-			launchTime64, _ := strconv.ParseInt(v.Order.LaunchTime, 10, 64)
-			tm := time.Unix(launchTime64, 0)
-			orderDetailInfo[i].Order.LaunchTime = tm.Format("2006-01-02 15:04")
+			orderDetailInfo[i].Order.LaunchTime = commonLib.FormatUnixToStr(v.Order.LaunchTime)
 		}
 	}
 
@@ -561,7 +576,8 @@ func (this *OrderController) ShowPassengerOrder () {
 	}
 
 	this.Data["tabIndex"] = 1
-	this.Data["orderNum"] = num
+	this.Data["orderNum"] = num + numPo
+	this.Data["poInfo"] = poInfo
 	this.Data["orderInfo"] =  orderDetailInfo
 	this.Data["StatusText"] = odStatusText
 	this.Data["onRoadType"] = onRoadType

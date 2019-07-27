@@ -64,7 +64,7 @@ func (u *Order_detail) GetOrderDetailFromOrderId (id string , list *[]*Order_det
 
 func (u *Order_detail) GetOrderDetailFromId (id string ,list *[]*Order_detail) int64 {
 	num , _ := orm.NewOrm().QueryTable(u).RelatedSel().
-		Filter("id" , id).
+		Filter("id" , id).OrderBy("status").
 		All(list)
 	return num
 }
@@ -238,9 +238,9 @@ func (u *Order_detail) PassengerConfirm(odid string) bool {
 
 	//修改车主数据
 	infoCostRatio, _ := beego.AppConfig.Float("infoCostRatio")
-	allCost := float64(odInfo[0].SiteNum) * odInfo[0].Order.Price
-	infoCost := allCost * infoCostRatio
-	driverCost := allCost - infoCost
+	allCost := commonLib.FormatMoney(float64(odInfo[0].SiteNum) * odInfo[0].Price)
+	infoCost := commonLib.FormatMoney(allCost * infoCostRatio)
+	driverCost := commonLib.FormatMoney(allCost - infoCost)
 
 
 	balance := driverInfo[0].Balance + driverCost
@@ -265,7 +265,7 @@ func (u *Order_detail) PassengerConfirm(odid string) bool {
 	afDriver.Time = strconv.FormatInt(time.Now().Unix(),10)
 	afDriver.Money, _ = strconv.ParseFloat(fmt.Sprintf("%.2f", driverCost), 64)
 
-	afPassenger.Money, _ = strconv.ParseFloat(fmt.Sprintf("%.2f", float64(odInfo[0].SiteNum) * odInfo[0].Order.Price), 64)
+	afPassenger.Money, _ = strconv.ParseFloat(fmt.Sprintf("%.2f", float64(odInfo[0].SiteNum) * odInfo[0].Price), 64)
 	afPassenger.Time = strconv.FormatInt(time.Now().Unix(),10)
 	afPassenger.Oid = odInfo[0].Order.Id
 	afPassenger.Type = 3
@@ -341,7 +341,6 @@ func (u *Order_detail) PassengerCancle(odid string) bool {
 
 	isAllBack := false
 	is80Back := false
-	is0Back := false
 	driverIncome := ""
 	passengerIncome := ""
 	weiyuejin := ""
@@ -412,7 +411,7 @@ func (u *Order_detail) PassengerCancle(odid string) bool {
 	afPassenger2.User = passengerInfo[0]
 	afPassenger2.Oid = odInfo[0].Order.Id
 
-	allCost := float64(odInfo[0].SiteNum) * odInfo[0].Order.Price
+	allCost := float64(odInfo[0].SiteNum) * odInfo[0].Price
 	allCost, _ = strconv.ParseFloat(fmt.Sprintf("%.2f", allCost), 64)
 
 	passengerBalance := passengerInfo[0].Balance
@@ -478,72 +477,9 @@ func (u *Order_detail) PassengerCancle(odid string) bool {
 			isAllBack = true
 			passengerIncome = strconv.FormatFloat(afPassenger.Money, 'G' , -1,64)
 			passengerB = strconv.FormatFloat(afPassenger.Balance, 'G' , -1,64)
-		} else if (currentTime > launchTime && odInfo[0].Status > 1) {
-			//在出发时间之后，且车主以确认到达，扣除100%
-			infoCost := allCost * infoCostRatio
-			infoCost, _ = strconv.ParseFloat(fmt.Sprintf("%.2f", infoCost), 64)
-
-			driverBalance = driverBalance + (allCost - infoCost)
-			//给司机加钱
-			driverBalance, _ = strconv.ParseFloat(fmt.Sprintf("%.2f", driverBalance), 64)
-			_, err4 := o.QueryTable(dbUser).Filter("Id", odInfo[0].Driver.Id).Update(orm.Params{
-				"Balance": driverBalance,
-			})
-			if (err4 != nil) {
-				logs.Error("update dirver info fail pid=%v" , odInfo[0].Driver.Id)
-				o.Rollback()
-				return false
-			}
-			afDriver.Money, _ = strconv.ParseFloat(fmt.Sprintf("%.2f", allCost - infoCost), 64)
-			afDriver.Balance = driverBalance
-			afDriver.Type = 7
-			afDriver.Time = strconv.FormatInt(currentTime, 10)
-			_, err5 := o.Insert(&afDriver)
-			if (err5 != nil) {
-				logs.Error("set account flow fail")
-				o.Rollback()
-				return false
-			}
-			afDriver2.Balance = driverBalance
-			afDriver2.Time = strconv.FormatInt(currentTime, 10)
-			afDriver2.Money = infoCost
-			afDriver2.Type = 9
-			_, err8 := o.Insert(&afDriver2)
-			if (err8 != nil) {
-				logs.Error("set account flow fail")
-				o.Rollback()
-				return false
-			}
-			//修改乘客信息
-			_, err6 := o.QueryTable(dbUser).Filter("Id", odInfo[0].Passage.Id).Update(orm.Params{
-				"OnRoadType": 0,
-				"OrderNumAsP":orderNumAsP,
-				"CancleOasP": passengerInfo[0].CancleOasP + 1,
-			})
-			if (err6 != nil) {
-				logs.Error("update passanger info fail pid=%v" , odInfo[0].Passage.Id)
-				o.Rollback()
-				return false
-			}
-			afPassenger.Money = allCost
-			afPassenger.Type = 6
-			afPassenger.Balance = passengerBalance
-			afPassenger.Time = strconv.FormatInt(currentTime, 10)
-			_, err7 := o.Insert(&afPassenger)
-			if (err7 != nil) {
-				logs.Error("set account flow fail")
-				o.Rollback()
-				return false
-			}
-			is0Back = true
-			weiyuejin = strconv.FormatFloat(afPassenger.Money, 'G' , -1,64)
-			shouxufei = strconv.FormatFloat(infoCost, 'G' , -1,64)
-			driverIncome = strconv.FormatFloat(afDriver.Money, 'G' , -1,64)
-			passengerIncome = "0"
-			driverB = strconv.FormatFloat(driverBalance, 'G' , -1,64)
-			passengerB = strconv.FormatFloat(passengerBalance, 'G' , -1,64)
-		} else {
+		}  else {
 			//其余情况都扣20%给车主
+			// 扣款100%太严格了，返款20%意思一下就行
 			kCost := allCost * passangerCancleRatio
 			infoCost := kCost * infoCostRatio
 			kCost, _ = strconv.ParseFloat(fmt.Sprintf("%.2f", kCost), 64)
@@ -624,8 +560,6 @@ func (u *Order_detail) PassengerCancle(odid string) bool {
 		}
 	}
 
-
-
 	errcommit := o.Commit()
 
 	if (errcommit != nil) {
@@ -661,21 +595,6 @@ func (u *Order_detail) PassengerCancle(odid string) bool {
 			4, "", "#173177", "", "",
 			"#173177", "",
 			"#22c32e","收款违约金20%",
-			"#22c32e", "收款成功",
-			"#173177", driverIncome+"(信息费：" + shouxufei + ")",
-			"#173177", driverB)
-	} else if (is0Back) {
-		commonLib.SendMsg5(passengerInfo[0].OpenId,
-			4, "", "#173177", "", "",
-			"#173177", "",
-			"#ff0000","扣除违约金100%",
-			"#22c32e", "扣除成功",
-			"#173177", weiyuejin,
-			"#173177", passengerB)
-		commonLib.SendMsg5(driverInfo[0].OpenId,
-			4, "", "#173177", "", "",
-			"#173177", "",
-			"#22c32e","收款违约金100%",
 			"#22c32e", "收款成功",
 			"#173177", driverIncome+"(信息费：" + shouxufei + ")",
 			"#173177", driverB)
@@ -786,7 +705,7 @@ func (u *Order_detail) CancleSingP(odid string, pid string) bool {
 	}
 
 	balance := userInfo[0].Balance
-	money, _ := strconv.ParseFloat(fmt.Sprintf("%.2f", orderInfo[0].Price * float64(odidInfo[0].SiteNum)), 64)
+	money, _ := strconv.ParseFloat(fmt.Sprintf("%.2f", odidInfo[0].Price * float64(odidInfo[0].SiteNum)), 64)
 	balance = balance + money
 
 	_,err4 := o.QueryTable(dbUser).Filter("Id", odidInfo[0].Passage.Id).Update(orm.Params{
@@ -848,5 +767,23 @@ func (u *Order_detail) CancleSingP(odid string, pid string) bool {
 		o.Rollback()
 		return false
 	}
+
+	commonLib.SendMsg5(odidInfo[0].Passage.OpenId, 3, "http://www.youdidi.vip/Portal/passengerorderdetail/"+strconv.Itoa(odidInfo[0].Id),
+		"#ff0000", "抱歉，车主已操作取消行程", "为避免对您的影响，请尽快查询其他车主发起的行程",
+		"#173177", odidInfo[0].Passage.Nickname,
+		"#173177", odidInfo[0].Order.SrcId.Level1 + "-" + odidInfo[0].Order.SrcId.Level2 + "-" + odidInfo[0].Order.SrcId.Name,
+		"#173177", odidInfo[0].Order.DestId.Level1 + "-" + odidInfo[0].Order.DestId.Level2 + "-" + odidInfo[0].Order.DestId.Name,
+		"#173177", "抱歉，行程临时有变",
+		"#173177", time.Now().Format("2006-01-02 15:04"))
+
+	moneyStr := strconv.FormatFloat(dbAf.Money, 'G' , -1,64)
+	balanceStr := strconv.FormatFloat(dbAf.Balance, 'G' , -1,64)
+	commonLib.SendMsg5(odidInfo[0].Passage.OpenId,
+		4, "", "#173177", "", "",
+		"#173177", "",
+		"#22c32e","车费退回",
+		"#22c32e", "退回成功",
+		"#173177", moneyStr,
+		"#173177", balanceStr)
 	return true
 }
