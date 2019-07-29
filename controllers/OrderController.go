@@ -474,7 +474,7 @@ func (this *OrderController) SearchInput () {
 
 	this.Data["num"] = num
 	this.Data["orders"] = orderInfo
-
+	this.Data["StatusText"] = statusText
 	this.Data["tabIndex"] = 0
 	this.TplName = "searchInput.html"
 }
